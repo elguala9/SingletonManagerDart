@@ -3,95 +3,102 @@ import 'package:singleton_manager_test/singleton_manager_test.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('SingletonManager - Lifecycle', () {
-    late SingletonManager<String> manager;
+  group('RegistryManager - Lifecycle Management', () {
+    late RegistryManager<String, SimpleService> registry;
 
     setUp(() {
-      manager = createTestManager();
+      registry = createTestRegistry();
     });
 
     tearDown(() {
-      manager.clear();
+      cleanupRegistry(registry);
     });
 
-    test('remove deletes a singleton', () {
-      manager.register('service', () => TestService());
-      expect(manager.contains('service'), isTrue);
+    test('destroy() is called on manually destroyed items', () {
+      final service = SimpleService();
+      registry.register('key1', service);
 
-      manager.remove('service');
+      service.destroy();
 
-      expect(manager.contains('service'), isFalse);
+      expect(service.destroyed, isTrue);
     });
 
-    test('remove throws StateError if singleton not found', () {
-      expect(
-        () => manager.remove('nonexistent'),
-        throwsStateError,
-      );
+    test('destroyAll() calls destroy on all registered items', () {
+      final service1 = SimpleService(name: 'service1');
+      final service2 = SimpleService(name: 'service2');
+
+      registry.register('key1', service1);
+      registry.register('key2', service2);
+
+      registry.destroyAll();
+
+      expect(service1.destroyed, isTrue);
+      expect(service2.destroyed, isTrue);
     });
 
-    test('clear removes all singletons', () {
-      manager.register('service1', () => TestService());
-      manager.register('service2', () => TestService());
-      manager.registerLazy('service3', () => TestService());
+    test('destroyAll() clears the registry', () {
+      final service1 = SimpleService();
+      final service2 = SimpleService();
 
-      expect(manager.length, equals(3));
+      registry.register('key1', service1);
+      registry.register('key2', service2);
 
-      manager.clear();
+      expect(registry.registrySize, equals(2));
 
-      expect(manager.isEmpty, isTrue);
-      expect(manager.length, equals(0));
+      registry.destroyAll();
+
+      expect(registry.isEmpty, isTrue);
+      expect(registry.registrySize, equals(0));
     });
 
-    test('clear allows re-registering same keys', () {
-      manager.register('service', () => TestService(name: 'first'));
-      final first = manager.get('service');
+    test('clearRegistry() empties the registry without destroying', () {
+      final service = SimpleService();
+      registry.register('key1', service);
 
-      manager.clear();
+      registry.clearRegistry();
 
-      manager.register('service', () => TestService(name: 'second'));
-      final second = manager.get('service');
-
-      expect(first.name, equals('first'));
-      expect(second.name, equals('second'));
-      expect(first, isNot(same(second)));
+      expect(registry.isEmpty, isTrue);
+      expect(service.destroyed, isFalse);
     });
 
-    test('keys returns all registered keys', () {
-      manager.register('service1', () => TestService());
-      manager.register('service2', () => TestService());
-      manager.registerLazy('service3', () => TestService());
+    test('destroyAll() handles lazy entries correctly', () {
+      final lazyRegistry = createTestRegistry<String, SimpleService>();
 
-      final keys = manager.keys.toList();
+      lazyRegistry.registerLazy('lazy1', () => SimpleService(name: 'lazy1'));
+      lazyRegistry.registerLazy('lazy2', () => SimpleService(name: 'lazy2'));
 
-      expect(keys, containsAll(['service1', 'service2', 'service3']));
-      expect(keys.length, equals(3));
+      // Access one to initialize it
+      final initializedService = lazyRegistry.getInstance('lazy1');
+
+      lazyRegistry.destroyAll();
+
+      expect(initializedService.destroyed, isTrue);
+      expect(lazyRegistry.isEmpty, isTrue);
+
+      cleanupRegistry(lazyRegistry);
     });
 
-    test('length counts all singletons', () {
-      expect(manager.length, equals(0));
+    test('multiple destroy calls are safe', () {
+      final service = SimpleService();
+      registry.register('key1', service);
 
-      manager.register('service1', () => TestService());
-      expect(manager.length, equals(1));
+      registry.destroyAll();
+      // This should not throw even though already destroyed
+      expect(service.destroyed, isTrue);
 
-      manager.register('service2', () => TestService());
-      expect(manager.length, equals(2));
-
-      manager.registerLazy('service3', () => TestService());
-      expect(manager.length, equals(3));
-
-      manager.remove('service1');
-      expect(manager.length, equals(2));
+      // Manually destroying again should be safe (no exception)
+      service.destroy();
+      expect(service.destroyed, isTrue);
     });
 
-    test('isEmpty returns correct state', () {
-      expect(manager.isEmpty, isTrue);
+    test('destroy on unregister', () {
+      final service = SimpleService();
+      registry.register('key1', service);
 
-      manager.register('service', () => TestService());
-      expect(manager.isEmpty, isFalse);
+      final unregistered = registry.unregister('key1');
 
-      manager.clear();
-      expect(manager.isEmpty, isTrue);
+      expect(unregistered, isNotNull);
+      expect(service.destroyed, isFalse); // unregister doesn't destroy
     });
   });
 }

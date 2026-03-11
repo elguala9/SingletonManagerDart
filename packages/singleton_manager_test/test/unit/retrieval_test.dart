@@ -3,79 +3,105 @@ import 'package:singleton_manager_test/singleton_manager_test.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('SingletonManager - Retrieval', () {
-    late SingletonManager<String> manager;
+  group('RegistryManager - Retrieval Methods', () {
+    late RegistryManager<String, SimpleService> registry;
 
     setUp(() {
-      manager = createTestManager();
+      registry = createTestRegistry();
     });
 
     tearDown(() {
-      manager.clear();
+      cleanupRegistry(registry);
     });
 
-    test('get returns registered singleton', () {
-      final service = TestService(name: 'test1');
-      manager.register('service', () => service);
+    test('getInstance() returns the exact instance registered', () {
+      final service = SimpleService(name: 'test');
+      registry.register('key1', service);
 
-      final retrieved = manager.get('service');
+      final retrieved = registry.getInstance('key1');
 
       expect(retrieved, same(service));
     });
 
-    test('get returns same instance on multiple calls', () {
-      manager.register('service', () => TestService());
+    test('getByKey() returns the version wrapper without resolving', () {
+      final service = SimpleService(name: 'test');
+      registry.register('key1', service);
 
-      final first = manager.get('service');
-      final second = manager.get('service');
-      final third = manager.get('service');
+      final versionWrapper = registry.getByKey('key1');
 
-      expect(first, same(second));
-      expect(second, same(third));
+      expect(versionWrapper, isNotNull);
+      expect(versionWrapper!.value, isNotNull);
     });
 
-    test('get throws StateError if singleton not found', () {
-      expect(
-        () => manager.get('nonexistent'),
-        throwsStateError,
-      );
+    test('getByKey() returns null for non-existent keys', () {
+      final result = registry.getByKey('nonexistent');
+
+      expect(result, isNull);
     });
 
-    test('get creates lazy singleton on first access', () {
-      CountedService.reset();
+    test('keys returns all registered keys', () {
+      registry.register('key1', SimpleService());
+      registry.register('key2', SimpleService());
+      registry.register('key3', SimpleService());
 
-      manager.registerLazy('service', () => CountedService());
+      final keys = registry.keys;
 
-      expect(CountedService.instanceCount, equals(0));
-
-      final instance = manager.get('service');
-
-      expect(CountedService.instanceCount, equals(1));
-      expect(instance, isNotNull);
+      expect(keys, hasLength(3));
+      expect(keys, containsAll(['key1', 'key2', 'key3']));
     });
 
-    test('get returns same instance for lazy singleton on subsequent calls', () {
-      CountedService.reset();
+    test('keys returns empty set for empty registry', () {
+      final keys = registry.keys;
 
-      manager.registerLazy('service', () => CountedService());
-
-      final first = manager.get('service');
-      final second = manager.get('service');
-
-      expect(first, same(second));
-      expect(CountedService.instanceCount, equals(1));
+      expect(keys, isEmpty);
     });
 
-    test('different singletons return different instances', () {
-      manager.register('service1', () => TestService(name: 'service1'));
-      manager.register('service2', () => TestService(name: 'service2'));
+    test('isEmpty returns true when registry is empty', () {
+      expect(registry.isEmpty, isTrue);
+    });
 
-      final instance1 = manager.get('service1');
-      final instance2 = manager.get('service2');
+    test('isEmpty returns false when registry has items', () {
+      registry.register('key1', SimpleService());
 
-      expect(instance1, isNot(same(instance2)));
-      expect(instance1.name, equals('service1'));
-      expect(instance2.name, equals('service2'));
+      expect(registry.isEmpty, isFalse);
+    });
+
+    test('isNotEmpty returns false when registry is empty', () {
+      expect(registry.isNotEmpty, isFalse);
+    });
+
+    test('isNotEmpty returns true when registry has items', () {
+      registry.register('key1', SimpleService());
+
+      expect(registry.isNotEmpty, isTrue);
+    });
+
+    test('getInstance() resolves lazy entries transparently', () {
+      final registry2 = createTestRegistry<String, SimpleService>();
+
+      registry2.registerLazy('lazy', () => SimpleService(name: 'lazy'));
+
+      final retrieved = registry2.getInstance('lazy');
+
+      expect(retrieved, isNotNull);
+      expect(retrieved.name, equals('lazy'));
+
+      cleanupRegistry(registry2);
+    });
+
+    test('multiple calls to getInstance() return same lazy instance', () {
+      final registry2 = createTestRegistry<String, SimpleService>();
+      SimpleService.instantiationCount = 0;
+
+      registry2.registerLazy('lazy', () => SimpleService.counted());
+
+      final instance1 = registry2.getInstance('lazy');
+      final instance2 = registry2.getInstance('lazy');
+
+      expect(instance1, same(instance2));
+      expect(SimpleService.instantiationCount, equals(1));
+
+      cleanupRegistry(registry2);
     });
   });
 }

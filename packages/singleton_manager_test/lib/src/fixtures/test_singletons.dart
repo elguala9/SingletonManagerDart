@@ -1,54 +1,104 @@
-/// Test singleton implementations for testing SingletonManager.
-library singleton_manager_test.src.fixtures.test_singletons;
+import 'package:singleton_manager/singleton_manager.dart';
 
-/// A simple test service for unit tests.
-class TestService {
-  TestService({this.name = 'test'});
+/// A simple test service for basic registration and retrieval tests
+class SimpleService implements IValueForRegistry {
+  /// Constructor
+  SimpleService({this.name = 'SimpleService'});
 
+  /// Name of this service instance
   final String name;
-  int callCount = 0;
 
-  void call() {
-    callCount++;
+  /// Counter for tracking instantiations
+  static int instantiationCount = 0;
+
+  /// Constructor that increments the counter
+  factory SimpleService.counted({String name = 'SimpleService'}) {
+    instantiationCount++;
+    return SimpleService(name: name);
+  }
+
+  bool _destroyed = false;
+
+  /// Whether this service has been destroyed
+  bool get destroyed => _destroyed;
+
+  @override
+  void destroy() {
+    _destroyed = true;
+  }
+}
+
+/// A service designed for testing lazy loading
+class LazyService implements IValueForRegistry {
+  /// Constructor
+  LazyService({this.name = 'LazyService'});
+
+  /// Name of this service instance
+  final String name;
+
+  /// Counter for tracking instantiations
+  static int instantiationCount = 0;
+
+  /// Flag to track if constructor was called
+  static bool constructorCalled = false;
+
+  /// Constructor that increments the counter
+  LazyService.tracked({String name = 'LazyService'}) : name = name {
+    instantiationCount++;
+    constructorCalled = true;
+  }
+
+  bool _destroyed = false;
+
+  /// Whether this service has been destroyed
+  bool get destroyed => _destroyed;
+
+  @override
+  void destroy() {
+    _destroyed = true;
+  }
+
+  /// Reset the counters for testing
+  static void reset() {
+    instantiationCount = 0;
+    constructorCalled = false;
+  }
+}
+
+/// A service for testing async initialization patterns
+class AsyncService implements IValueForRegistry {
+  /// Constructor
+  AsyncService({this.name = 'AsyncService', required this.initialized});
+
+  /// Name of this service instance
+  final String name;
+
+  /// Whether this service has been initialized
+  final bool initialized;
+
+  /// Counter for tracking instantiations
+  static int instantiationCount = 0;
+
+  bool _destroyed = false;
+
+  /// Whether this service has been destroyed
+  bool get destroyed => _destroyed;
+
+  /// Factory for creating an AsyncService via async initialization
+  static Future<AsyncService> create({String name = 'AsyncService'}) async {
+    // Simulate async initialization
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    instantiationCount++;
+    return AsyncService(name: name, initialized: true);
   }
 
   @override
-  String toString() => 'TestService(name=$name, callCount=$callCount)';
-}
-
-/// A heavier service for testing lazy loading.
-class HeavyService {
-  HeavyService({this.initialized = false});
-
-  bool initialized;
-  late String _data;
-
-  void initialize() {
-    initialized = true;
-    _data = 'Heavy data loaded';
+  void destroy() {
+    _destroyed = true;
   }
 
-  String getData() => _data;
-}
-
-/// A service that tracks instantiation count.
-class CountedService {
-  static int instanceCount = 0;
-
-  CountedService() {
-    instanceCount++;
-  }
-
+  /// Reset the counter for testing
   static void reset() {
-    instanceCount = 0;
-  }
-}
-
-/// A disposable service for testing cleanup.
-class DisposableService {
-  bool isDisposed = false;
-
-  void dispose() {
-    isDisposed = true;
+    instantiationCount = 0;
   }
 }
