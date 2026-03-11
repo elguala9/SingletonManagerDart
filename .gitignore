@@ -1,0 +1,50 @@
+# Dart & Flutter
+.dart_tool/
+.packages
+build/
+pubspec.lock
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+.sublime-project
+.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Build outputs
+*.js_
+*.js.deps
+*.js.map
+*.info.json
+
+# Node (if any)
+node_modules/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+*~
+.swp
+.swo
+
+# Mac
+.AppleDouble
+.LSOverride
+
+# Custom
+.serena
+.claude
+DefaultWorkDb/
+diagrams/

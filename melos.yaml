@@ -1,0 +1,94 @@
+name: singleton_manager_monorepo
+repository: https://github.com/elguala9/SingletonManagerDart
+
+packages:
+  - packages/**
+
+scripts:
+  # === ANALYSIS & LINTING ===
+  analyze:
+    run: melos exec -- dart analyze
+    description: Analyze all packages for code quality issues
+    select-package:
+      fileExists: lib
+
+  analyze:strict:
+    run: melos exec -- dart analyze --fatal-infos
+    description: Analyze with all info messages treated as errors
+
+  # === FORMATTING ===
+  format:
+    run: melos exec -- dart format .
+    description: Format all Dart code
+
+  format:check:
+    run: melos exec -- dart format --set-exit-if-changed .
+    description: Check if code formatting matches standards
+    select-package:
+      fileExists: lib
+
+  # === TESTING ===
+  test:
+    run: melos exec --fail-fast -- dart test --color
+    description: Run all tests
+    select-package:
+      dirExists: test
+
+  test:coverage:
+    run: melos exec --fail-fast -- dart test --coverage=coverage --color
+    description: Run tests with coverage collection
+    select-package:
+      dirExists: test
+
+  test:verbose:
+    run: melos exec --fail-fast -- dart test --reporter=expanded --color
+    description: Run tests with verbose output
+    select-package:
+      dirExists: test
+
+  test:unit:
+    run: melos exec --scope="singleton_manager_test" --fail-fast -- dart test test/unit --color
+    description: Run unit tests only
+    select-package:
+      dirExists: test
+
+  test:functional:
+    run: melos exec --scope="singleton_manager_test" --fail-fast -- dart test test/functional --color
+    description: Run functional tests only
+    select-package:
+      dirExists: test
+
+  test:integration:
+    run: melos exec --scope="singleton_manager_test" --fail-fast -- dart test test/integration --color
+    description: Run integration tests only
+    select-package:
+      dirExists: test
+
+  # === DEPENDENCIES ===
+  get:
+    run: melos exec -- dart pub get
+    description: Get dependencies for all packages
+
+  clean:
+    run: melos clean && melos get
+    description: Clean all packages and reinstall dependencies
+    select-package:
+      fileExists: pubspec.yaml
+
+  # === DEVELOPMENT ===
+  check:
+    run: melos analyze && melos format:check && melos test:unit
+    description: Quick development check (analyze + format check + unit tests)
+
+  ci:
+    run: melos clean && melos get && melos analyze:strict && melos format:check && melos test
+    description: Complete CI pipeline (clean, get, analyze, format check, test)
+
+  # === PUBLISHING ===
+  publish:dry-run:
+    run: melos exec --scope="singleton_manager" -- dart pub publish --dry-run
+    description: Dry run of package publication (safety check)
+
+  publish:
+    run: melos exec --scope="singleton_manager" -- dart pub publish
+    description: Publish singleton_manager to pub.dev (requires authentication)
