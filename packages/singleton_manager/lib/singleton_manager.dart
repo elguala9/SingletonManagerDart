@@ -1,19 +1,12 @@
-/// A high-performance, zero-dependency singleton manager for Dart.
-///
-/// This package provides a type-safe, efficient way to manage singleton
-/// instances with support for lazy loading and optional scope isolation.
-///
-/// ## Quick Start
-///
-/// ```dart
-/// import 'package:singleton_manager/singleton_manager.dart';
-///
-/// void main() {
-///   final manager = SingletonManager<String>();
-///   manager.register('myService', () => MyService());
-///   final service = manager.get('myService');
-/// }
-/// ```
-library singleton_manager;
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
-export 'src/singleton_manager.dart';
+library;
+
+export 'src/errors/registry_errors.dart';
+export 'src/mixin/i_value_for_registry.dart';
+export 'src/mixin/registry_entry.dart';
+export 'src/mixin/registry_mixin.dart';
+export 'src/mixin/value_with_version.dart';
+export 'src/registry/registry_utility.dart';
+export 'src/singleton/i_singleton.dart';
+export 'src/singleton/singleton_manager.dart';

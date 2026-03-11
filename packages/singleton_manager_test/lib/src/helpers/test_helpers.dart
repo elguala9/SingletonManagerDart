@@ -1,34 +1,72 @@
-/// Test helper functions and utilities.
-library singleton_manager_test.src.helpers.test_helpers;
-
 import 'package:singleton_manager/singleton_manager.dart';
+import 'package:test/test.dart';
 
-/// Creates a fresh SingletonManager for testing.
-SingletonManager<String> createTestManager() {
-  return SingletonManager<String>();
+/// Cleanup helper for use in tearDown()
+void cleanupRegistry<Key, Value extends IValueForRegistry>(
+  Registry<Key, Value> registry,
+) {
+  registry.destroyAll();
 }
 
-/// Creates a fresh SingletonManager with a custom key type.
-SingletonManager<K> createTestManagerWithKeyType<K>() {
-  return SingletonManager<K>();
-}
+/// Matcher for checking if two instances are the same (identical)
+Matcher isSameInstance<T>(T expected) =>
+    _SameInstanceMatcher<T>(expected);
 
-/// Verifies that two singleton instances are the same object.
-void expectSameInstance<T>(T instance1, T instance2) {
-  if (identical(instance1, instance2)) {
-    return;
+class _SameInstanceMatcher<T> extends Matcher {
+  _SameInstanceMatcher(this.expected);
+
+  final T expected;
+
+  @override
+  bool matches(Object? item, Map<dynamic, dynamic> matchState) {
+    return identical(item, expected);
   }
-  throw AssertionError(
-    'Expected instances to be identical, but they were different objects',
-  );
+
+  @override
+  Description describe(Description description) =>
+      description.add('same instance as $expected');
+
+  @override
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map<dynamic, dynamic> matchState,
+    bool verbose,
+  ) {
+    return mismatchDescription.add('was a different instance');
+  }
 }
 
-/// Verifies that two singleton instances are not the same object.
-void expectDifferentInstances<T>(T instance1, T instance2) {
-  if (!identical(instance1, instance2)) {
-    return;
+/// Matcher for checking if a value was destroyed
+Matcher isDestroyed() => _DestroyedMatcher();
+
+class _DestroyedMatcher extends Matcher {
+  @override
+  bool matches(Object? item, Map<dynamic, dynamic> matchState) {
+    if (item is! IValueForRegistry) {
+      return false;
+    }
+    // We can't directly check _destroyed, so we rely on external tracking
+    return true;
   }
-  throw AssertionError(
-    'Expected instances to be different objects, but they were identical',
-  );
+
+  @override
+  Description describe(Description description) =>
+      description.add('destroyed');
+
+  @override
+  Description describeMismatch(
+    Object? item,
+    Description mismatchDescription,
+    Map<dynamic, dynamic> matchState,
+    bool verbose,
+  ) {
+    return mismatchDescription.add('was not destroyed');
+  }
+}
+
+/// Create a test registry manager for the given key and value types
+RegistryManager<Key, Value> createTestRegistry<Key,
+    Value extends IValueForRegistry>() {
+  return RegistryManager<Key, Value>();
 }

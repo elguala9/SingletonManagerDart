@@ -3,76 +3,118 @@ import 'package:singleton_manager_test/singleton_manager_test.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('SingletonManager - Registration', () {
-    late SingletonManager<String> manager;
+  group('RegistryManager - Eager Registration', () {
+    late RegistryManager<String, SimpleService> registry;
 
     setUp(() {
-      manager = createTestManager();
+      registry = createTestRegistry();
+      SimpleService.instantiationCount = 0;
     });
 
     tearDown(() {
-      manager.clear();
+      cleanupRegistry(registry);
     });
 
-    test('register creates an eager singleton', () {
-      manager.register('service', () => TestService());
+    test('register() adds an eager value to the registry', () {
+      final service = SimpleService(name: 'test');
+      registry.register('key1', service);
 
-      expect(manager.contains('service'), isTrue);
-      expect(manager.length, equals(1));
+      expect(registry.contains('key1'), isTrue);
+      expect(registry.getInstance('key1'), same(service));
     });
 
-    test('registerLazy creates a lazy singleton', () {
-      manager.registerLazy('service', () => TestService());
+    test('register() throws DuplicateRegistrationError for duplicate keys', () {
+      final service1 = SimpleService(name: 'first');
+      final service2 = SimpleService(name: 'second');
 
-      expect(manager.contains('service'), isTrue);
-      expect(manager.length, equals(1));
-    });
-
-    test('register throws StateError if key already exists', () {
-      manager.register('service', () => TestService());
+      registry.register('key1', service1);
 
       expect(
-        () => manager.register('service', () => TestService()),
-        throwsStateError,
+        () => registry.register('key1', service2),
+        throwsA(isA<DuplicateRegistrationError>()),
       );
     });
 
-    test('registerLazy throws StateError if key already exists', () {
-      manager.registerLazy('service', () => TestService());
+    test('replace() updates an existing eager value', () {
+      final service1 = SimpleService(name: 'first');
+      final service2 = SimpleService(name: 'second');
+
+      registry.register('key1', service1);
+      registry.replace('key1', service2);
+
+      expect(registry.getInstance('key1'), same(service2));
+      expect(service1.destroyed, isTrue);
+    });
+
+    test('replace() throws RegistryNotFoundError if key does not exist', () {
+      final service = SimpleService();
 
       expect(
-        () => manager.registerLazy('service', () => TestService()),
-        throwsStateError,
+        () => registry.replace('nonexistent', service),
+        throwsA(isA<RegistryNotFoundError>()),
       );
     });
 
-    test('register throws StateError if lazy key already exists', () {
-      manager.registerLazy('service', () => TestService());
+    test('unregister() removes a value from the registry', () {
+      final service = SimpleService();
+      registry.register('key1', service);
 
+      final unregistered = registry.unregister('key1');
+
+      expect(unregistered, isNotNull);
+      expect(registry.contains('key1'), isFalse);
+    });
+
+    test('getInstance() throws RegistryNotFoundError if key not found', () {
       expect(
-        () => manager.register('service', () => TestService()),
-        throwsStateError,
+        () => registry.getInstance('nonexistent'),
+        throwsA(isA<RegistryNotFoundError>()),
       );
     });
 
-    test('registerLazy throws StateError if eager key already exists', () {
-      manager.register('service', () => TestService());
+    test('contains() correctly identifies registered keys', () {
+      final service = SimpleService();
+      registry.register('key1', service);
 
-      expect(
-        () => manager.registerLazy('service', () => TestService()),
-        throwsStateError,
-      );
+      expect(registry.contains('key1'), isTrue);
+      expect(registry.contains('key2'), isFalse);
     });
 
-    test('multiple singletons can be registered', () {
-      manager.register('service1', () => TestService(name: 'service1'));
-      manager.register('service2', () => TestService(name: 'service2'));
-      manager.registerLazy('service3', () => TestService(name: 'service3'));
+    test('keys property returns all registered keys', () {
+      final service1 = SimpleService();
+      final service2 = SimpleService();
 
-      expect(manager.length, equals(3));
-      expect(manager.contains('service1'), isTrue);
-      expect(manager.contains('service2'), isTrue);
-      expect(manager.contains('service3'), isTrue);
+      registry.register('key1', service1);
+      registry.register('key2', service2);
+
+      final keys = registry.keys;
+
+      expect(keys, containsAll(['key1', 'key2']));
+      expect(keys.length, equals(2));
+    });
+
+    test('isEmpty returns true for empty registry', () {
+      expect(registry.isEmpty, isTrue);
+    });
+
+    test('isNotEmpty returns true when registry has items', () {
+      final service = SimpleService();
+      registry.register('key1', service);
+
+      expect(registry.isNotEmpty, isTrue);
+    });
+
+    test('registrySize returns the correct number of entries', () {
+      final service1 = SimpleService();
+      final service2 = SimpleService();
+
+      expect(registry.registrySize, equals(0));
+
+      registry.register('key1', service1);
+      expect(registry.registrySize, equals(1));
+
+      registry.register('key2', service2);
+      expect(registry.registrySize, equals(2));
     });
   });
 }
