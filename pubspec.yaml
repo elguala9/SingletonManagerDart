@@ -1,0 +1,14 @@
+name: singleton_manager_monorepo
+description: A monorepo for Dart singleton manager packages
+version: 0.0.0
+publish_to: none
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dev_dependencies:
+  melos: ^5.0.0
+
+workspace:
+  - packages/singleton_manager
+  - packages/singleton_manager_test

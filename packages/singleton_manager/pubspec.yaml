@@ -1,0 +1,36 @@
+name: singleton_manager
+description: >
+  A high-performance singleton manager for Dart with zero dependencies,
+  type-safe generics support, lazy loading, and optional scope management.
+  Ideal for dependency injection, service locators, and resource management.
+
+version: 0.1.0
+
+repository: https://github.com/elguala9/SingletonManagerDart
+homepage: https://github.com/elguala9/SingletonManagerDart
+issue_tracker: https://github.com/elguala9/SingletonManagerDart/issues
+documentation: https://pub.dev/documentation/singleton_manager/latest/
+
+topics:
+  - singleton
+  - pattern
+  - dependency-injection
+  - service-locator
+  - resource-management
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies: {}
+
+dev_dependencies:
+  test: ^1.24.0
+  lints: ^5.1.0
