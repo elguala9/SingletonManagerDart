@@ -1,10 +1,10 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print,file_names,cascade_invocations
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 1: Basic SingletonManager - Type-based singleton registration
 ///
 /// The simplest way to use singleton_manager. Register values using their Type,
-/// and retrieve them using getInstance<Type>().
+/// and retrieve them using `getInstance<Type>()`.
 
 class DatabaseConnection {
   DatabaseConnection() {

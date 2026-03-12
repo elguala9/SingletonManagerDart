@@ -1,5 +1,4 @@
 import 'package:singleton_manager/singleton_manager.dart';
-import 'package:singleton_manager/src/singleton/singleton_di_access.dart';
 import 'package:test/test.dart';
 
 // Test fixtures

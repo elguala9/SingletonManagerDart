@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print,file_names,one_member_abstracts,avoid_catching_errors,sort_constructors_first,cascade_invocations,omit_local_variable_types,unnecessary_lambdas,lines_longer_than_80_chars,unnecessary_brace_in_string_interps
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 10: Performance and Best Practices

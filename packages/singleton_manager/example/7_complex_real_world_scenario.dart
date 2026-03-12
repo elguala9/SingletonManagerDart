@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, unused_local_variable
+// ignore_for_file: avoid_print,unused_local_variable,file_names,one_member_abstracts,sort_constructors_first,cascade_invocations,unnecessary_brace_in_string_interps,always_put_control_body_on_new_line,lines_longer_than_80_chars
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 7: Complex Real-World Scenario
@@ -28,7 +28,7 @@ class Database implements IDatabase, IValueForRegistry {
   }
 
   Future<void> connect() async {
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     _connected = true;
     print('  Database: connected');
   }

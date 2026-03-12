@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, unused_local_variable
+// ignore_for_file: avoid_print,unused_local_variable,file_names,sort_constructors_first,always_put_control_body_on_new_line,unnecessary_lambdas,cast_nullable_to_non_nullable,lines_longer_than_80_chars
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 8: SingletonDI - Factory Pattern
@@ -21,7 +21,7 @@ class ApiClient {
 
   Future<String> request(String endpoint) async {
     print('  Requesting: $baseUrl$endpoint');
-    await Future.delayed(const Duration(milliseconds: 50));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
     return 'Response from $endpoint';
   }
 }
@@ -152,7 +152,7 @@ class DIContainer {
     }
 
     print('Creating singleton for $T...');
-    final instance = factory() as T;
+    final instance = factory();
 
     // Special initialization for NotificationService
     if (instance is NotificationService) {
@@ -161,8 +161,8 @@ class DIContainer {
       instance.injectDependencies(apiClient, logger);
     }
 
-    _instances[T] = instance as Object;
-    return instance as T;
+    _instances[T] = instance;
+    return instance;
   }
 
   int get instanceCount => _instances.length;

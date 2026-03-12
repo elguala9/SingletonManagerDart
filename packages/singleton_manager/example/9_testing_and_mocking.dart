@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, unused_field
+// ignore_for_file: avoid_print,unused_field,file_names,one_member_abstracts,sort_constructors_first,always_put_control_body_on_new_line,lines_longer_than_80_chars,cascade_invocations
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 9: Testing and Mocking Patterns
@@ -23,7 +23,7 @@ class ProductionEmailService implements IEmailService, IValueForRegistry {
   @override
   Future<void> sendEmail(String to, String subject, String body) async {
     print('  [REAL] Sending email to $to: $subject');
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future<void>.delayed(const Duration(milliseconds: 500));
   }
 
   @override
@@ -36,7 +36,7 @@ class ProductionUserRepository implements IUserRepository, IValueForRegistry {
   @override
   Future<Map<String, dynamic>> getUserById(String id) async {
     print('  [REAL] Fetching user $id from database');
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 200));
     return {'id': id, 'name': 'John Doe', 'email': 'john@example.com'};
   }
 
@@ -56,7 +56,7 @@ class MockEmailService implements IEmailService, IValueForRegistry {
     print('  [MOCK] Email queued to $to: $subject');
     sentEmails.add((to: to, subject: subject, body: body));
     // Instant response for tests
-    await Future.value();
+    await Future<void>.value();
   }
 
   int get emailCount => sentEmails.length;
@@ -81,7 +81,7 @@ class MockUserRepository implements IUserRepository, IValueForRegistry {
     final user = _users[id];
     if (user == null) throw Exception('User not found');
     // Instant response for tests
-    await Future.value();
+    await Future<void>.value();
     return user;
   }
 
