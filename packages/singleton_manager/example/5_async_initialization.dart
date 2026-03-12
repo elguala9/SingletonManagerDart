@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print,file_names,one_member_abstracts,sort_constructors_first,lines_longer_than_80_chars,always_put_control_body_on_new_line
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 5: Async Initialization with ISingleton
@@ -47,7 +47,7 @@ class Database implements IDatabase, ISingleton<String, void> {
   @override
   Future<String> query(String sql) async {
     if (!_connected) throw StateError('Database not initialized');
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     return 'Result: $sql executed';
   }
 
@@ -82,7 +82,7 @@ class AuthService implements IAuthService, ISingleton<Map<String, String>, void>
   @override
   Future<bool> authenticate(String username, String password) async {
     print('  Authenticating $username...');
-    await Future.delayed(const Duration(milliseconds: 100));
+    await Future<void>.delayed(const Duration(milliseconds: 100));
     return username.isNotEmpty && password.length >= 6;
   }
 }

@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print,file_names,sort_constructors_first,cascade_invocations,omit_local_variable_types,lines_longer_than_80_chars
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 6: Version Tracking and Service Replacement
@@ -87,7 +87,7 @@ void main() {
 
   // ========== Multiple Replacements ==========
   print('Step 5: Multiple Replacements');
-  for (int i = 1; i <= 2; i++) {
+  for (var i = 1; i <= 2; i++) {
     print('Replacement $i...');
     registry.replace('main', Configuration(
       environment: 'production-$i',

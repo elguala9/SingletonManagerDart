@@ -1,13 +1,13 @@
 import 'package:singleton_manager/src/mixin/i_value_for_registry.dart';
 import 'package:singleton_manager/src/singleton/i_singleton.dart';
-import 'package:singleton_manager/src/singleton/singleton_manager.dart';
 import 'package:singleton_manager/src/singleton/singleton_di.dart';
+import 'package:singleton_manager/src/singleton/singleton_manager.dart';
 
 /// Extension methods for dependency injection on [SingletonManager].
 ///
 /// Provides type-safe registration, retrieval, and removal of singletons
-/// using a factory pattern. Factories must be registered via [SingletonDI.registerFactory]
-/// before using these methods.
+/// using a factory pattern. Factories must be registered via the
+/// registerFactory method before using these methods.
 extension SingletonDIExt on SingletonManager {
   /// Registers a singleton by type with automatic initialization.
   ///
@@ -26,7 +26,7 @@ extension SingletonDIExt on SingletonManager {
       );
     }
 
-    final instance = factory() as T;
+    final instance = factory();
 
     // If instance implements ISingleton, initialize it
     if (instance is ISingleton) {
@@ -62,10 +62,11 @@ extension SingletonDIExt on SingletonManager {
       );
     }
 
-    final instance = factory() as T;
+    final instance = factory();
 
     // If instance implements ISingleton, initialize it
     if (instance is ISingleton) {
+      // ignore: unnecessary_cast
       await (instance as ISingleton).initializeDI();
     }
 

@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print,file_names,one_member_abstracts,sort_constructors_first,cascade_invocations,unnecessary_brace_in_string_interps,lines_longer_than_80_chars
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 3: Dependency Injection Pattern

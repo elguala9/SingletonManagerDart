@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print,avoid_catching_errors,avoid_catches_without_on_clauses,file_names,sort_constructors_first,lines_longer_than_80_chars
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 4: Error Handling
@@ -90,14 +90,14 @@ void main() {
   print('First access (will fail)...');
   try {
     registry.getInstance('lazy_service');
-  } catch (e) {
+  } on Exception catch (e) {
     print('✓ Caught: $e');
   }
 
   print('Second access (will fail again - lazy not cached)...');
   try {
     registry.getInstance('lazy_service');
-  } catch (e) {
+  } on Exception catch (e) {
     print('✓ Caught: $e\n');
   }
 

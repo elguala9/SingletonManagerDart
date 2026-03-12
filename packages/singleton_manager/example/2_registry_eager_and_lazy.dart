@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print,file_names,sort_constructors_first,cascade_invocations,unnecessary_lambdas,lines_longer_than_80_chars
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example 2: Registry Mixin - Eager and Lazy Registration

@@ -8,7 +8,7 @@ final _factoryRegistry = <Type, FactoryFn<Object>>{};
 ///
 /// Manages factory registration for automatic singleton instantiation.
 /// Use this class to register factories before using extension methods like
-/// [SingletonDIExt.add] on [SingletonManager].
+/// `add` or `addAs` on SingletonManager.
 ///
 /// Example:
 /// ```dart
@@ -28,8 +28,8 @@ class SingletonDI {
 
   /// Registers a factory function for type T.
   ///
-  /// This must be called before using extension methods like [SingletonDIExt.add]
-  /// to provide the factory for instantiation.
+  /// This must be called before using extension methods to provide the factory
+  /// for instantiation.
   ///
   /// Example:
   /// ```dart
@@ -42,14 +42,11 @@ class SingletonDI {
   /// Retrieves a factory function for type T.
   ///
   /// Returns null if no factory is registered for T.
-  static FactoryFn<T>? getFactory<T extends Object>() {
-    return _factoryRegistry[T] as FactoryFn<T>?;
-  }
+  static FactoryFn<T>? getFactory<T extends Object>() =>
+      _factoryRegistry[T] as FactoryFn<T>?;
 
   /// Clears all registered factory functions.
-  static void clearFactories() {
-    _factoryRegistry.clear();
-  }
+  static void clearFactories() => _factoryRegistry.clear();
 
   /// Returns the number of registered factories.
   static int get factoryCount => _factoryRegistry.length;

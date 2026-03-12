@@ -1,11 +1,12 @@
 import 'package:singleton_manager/src/mixin/i_value_for_registry.dart';
-import 'package:singleton_manager/src/singleton/singleton_manager.dart';
 import 'package:singleton_manager/src/singleton/singleton_di_ext.dart';
+import 'package:singleton_manager/src/singleton/singleton_manager.dart';
 
 /// Static convenience methods for accessing the global singleton manager.
 ///
 /// Provides static methods that delegate to [SingletonManager.instance]
-/// for simplified API access without needing to explicitly access the singleton instance.
+/// for simplified API access without needing to explicitly access the
+/// singleton instance.
 ///
 /// Example:
 /// ```dart
@@ -21,13 +22,14 @@ class SingletonDIAccess {
   // Private constructor - use static methods only
   SingletonDIAccess._();
 
-  /// Registers a singleton by type with automatic initialization via [SingletonManager.instance].
+  /// Registers a singleton by type with automatic initialization via
+  /// [SingletonManager.instance].
   ///
   /// This is a static convenience method that delegates to
   /// [SingletonManager.instance.add<T>()].
   ///
-  /// Requires that a factory for T has been registered via
-  /// [SingletonDI.registerFactory].
+  /// Requires that a factory for T has been registered via the
+  /// registerFactory static method.
   ///
   /// Example:
   /// ```dart
@@ -37,7 +39,8 @@ class SingletonDIAccess {
   static Future<void> add<T extends Object>() =>
       SingletonManager.instance.add<T>();
 
-  /// Registers a singleton by interface with a concrete implementation via [SingletonManager.instance].
+  /// Registers a singleton by interface with a concrete implementation via
+  /// [SingletonManager.instance].
   ///
   /// This is a static convenience method that delegates to
   /// [SingletonManager.instance.addAs<I, T>()].
