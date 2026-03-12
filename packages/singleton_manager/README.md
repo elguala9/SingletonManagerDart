@@ -9,6 +9,8 @@ A high-performance, zero-dependency singleton manager for Dart.
 - **Type-safe**: Full generic support with compile-time type checking
 - **High performance**: O(1) registration and retrieval operations
 - **Zero dependencies**: No external package dependencies
+- **Dependency Injection**: Factory-based DI with `SingletonDI` (v0.2.0+)
+- **Lifecycle Management**: `ISingleton` interface for initialization and cleanup
 - **Lazy loading**: Initialize singletons only when first accessed
 - **Multi-platform**: Supports VM, Web, Native, and Flutter
 - **Pure Dart**: No platform-specific code required
@@ -19,10 +21,37 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.1.0
+  singleton_manager: ^0.2.0
 ```
 
 ## Quick Start
+
+### Dependency Injection (v0.2.0+)
+
+```dart
+import 'package:singleton_manager/singleton_manager.dart';
+
+// 1. Define your service
+class UserService implements ISingleton<dynamic, void> {
+  @override
+  Future<void> initialize(dynamic input) async => print('init');
+
+  @override
+  Future<void> initializeDI() async => print('di init');
+}
+
+void main() async {
+  // 2. Register factory
+  SingletonDI.registerFactory<UserService>(UserService.new);
+
+  // 3. Add to manager
+  final manager = SingletonManager.instance;
+  await manager.add<UserService>();
+
+  // 4. Use it
+  final service = manager.get<UserService>();
+}
+```
 
 ### Basic Usage
 
