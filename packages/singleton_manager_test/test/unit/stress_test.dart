@@ -18,7 +18,7 @@ void main() {
     test('register and retrieve 1000 eager instances', () {
       const count = 1000;
 
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         final service = SimpleService(name: 'service-$i');
         registry.register('key-$i', service);
       }
@@ -26,7 +26,7 @@ void main() {
       expect(registry.registrySize, equals(count));
 
       // Verify random retrievals
-      for (int i = 0; i < 100; i++) {
+      for (var i = 0; i < 100; i++) {
         final randomIdx = (i * 17) % count;
         final service = registry.getInstance('key-$randomIdx');
         expect(service.name, equals('service-$randomIdx'));
@@ -36,7 +36,7 @@ void main() {
     test('register and retrieve 1000 lazy instances', () {
       const count = 1000;
 
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         final idx = i;
         registry.registerLazy('lazy-key-$i', () {
           return SimpleService(name: 'lazy-service-$idx');
@@ -46,14 +46,14 @@ void main() {
       expect(registry.registrySize, equals(count));
 
       // Access all lazy services
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         final service = registry.getInstance('lazy-key-$i');
         expect(service.name, equals('lazy-service-$i'));
       }
 
       // Second access should use cached instances
       final firstAccess = SimpleService.instantiationCount;
-      for (int i = 0; i < 100; i++) {
+      for (var i = 0; i < 100; i++) {
         registry.getInstance('lazy-key-$i');
       }
       expect(SimpleService.instantiationCount, equals(firstAccess));
@@ -64,12 +64,12 @@ void main() {
       const lazyCount = 500;
 
       // Register eager
-      for (int i = 0; i < eagerCount; i++) {
+      for (var i = 0; i < eagerCount; i++) {
         registry.register('eager-$i', SimpleService(name: 'eager-$i'));
       }
 
       // Register lazy
-      for (int i = 0; i < lazyCount; i++) {
+      for (var i = 0; i < lazyCount; i++) {
         final idx = i;
         registry.registerLazy('lazy-$i', () {
           return SimpleService(name: 'lazy-$idx');
@@ -88,7 +88,7 @@ void main() {
     test('rapid sequential registrations and unregistrations', () {
       const iterations = 500;
 
-      for (int i = 0; i < iterations; i++) {
+      for (var i = 0; i < iterations; i++) {
         final service = SimpleService(name: 'rapid-$i');
         registry.register('key', service);
         expect(registry.contains('key'), isTrue);
@@ -103,7 +103,7 @@ void main() {
     test('replace operations on same key 100 times', () {
       var lastVersion = 0;
 
-      for (int i = 0; i < 100; i++) {
+      for (var i = 0; i < 100; i++) {
         final service = SimpleService(name: 'version-$i');
         if (i == 0) {
           registry.register('replaceable', service);
@@ -123,7 +123,7 @@ void main() {
     test('get keys operation with large registry', () {
       const count = 500;
 
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         registry.register('key-$i', SimpleService());
       }
 
@@ -131,7 +131,7 @@ void main() {
       expect(keys, hasLength(count));
 
       // Verify all keys are present
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         expect(keys, contains('key-$i'));
       }
     });
@@ -139,17 +139,17 @@ void main() {
     test('containment checks on large registry', () {
       const count = 300;
 
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         registry.register('key-$i', SimpleService());
       }
 
       // Check existing keys
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         expect(registry.contains('key-$i'), isTrue);
       }
 
       // Check non-existing keys
-      for (int i = count; i < count + 100; i++) {
+      for (var i = count; i < count + 100; i++) {
         expect(registry.contains('key-$i'), isFalse);
       }
     });
@@ -157,7 +157,7 @@ void main() {
     test('destroy all with large number of lazy entries', () {
       const count = 300;
 
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         final idx = i;
         registry.registerLazy('lazy-$i', () {
           return SimpleService(name: 'lazy-$idx');
@@ -178,7 +178,7 @@ void main() {
     test('destroy all with partially accessed lazy entries', () {
       const count = 300;
 
-      for (int i = 0; i < count; i++) {
+      for (var i = 0; i < count; i++) {
         final idx = i;
         registry.registerLazy('lazy-$i', () {
           return SimpleService.counted(name: 'lazy-$idx');
@@ -186,7 +186,7 @@ void main() {
       }
 
       // Access half of them
-      for (int i = 0; i < count ~/ 2; i++) {
+      for (var i = 0; i < count ~/ 2; i++) {
         registry.getInstance('lazy-$i');
       }
 
@@ -203,15 +203,15 @@ void main() {
       const cycleCount = 10;
       const itemsPerCycle = 100;
 
-      for (int cycle = 0; cycle < cycleCount; cycle++) {
-        for (int i = 0; i < itemsPerCycle; i++) {
+      for (var cycle = 0; cycle < cycleCount; cycle++) {
+        for (var i = 0; i < itemsPerCycle; i++) {
           registry.register('cycle-$cycle-item-$i', SimpleService());
         }
 
         expect(registry.registrySize, equals(itemsPerCycle));
 
         // Verify retrieval
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           final service = registry.getInstance('cycle-$cycle-item-$i');
           expect(service, isNotNull);
         }
@@ -225,7 +225,7 @@ void main() {
     test('stress test: interleaved operations', () {
       const operations = 500;
 
-      for (int op = 0; op < operations; op++) {
+      for (var op = 0; op < operations; op++) {
         final opType = op % 4;
         final key = 'stress-${op % 100}';
 
@@ -258,12 +258,12 @@ void main() {
     test('registry size consistency during stress', () {
       expect(registry.registrySize, equals(0));
 
-      for (int i = 0; i < 200; i++) {
+      for (var i = 0; i < 200; i++) {
         registry.register('key-$i', SimpleService());
         expect(registry.registrySize, equals(i + 1));
       }
 
-      for (int i = 0; i < 200; i++) {
+      for (var i = 0; i < 200; i++) {
         registry.unregister('key-$i');
         expect(registry.registrySize, equals(200 - i - 1));
       }
@@ -274,7 +274,7 @@ void main() {
     test('keys property consistency during modifications', () {
       const iterations = 100;
 
-      for (int i = 0; i < iterations; i++) {
+      for (var i = 0; i < iterations; i++) {
         registry.register('key-$i', SimpleService());
 
         final keys = registry.keys;
@@ -282,7 +282,7 @@ void main() {
         expect(keys.contains('key-$i'), isTrue);
       }
 
-      for (int i = 0; i < iterations; i++) {
+      for (var i = 0; i < iterations; i++) {
         registry.unregister('key-$i');
 
         final keys = registry.keys;
@@ -300,7 +300,7 @@ void main() {
       });
 
       // Access 1000 times
-      for (int i = 0; i < 1000; i++) {
+      for (var i = 0; i < 1000; i++) {
         registry.getInstance('lazy');
       }
 
@@ -310,9 +310,10 @@ void main() {
 
     test('verify order independence of operations', () {
       // Register in one order
-      registry.register('a', SimpleService(name: 'a'));
-      registry.register('b', SimpleService(name: 'b'));
-      registry.register('c', SimpleService(name: 'c'));
+      registry
+        ..register('a', SimpleService(name: 'a'))
+        ..register('b', SimpleService(name: 'b'))
+        ..register('c', SimpleService(name: 'c'));
 
       // Retrieve in different order
       final c = registry.getInstance('c');
@@ -324,9 +325,10 @@ void main() {
       expect(c.name, equals('c'));
 
       // Unregister in different order
-      registry.unregister('b');
-      registry.unregister('a');
-      registry.unregister('c');
+      registry
+        ..unregister('b')
+        ..unregister('a')
+        ..unregister('c');
 
       expect(registry.isEmpty, isTrue);
     });

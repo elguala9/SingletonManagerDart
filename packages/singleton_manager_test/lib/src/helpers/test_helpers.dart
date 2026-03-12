@@ -1,4 +1,6 @@
 import 'package:singleton_manager/singleton_manager.dart';
+
+// ignore: depend_on_referenced_packages
 import 'package:test/test.dart';
 
 /// Cleanup helper for use in tearDown()

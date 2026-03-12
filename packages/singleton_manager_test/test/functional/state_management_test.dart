@@ -7,30 +7,22 @@ class StatefulService implements IValueForRegistry {
   StatefulService({required this.id});
 
   final String id;
-  String _state = 'initialized';
-  int _actionCount = 0;
-  bool _destroyed = false;
-
-  String get state => _state;
-  int get actionCount => _actionCount;
-  bool get destroyed => _destroyed;
-
-  void setState(String newState) {
-    _state = newState;
-  }
+  String state = 'initialized';
+  int actionCount = 0;
+  bool destroyed = false;
 
   void performAction() {
-    _actionCount++;
+    actionCount++;
   }
 
   void reset() {
-    _state = 'initialized';
-    _actionCount = 0;
+    state = 'initialized';
+    actionCount = 0;
   }
 
   @override
   void destroy() {
-    _destroyed = true;
+    destroyed = true;
   }
 }
 
@@ -47,10 +39,10 @@ void main() {
     });
 
     test('state persistence across multiple retrievals', () {
-      final service = StatefulService(id: 'state-1');
-      service.performAction();
-      service.performAction();
-      service.setState('active');
+      final service = StatefulService(id: 'state-1')
+        ..performAction()
+        ..performAction()
+        ..state = 'active';
 
       registry.register('service', service);
 
@@ -68,7 +60,7 @@ void main() {
       final retrieved = registry.getInstance('service');
       expect(retrieved.state, equals('initialized'));
 
-      retrieved.setState('modified');
+      retrieved.state = 'modified';
       expect(retrieved.state, equals('modified'));
 
       final retrieved2 = registry.getInstance('service');
@@ -80,26 +72,27 @@ void main() {
       final service1 = StatefulService(id: 'service-1');
       final service2 = StatefulService(id: 'service-2');
 
-      service1.setState('state-1');
-      service2.setState('state-2');
+      service1.state = 'state-1';
+      service2.state = 'state-2';
 
-      registry.register('svc1', service1);
-      registry.register('svc2', service2);
+      registry
+        ..register('svc1', service1)
+        ..register('svc2', service2);
 
       expect(registry.getInstance('svc1').state, equals('state-1'));
       expect(registry.getInstance('svc2').state, equals('state-2'));
 
       // Mutate one
-      registry.getInstance('svc1').setState('state-1-modified');
+      registry.getInstance('svc1').state = 'state-1-modified';
 
       expect(registry.getInstance('svc1').state, equals('state-1-modified'));
       expect(registry.getInstance('svc2').state, equals('state-2')); // Unchanged
     });
 
     test('lazy service initial state on first access', () {
-      final expectedService = StatefulService(id: 'lazy-1');
-      expectedService.setState('lazy-state');
-      expectedService.performAction();
+      final expectedService = StatefulService(id: 'lazy-1')
+        ..state = 'lazy-state'
+        ..performAction();
 
       registry.registerLazy('lazy', () => expectedService);
 
@@ -110,14 +103,14 @@ void main() {
     });
 
     test('state changes reflected after replacement', () {
-      final oldService = StatefulService(id: 'old');
-      oldService.setState('old-state');
+      final oldService = StatefulService(id: 'old')
+        ..state = 'old-state';
       registry.register('service', oldService);
 
-      final newService = StatefulService(id: 'new');
-      newService.setState('new-state');
-      newService.performAction();
-      newService.performAction();
+      final newService = StatefulService(id: 'new')
+        ..state = 'new-state'
+        ..performAction()
+        ..performAction();
 
       registry.replace('service', newService);
 
@@ -131,23 +124,23 @@ void main() {
 
     test('lifecycle: initialization -> mutation -> replacement', () {
       // Phase 1: Creation and initialization
-      final service1 = StatefulService(id: 'v1');
-      service1.setState('initialized');
+      final service1 = StatefulService(id: 'v1')
+        ..state = 'initialized';
 
       registry.register('service', service1);
 
       // Phase 2: Mutation
-      final retrieved = registry.getInstance('service');
-      retrieved.performAction();
-      retrieved.performAction();
-      retrieved.setState('active');
+      final retrieved = registry.getInstance('service')
+        ..performAction()
+        ..performAction()
+        ..state = 'active';
 
       expect(retrieved.actionCount, equals(2));
       expect(retrieved.state, equals('active'));
 
       // Phase 3: Replacement
-      final service2 = StatefulService(id: 'v2');
-      service2.setState('ready');
+      final service2 = StatefulService(id: 'v2')
+        ..state = 'ready';
 
       registry.replace('service', service2);
 
@@ -161,13 +154,14 @@ void main() {
       final cacheService = StatefulService(id: 'cache');
       final apiService = StatefulService(id: 'api');
 
-      dbService.setState('connected');
-      cacheService.setState('ready');
-      apiService.setState('listening');
+      dbService.state = 'connected';
+      cacheService.state = 'ready';
+      apiService.state = 'listening';
 
-      registry.register('db', dbService);
-      registry.register('cache', cacheService);
-      registry.register('api', apiService);
+      registry
+        ..register('db', dbService)
+        ..register('cache', cacheService)
+        ..register('api', apiService);
 
       // Simulate operations
       registry.getInstance('db').performAction();
@@ -183,10 +177,10 @@ void main() {
     });
 
     test('state reset pattern', () {
-      final service = StatefulService(id: 'resettable');
-      service.performAction();
-      service.performAction();
-      service.setState('modified');
+      final service = StatefulService(id: 'resettable')
+        ..performAction()
+        ..performAction()
+        ..state = 'modified';
 
       registry.register('service', service);
 
@@ -201,9 +195,9 @@ void main() {
     });
 
     test('state tracking across unregister and re-register', () {
-      final service = StatefulService(id: 'trackable');
-      service.performAction();
-      service.setState('tracked');
+      final service = StatefulService(id: 'trackable')
+        ..performAction()
+        ..state = 'tracked';
 
       registry.register('service', service);
       expect(registry.getInstance('service').actionCount, equals(1));
@@ -218,14 +212,13 @@ void main() {
     });
 
     test('cleanup preserves state until destroy', () {
-      final service = StatefulService(id: 'cleanup-test');
-      service.performAction();
-      service.setState('operational');
+      final service = StatefulService(id: 'cleanup-test')
+        ..performAction()
+        ..state = 'operational';
 
-      registry.register('service', service);
-
-      // Clear registry
-      registry.clearRegistry();
+      registry
+        ..register('service', service)
+        ..clearRegistry();
 
       // Service is still in our reference
       expect(service.actionCount, equals(1));
@@ -253,7 +246,7 @@ void main() {
       expect(ref2.state, equals(ref3.state));
 
       // Mutation visible to all
-      ref1.setState('modified');
+      ref1.state = 'modified';
       expect(ref2.state, equals('modified'));
       expect(ref3.state, equals('modified'));
     });
@@ -265,25 +258,25 @@ void main() {
       expect(registry.getInstance('service').state, equals('initialized'));
 
       // Transition 1
-      registry.getInstance('service').setState('starting');
+      registry.getInstance('service').state = 'starting';
       expect(registry.getInstance('service').state, equals('starting'));
 
       // Transition 2
-      registry.getInstance('service').setState('running');
+      registry.getInstance('service').state = 'running';
       expect(registry.getInstance('service').state, equals('running'));
 
       // Transition 3
-      registry.getInstance('service').setState('stopping');
+      registry.getInstance('service').state = 'stopping';
       expect(registry.getInstance('service').state, equals('stopping'));
 
       // Transition 4
-      registry.getInstance('service').setState('stopped');
+      registry.getInstance('service').state = 'stopped';
       expect(registry.getInstance('service').state, equals('stopped'));
     });
 
     test('state versioning through version wrapper', () {
-      final service = StatefulService(id: 'versioned');
-      service.setState('v1');
+      final service = StatefulService(id: 'versioned')
+        ..state = 'v1';
       registry.register('service', service);
 
       var wrapper = registry.getByKey('service')!;
@@ -291,8 +284,8 @@ void main() {
       expect(registry.getInstance('service').state, equals('v1'));
 
       // Replace (version increments)
-      final newService = StatefulService(id: 'versioned-v2');
-      newService.setState('v2');
+      final newService = StatefulService(id: 'versioned-v2')
+        ..state = 'v2';
       registry.replace('service', newService);
 
       wrapper = registry.getByKey('service')!;
@@ -300,8 +293,8 @@ void main() {
       expect(registry.getInstance('service').state, equals('v2'));
 
       // Replace again
-      final newerService = StatefulService(id: 'versioned-v3');
-      newerService.setState('v3');
+      final newerService = StatefulService(id: 'versioned-v3')
+        ..state = 'v3';
       registry.replace('service', newerService);
 
       wrapper = registry.getByKey('service')!;
@@ -316,8 +309,8 @@ void main() {
       final service1 = StatefulService(id: 's1');
       final service2 = StatefulService(id: 's2');
 
-      service1.setState('state-1');
-      service2.setState('state-2');
+      service1.state = 'state-1';
+      service2.state = 'state-2';
 
       registry1.register('service', service1);
       registry2.register('service', service2);
@@ -335,9 +328,9 @@ void main() {
 
     test('destroyed flag persists after cleanup', () {
       final service = StatefulService(id: 'cleanup-test');
-      registry.register('service', service);
-
-      registry.destroyAll();
+      registry
+        ..register('service', service)
+        ..destroyAll();
 
       expect(service.destroyed, isTrue);
 

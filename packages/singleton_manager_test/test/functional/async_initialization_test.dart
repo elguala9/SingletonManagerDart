@@ -33,9 +33,10 @@ void main() {
       final logger = await AsyncService.create(name: 'logger');
 
       // Register them
-      registry.register('db', db);
-      registry.register('cache', cache);
-      registry.register('logger', logger);
+      registry
+        ..register('db', db)
+        ..register('cache', cache)
+        ..register('logger', logger);
 
       // Verify all are properly registered
       expect(registry.getInstance('db'), same(db));

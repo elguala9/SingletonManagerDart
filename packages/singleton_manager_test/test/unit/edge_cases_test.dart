@@ -59,8 +59,9 @@ void main() {
     test('register and retrieve the same object multiple times via different keys',
         () {
       final service = SimpleService(name: 'shared');
-      registry.register('key1', service);
-      registry.register('key2', service);
+      registry
+        ..register('key1', service)
+        ..register('key2', service);
 
       // Both keys should point to the exact same instance
       expect(registry.getInstance('key1'), same(service));
@@ -85,9 +86,10 @@ void main() {
     });
 
     test('clear registry then verify it is truly empty', () {
-      registry.register('key1', SimpleService());
-      registry.register('key2', SimpleService());
-      registry.registerLazy('key3', () => SimpleService());
+      registry
+        ..register('key1', SimpleService())
+        ..register('key2', SimpleService())
+        ..registerLazy('key3', SimpleService.new);
 
       expect(registry.isEmpty, isFalse);
 
@@ -140,13 +142,12 @@ void main() {
 
     test('destroy on lazy entry that was never accessed', () {
       var factoryCalled = false;
-      registry.registerLazy('key', () {
-        factoryCalled = true;
-        return SimpleService();
-      });
-
-      // Destroy without accessing
-      registry.destroyAll();
+      registry
+        ..registerLazy('key', () {
+          factoryCalled = true;
+          return SimpleService();
+        })
+        ..destroyAll();
 
       // Factory should never have been called
       expect(factoryCalled, isFalse);
@@ -154,7 +155,7 @@ void main() {
     });
 
     test('register and unregister in rapid succession', () {
-      for (int i = 0; i < 100; i++) {
+      for (var i = 0; i < 100; i++) {
         final service = SimpleService(name: 'service_$i');
         registry.register('key', service);
         expect(registry.contains('key'), isTrue);
@@ -165,9 +166,10 @@ void main() {
     });
 
     test('keys property reflects current state after unregister', () {
-      registry.register('key1', SimpleService());
-      registry.register('key2', SimpleService());
-      registry.register('key3', SimpleService());
+      registry
+        ..register('key1', SimpleService())
+        ..register('key2', SimpleService())
+        ..register('key3', SimpleService());
 
       var keys = registry.keys;
       expect(keys, hasLength(3));
@@ -207,7 +209,7 @@ void main() {
       registry.register('k2', SimpleService());
       expect(registry.registrySize, equals(2));
 
-      registry.registerLazy('k3', () => SimpleService());
+      registry.registerLazy('k3', SimpleService.new);
       expect(registry.registrySize, equals(3));
 
       registry.unregister('k2');

@@ -5,17 +5,17 @@ class SimpleService implements IValueForRegistry {
   /// Constructor
   SimpleService({this.name = 'SimpleService'});
 
-  /// Name of this service instance
-  final String name;
-
-  /// Counter for tracking instantiations
-  static int instantiationCount = 0;
-
   /// Constructor that increments the counter
   factory SimpleService.counted({String name = 'SimpleService'}) {
     instantiationCount++;
     return SimpleService(name: name);
   }
+
+  /// Name of this service instance
+  final String name;
+
+  /// Counter for tracking instantiations
+  static int instantiationCount = 0;
 
   bool _destroyed = false;
 
@@ -33,6 +33,12 @@ class LazyService implements IValueForRegistry {
   /// Constructor
   LazyService({this.name = 'LazyService'});
 
+  /// Constructor that increments the counter
+  LazyService.tracked({this.name = 'LazyService'}) {
+    instantiationCount++;
+    constructorCalled = true;
+  }
+
   /// Name of this service instance
   final String name;
 
@@ -41,12 +47,6 @@ class LazyService implements IValueForRegistry {
 
   /// Flag to track if constructor was called
   static bool constructorCalled = false;
-
-  /// Constructor that increments the counter
-  LazyService.tracked({String name = 'LazyService'}) : name = name {
-    instantiationCount++;
-    constructorCalled = true;
-  }
 
   bool _destroyed = false;
 
@@ -68,7 +68,7 @@ class LazyService implements IValueForRegistry {
 /// A service for testing async initialization patterns
 class AsyncService implements IValueForRegistry {
   /// Constructor
-  AsyncService({this.name = 'AsyncService', required this.initialized});
+  AsyncService({required this.initialized, this.name = 'AsyncService'});
 
   /// Name of this service instance
   final String name;

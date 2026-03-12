@@ -40,9 +40,10 @@ void main() {
     });
 
     test('keys returns all registered keys', () {
-      registry.register('key1', SimpleService());
-      registry.register('key2', SimpleService());
-      registry.register('key3', SimpleService());
+      registry
+        ..register('key1', SimpleService())
+        ..register('key2', SimpleService())
+        ..register('key3', SimpleService());
 
       final keys = registry.keys;
 
@@ -77,9 +78,8 @@ void main() {
     });
 
     test('getInstance() resolves lazy entries transparently', () {
-      final registry2 = createTestRegistry<String, SimpleService>();
-
-      registry2.registerLazy('lazy', () => SimpleService(name: 'lazy'));
+      final registry2 = createTestRegistry<String, SimpleService>()
+        ..registerLazy('lazy', () => SimpleService(name: 'lazy'));
 
       final retrieved = registry2.getInstance('lazy');
 
@@ -93,7 +93,7 @@ void main() {
       final registry2 = createTestRegistry<String, SimpleService>();
       SimpleService.instantiationCount = 0;
 
-      registry2.registerLazy('lazy', () => SimpleService.counted());
+      registry2.registerLazy('lazy', SimpleService.counted);
 
       final instance1 = registry2.getInstance('lazy');
       final instance2 = registry2.getInstance('lazy');

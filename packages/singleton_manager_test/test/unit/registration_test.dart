@@ -39,8 +39,9 @@ void main() {
       final service1 = SimpleService(name: 'first');
       final service2 = SimpleService(name: 'second');
 
-      registry.register('key1', service1);
-      registry.replace('key1', service2);
+      registry
+        ..register('key1', service1)
+        ..replace('key1', service2);
 
       expect(registry.getInstance('key1'), same(service2));
       expect(service1.destroyed, isTrue);
@@ -84,8 +85,9 @@ void main() {
       final service1 = SimpleService();
       final service2 = SimpleService();
 
-      registry.register('key1', service1);
-      registry.register('key2', service2);
+      registry
+        ..register('key1', service1)
+        ..register('key2', service2);
 
       final keys = registry.keys;
 
