@@ -1,4 +1,4 @@
-import 'package:singleton_manager/src/mixin/i_value_for_registry.dart';
+import 'package:singleton_manager/src/interfaces/i_value_for_registry.dart';
 
 /// Sealed class representing a registry entry that can be either eager or lazy
 sealed class RegistryEntry<V extends IValueForRegistry>

@@ -1,4 +1,4 @@
-import 'package:singleton_manager/src/mixin/i_value_for_registry.dart';
+import 'package:singleton_manager/src/interfaces/i_value_for_registry.dart';
 import 'package:singleton_manager/src/singleton/i_singleton.dart';
 import 'package:singleton_manager/src/singleton/singleton_di.dart';
 import 'package:singleton_manager/src/singleton/singleton_manager.dart';
@@ -80,24 +80,13 @@ extension SingletonDIExt on SingletonManager {
   /// Retrieves a singleton by its type.
   ///
   /// Throws [StateError] if no instance of type T is found.
-  T get<T>() => getInstance<T>();
+  T get<T extends Object>() => getInstance<T>();
 
   /// Removes a singleton by its type.
   ///
   /// If the instance implements [IValueForRegistry], calls destroy before
   /// removal.
-  void remove<T>() {
-    // Try to destroy if exists
-    try {
-      final value = getInstance<T>();
-      if (value is IValueForRegistry) {
-        (value as IValueForRegistry).destroy();
-      }
-      // ignore: avoid_catching_errors
-    } on StateError {
-      // Instance not found is expected, ignore
-    }
-
+  void remove<T extends Object>() {
     unregister<T>();
   }
 }

@@ -1,4 +1,4 @@
-import 'package:singleton_manager/src/mixin/i_value_for_registry.dart';
+import 'package:singleton_manager/src/interfaces/i_value_for_registry.dart';
 import 'package:singleton_manager/src/singleton/singleton_di_ext.dart';
 import 'package:singleton_manager/src/singleton/singleton_manager.dart';
 
@@ -66,7 +66,7 @@ class SingletonDIAccess {
   /// ```dart
   /// final service = SingletonDIAccess.get<MyService>();
   /// ```
-  static T get<T>() => SingletonManager.instance.get<T>();
+  static T get<T extends Object>() => SingletonManager.instance.get<T>();
 
   /// Removes a singleton by its type from [SingletonManager.instance].
   ///
@@ -80,5 +80,6 @@ class SingletonDIAccess {
   /// ```dart
   /// SingletonDIAccess.remove<MyService>();
   /// ```
-  static void remove<T>() => SingletonManager.instance.remove<T>();
+  static void remove<T extends Object>() =>
+      SingletonManager.instance.remove<T>();
 }
