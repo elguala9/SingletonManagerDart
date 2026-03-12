@@ -40,7 +40,50 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.1.0
+  singleton_manager: ^0.2.0
+```
+
+## Features (v0.2.0+)
+
+### Dependency Injection with SingletonDI
+
+Register factories and use type-safe extension methods:
+
+```dart
+// Register factories
+SingletonDI.registerFactory<MyService>(() => MyService());
+SingletonDI.registerFactory<RepositoryImpl>(() => RepositoryImpl());
+
+// Register by type
+final manager = SingletonManager.instance;
+await manager.add<MyService>();
+
+// Register with interface
+await manager.addAs<IRepository, RepositoryImpl>();
+
+// Retrieve
+final service = manager.get<MyService>();
+
+// Remove
+manager.remove<MyService>();
+```
+
+### Lifecycle Management with ISingleton
+
+Implement `ISingleton` for initialization and cleanup:
+
+```dart
+class MyService implements ISingleton<dynamic, void> {
+  @override
+  Future<void> initialize(dynamic input) async {
+    // Called by manager.register() with custom input
+  }
+
+  @override
+  Future<void> initializeDI() async {
+    // Called by manager.add() - great for DI setup
+  }
+}
 ```
 
 ### Basic Usage
