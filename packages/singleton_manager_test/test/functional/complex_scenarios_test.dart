@@ -18,10 +18,11 @@ void main() {
       final eagerService1 = SimpleService(name: 'eager1');
       final eagerService2 = SimpleService(name: 'eager2');
 
-      registry.register('eager1', eagerService1);
-      registry.register('eager2', eagerService2);
-      registry.registerLazy('lazy1', () => SimpleService(name: 'lazy1'));
-      registry.registerLazy('lazy2', () => SimpleService(name: 'lazy2'));
+      registry
+        ..register('eager1', eagerService1)
+        ..register('eager2', eagerService2)
+        ..registerLazy('lazy1', () => SimpleService(name: 'lazy1'))
+        ..registerLazy('lazy2', () => SimpleService(name: 'lazy2'));
 
       expect(registry.registrySize, equals(4));
 
@@ -52,13 +53,11 @@ void main() {
 
     test('DI container with multiple service types', () {
       // Simulate a DI container with different service types
-      final registry1 = createTestRegistry<String, SimpleService>();
-
-      // Register different "services" with descriptive keys
-      registry1.register('database', SimpleService(name: 'DatabaseService'));
-      registry1.register('cache', SimpleService(name: 'CacheService'));
-      registry1.registerLazy('logger', () => SimpleService(name: 'LoggerService'));
-      registry1.registerLazy('api', () => SimpleService(name: 'ApiService'));
+      final registry1 = createTestRegistry<String, SimpleService>()
+        ..register('database', SimpleService(name: 'DatabaseService'))
+        ..register('cache', SimpleService(name: 'CacheService'))
+        ..registerLazy('logger', () => SimpleService(name: 'LoggerService'))
+        ..registerLazy('api', () => SimpleService(name: 'ApiService'));
 
       // Verify all are accessible
       expect(registry1.getInstance('database').name, equals('DatabaseService'));
@@ -79,10 +78,9 @@ void main() {
 
     test('registry handles repeated destroy cycles', () {
       final service = SimpleService(name: 'test');
-      registry.register('key', service);
-
-      // First destroy
-      registry.destroyAll();
+      registry
+        ..register('key', service)
+        ..destroyAll();
       expect(service.destroyed, isTrue);
       expect(registry.isEmpty, isTrue);
 
@@ -100,9 +98,10 @@ void main() {
     test('concurrent initialization of multiple lazy services', () {
       SimpleService.instantiationCount = 0;
 
-      registry.registerLazy('lazy1', () => SimpleService.counted());
-      registry.registerLazy('lazy2', () => SimpleService.counted());
-      registry.registerLazy('lazy3', () => SimpleService.counted());
+      registry
+        ..registerLazy('lazy1', SimpleService.counted)
+        ..registerLazy('lazy2', SimpleService.counted)
+        ..registerLazy('lazy3', SimpleService.counted);
 
       final service1 = registry.getInstance('lazy1');
       final service2 = registry.getInstance('lazy2');

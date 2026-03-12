@@ -61,10 +61,11 @@ void main() {
 
     test('complete application lifecycle with DI container', () {
       // Bootstrap
-      container.registerDatabaseService();
-      container.registerCacheService();
-      container.registerApiService();
-      container.registerLoggerService();
+      container
+        ..registerDatabaseService()
+        ..registerCacheService()
+        ..registerApiService()
+        ..registerLoggerService();
 
       expect(container.serviceCount, equals(4));
       expect(
@@ -96,10 +97,11 @@ void main() {
     });
 
     test('lazy services are created only when accessed', () {
-      container.registerDatabaseService(); // Eager
-      container.registerCacheService(); // Lazy
-      container.registerApiService(); // Lazy
-      container.registerLoggerService(); // Lazy
+      container
+        ..registerDatabaseService() // Eager
+        ..registerCacheService() // Lazy
+        ..registerApiService() // Lazy
+        ..registerLoggerService(); // Lazy
 
       // Only database should be instantiated
       expect(SimpleService.instantiationCount, equals(1)); // Only DB
@@ -117,9 +119,10 @@ void main() {
       expect(SimpleService.instantiationCount, equals(4)); // All 4
 
       // Access again - no new creations
-      container.getService('cache');
-      container.getService('api');
-      container.getService('logger');
+      container
+        ..getService('cache')
+        ..getService('api')
+        ..getService('logger');
       expect(SimpleService.instantiationCount, equals(4)); // Still 4
     });
 
@@ -179,10 +182,11 @@ void main() {
 
     test('service dependency chain', () {
       // Register services
-      container.registerDatabaseService(); // Depends on nothing
-      container.registerCacheService(); // Could depend on DB
-      container.registerApiService(); // Could depend on DB and Cache
-      container.registerLoggerService(); // Could depend on all
+      container
+        ..registerDatabaseService() // Depends on nothing
+        ..registerCacheService() // Could depend on DB
+        ..registerApiService() // Could depend on DB and Cache
+        ..registerLoggerService(); // Could depend on all
 
       // In real app, services might have constructor parameters
       // Here we verify the dependency injection works structurally
@@ -198,8 +202,9 @@ void main() {
     });
 
     test('hot reload pattern: service update without restart', () {
-      container.registerDatabaseService();
-      container.registerCacheService();
+      container
+        ..registerDatabaseService()
+        ..registerCacheService();
 
       final originalDb = container.getService('db');
       final originalCache = container.getService('cache');
@@ -217,8 +222,9 @@ void main() {
     });
 
     test('error recovery pattern: graceful degradation', () {
-      container.registerDatabaseService();
-      container.registerCacheService();
+      container
+        ..registerDatabaseService()
+        ..registerCacheService();
 
       // Get cache - should work normally
       final cache = container.getService('cache');
@@ -233,9 +239,10 @@ void main() {
     });
 
     test('selective shutdown pattern', () {
-      container.registerDatabaseService();
-      container.registerCacheService();
-      container.registerApiService();
+      container
+        ..registerDatabaseService()
+        ..registerCacheService()
+        ..registerApiService();
 
       expect(container.serviceCount, equals(3));
 
@@ -249,8 +256,9 @@ void main() {
     });
 
     test('service validation and status checks', () {
-      container.registerDatabaseService();
-      container.registerCacheService();
+      container
+        ..registerDatabaseService()
+        ..registerCacheService();
 
       // Check all services are available
       for (final serviceName in ['db', 'cache']) {
@@ -291,8 +299,9 @@ void main() {
 
     test('scaling pattern: adding multiple instances of same type', () {
       // Register primary instances
-      container.registerDatabaseService();
-      container.registerCacheService();
+      container
+        ..registerDatabaseService()
+        ..registerCacheService();
 
       expect(container.serviceCount, equals(2));
 

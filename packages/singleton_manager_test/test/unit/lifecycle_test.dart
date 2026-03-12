@@ -27,10 +27,10 @@ void main() {
       final service1 = SimpleService(name: 'service1');
       final service2 = SimpleService(name: 'service2');
 
-      registry.register('key1', service1);
-      registry.register('key2', service2);
-
-      registry.destroyAll();
+      registry
+        ..register('key1', service1)
+        ..register('key2', service2)
+        ..destroyAll();
 
       expect(service1.destroyed, isTrue);
       expect(service2.destroyed, isTrue);
@@ -40,8 +40,9 @@ void main() {
       final service1 = SimpleService();
       final service2 = SimpleService();
 
-      registry.register('key1', service1);
-      registry.register('key2', service2);
+      registry
+        ..register('key1', service1)
+        ..register('key2', service2);
 
       expect(registry.registrySize, equals(2));
 
@@ -53,19 +54,18 @@ void main() {
 
     test('clearRegistry() empties the registry without destroying', () {
       final service = SimpleService();
-      registry.register('key1', service);
-
-      registry.clearRegistry();
+      registry
+        ..register('key1', service)
+        ..clearRegistry();
 
       expect(registry.isEmpty, isTrue);
       expect(service.destroyed, isFalse);
     });
 
     test('destroyAll() handles lazy entries correctly', () {
-      final lazyRegistry = createTestRegistry<String, SimpleService>();
-
-      lazyRegistry.registerLazy('lazy1', () => SimpleService(name: 'lazy1'));
-      lazyRegistry.registerLazy('lazy2', () => SimpleService(name: 'lazy2'));
+      final lazyRegistry = createTestRegistry<String, SimpleService>()
+        ..registerLazy('lazy1', () => SimpleService(name: 'lazy1'))
+        ..registerLazy('lazy2', () => SimpleService(name: 'lazy2'));
 
       // Access one to initialize it
       final initializedService = lazyRegistry.getInstance('lazy1');
@@ -80,9 +80,9 @@ void main() {
 
     test('multiple destroy calls are safe', () {
       final service = SimpleService();
-      registry.register('key1', service);
-
-      registry.destroyAll();
+      registry
+        ..register('key1', service)
+        ..destroyAll();
       // This should not throw even though already destroyed
       expect(service.destroyed, isTrue);
 

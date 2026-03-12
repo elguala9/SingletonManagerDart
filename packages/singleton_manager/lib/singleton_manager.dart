@@ -9,4 +9,7 @@ export 'src/mixin/registry_mixin.dart';
 export 'src/mixin/value_with_version.dart';
 export 'src/registry/registry_utility.dart';
 export 'src/singleton/i_singleton.dart';
+export 'src/singleton/singleton_di.dart';
+export 'src/singleton/singleton_di_access.dart';
+export 'src/singleton/singleton_di_ext.dart';
 export 'src/singleton/singleton_manager.dart';

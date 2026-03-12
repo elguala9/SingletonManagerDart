@@ -1,4 +1,5 @@
 import 'package:singleton_manager/singleton_manager.dart';
+import 'package:singleton_manager/src/singleton/singleton_di_access.dart';
 import 'package:test/test.dart';
 
 // Test fixtures
@@ -573,7 +574,7 @@ void main() {
     });
   });
 
-  group('SingletonDI - Static Methods', () {
+  group('SingletonDIAccess - Static Methods', () {
     setUp(() {
       SingletonDI.clearFactories();
       SingletonManager().clearRegistry();
@@ -583,24 +584,24 @@ void main() {
       SingletonManager().clearRegistry();
     });
 
-    test('static add<T>() registers singleton via instance', () async {
+    test('add<T>() registers singleton via instance', () async {
       SingletonDI.registerFactory<SimpleService>(
         () => SimpleService(name: 'static-add'),
       );
 
-      await SingletonDI.add<SimpleService>();
+      await SingletonDIAccess.add<SimpleService>();
 
-      final instance = SingletonDI.get<SimpleService>();
+      final instance = SingletonDIAccess.get<SimpleService>();
       expect(instance.name, equals('static-add'));
     });
 
-    test('static add<T>() is equivalent to instance.add<T>()', () async {
+    test('add<T>() is equivalent to instance.add<T>()', () async {
       SingletonDI.registerFactory<SimpleService>(
         () => SimpleService(name: 'equivalence-test'),
       );
 
-      await SingletonDI.add<SimpleService>();
-      final staticInstance = SingletonDI.get<SimpleService>();
+      await SingletonDIAccess.add<SimpleService>();
+      final staticInstance = SingletonDIAccess.get<SimpleService>();
 
       SingletonManager().clearRegistry();
       SingletonDI.registerFactory<SimpleService>(
@@ -614,45 +615,45 @@ void main() {
       expect(staticInstance.name, equals(instanceMethod.name));
     });
 
-    test('static add<T>() calls initializeDI if instance implements ISingleton',
+    test('add<T>() calls initializeDI if instance implements ISingleton',
         () async {
       SingletonDI.registerFactory<ServiceWithInit>(
         () => ServiceWithInit(name: 'static-init'),
       );
 
-      await SingletonDI.add<ServiceWithInit>();
+      await SingletonDIAccess.add<ServiceWithInit>();
 
-      final instance = SingletonDI.get<ServiceWithInit>();
+      final instance = SingletonDIAccess.get<ServiceWithInit>();
       expect(instance.initialized, isTrue);
     });
 
-    test('static add<T>() throws StateError if factory not registered',
+    test('add<T>() throws StateError if factory not registered',
         () async {
       await expectLater(
-        SingletonDI.add<SimpleService>(),
+        SingletonDIAccess.add<SimpleService>(),
         throwsA(isA<StateError>()),
       );
     });
 
-    test('static addAs<I, T>() registers by interface via instance', () async {
+    test('addAs<I, T>() registers by interface via instance', () async {
       SingletonDI.registerFactory<RepositoryImpl>(
         () => RepositoryImpl(name: 'static-impl'),
       );
 
-      await SingletonDI.addAs<IRepository, RepositoryImpl>();
+      await SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
 
-      final instance = SingletonDI.get<IRepository>();
+      final instance = SingletonDIAccess.get<IRepository>();
       expect(instance.getName(), equals('static-impl'));
     });
 
-    test('static addAs<I, T>() is equivalent to instance.addAs<I, T>()',
+    test('addAs<I, T>() is equivalent to instance.addAs<I, T>()',
         () async {
       SingletonDI.registerFactory<RepositoryImpl>(
         () => RepositoryImpl(name: 'addas-test'),
       );
 
-      await SingletonDI.addAs<IRepository, RepositoryImpl>();
-      final staticInstance = SingletonDI.get<IRepository>();
+      await SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
+      final staticInstance = SingletonDIAccess.get<IRepository>();
 
       SingletonManager().clearRegistry();
       SingletonDI.registerFactory<RepositoryImpl>(
@@ -666,44 +667,44 @@ void main() {
       expect(staticInstance.getName(), equals(instanceMethod.getName()));
     });
 
-    test('static addAs<I, T>() calls initializeDI if T implements ISingleton',
+    test('addAs<I, T>() calls initializeDI if T implements ISingleton',
         () async {
       SingletonDI.registerFactory<RepositoryWithInit>(
         () => RepositoryWithInit(name: 'static-with-init'),
       );
 
-      await SingletonDI.addAs<IRepository, RepositoryWithInit>();
+      await SingletonDIAccess.addAs<IRepository, RepositoryWithInit>();
 
-      final instance = SingletonDI.get<IRepository>();
+      final instance = SingletonDIAccess.get<IRepository>();
       expect((instance as RepositoryWithInit).initialized, isTrue);
     });
 
-    test('static addAs<I, T>() throws StateError if factory not registered',
+    test('addAs<I, T>() throws StateError if factory not registered',
         () async {
       await expectLater(
-        SingletonDI.addAs<IRepository, RepositoryImpl>(),
+        SingletonDIAccess.addAs<IRepository, RepositoryImpl>(),
         throwsA(isA<StateError>()),
       );
     });
 
-    test('static get<T>() retrieves registered singleton', () async {
+    test('get<T>() retrieves registered singleton', () async {
       SingletonDI.registerFactory<SimpleService>(
         () => SimpleService(name: 'get-test'),
       );
 
-      await SingletonDI.add<SimpleService>();
+      await SingletonDIAccess.add<SimpleService>();
 
-      final instance = SingletonDI.get<SimpleService>();
+      final instance = SingletonDIAccess.get<SimpleService>();
       expect(instance.name, equals('get-test'));
     });
 
-    test('static get<T>() is equivalent to instance.get<T>()', () async {
+    test('get<T>() is equivalent to instance.get<T>()', () async {
       SingletonDI.registerFactory<SimpleService>(
         () => SimpleService(name: 'get-equiv'),
       );
 
-      await SingletonDI.add<SimpleService>();
-      final staticResult = SingletonDI.get<SimpleService>();
+      await SingletonDIAccess.add<SimpleService>();
+      final staticResult = SingletonDIAccess.get<SimpleService>();
 
       final manager = SingletonManager();
       final instanceResult = manager.get<SimpleService>();
@@ -711,39 +712,39 @@ void main() {
       expect(identical(staticResult, instanceResult), isTrue);
     });
 
-    test('static get<T>() throws StateError if not found', () {
+    test('get<T>() throws StateError if not found', () {
       expect(
-        () => SingletonDI.get<SimpleService>(),
+        () => SingletonDIAccess.get<SimpleService>(),
         throwsA(isA<StateError>()),
       );
     });
 
-    test('static remove<T>() removes singleton via instance', () async {
+    test('remove<T>() removes singleton via instance', () async {
       SingletonDI.registerFactory<SimpleService>(
         () => SimpleService(name: 'to-remove'),
       );
 
-      await SingletonDI.add<SimpleService>();
-      SingletonDI.remove<SimpleService>();
+      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.remove<SimpleService>();
 
       expect(
-        () => SingletonDI.get<SimpleService>(),
+        () => SingletonDIAccess.get<SimpleService>(),
         throwsA(isA<StateError>()),
       );
     });
 
-    test('static remove<T>() is equivalent to instance.remove<T>()',
+    test('remove<T>() is equivalent to instance.remove<T>()',
         () async {
       SingletonDI.registerFactory<SimpleService>(
         () => SimpleService(name: 'remove-equiv'),
       );
 
-      await SingletonDI.add<SimpleService>();
-      SingletonDI.remove<SimpleService>();
+      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.remove<SimpleService>();
 
       // Verify it's removed
       expect(
-        () => SingletonDI.get<SimpleService>(),
+        () => SingletonDIAccess.get<SimpleService>(),
         throwsA(isA<StateError>()),
       );
 
@@ -761,24 +762,24 @@ void main() {
       );
     });
 
-    test('static remove<T>() calls destroy on IValueForRegistry instances',
+    test('remove<T>() calls destroy on IValueForRegistry instances',
         () async {
       SingletonDI.registerFactory<DestroyableService>(
         () => DestroyableService(name: 'destroyable'),
       );
 
-      await SingletonDI.add<DestroyableService>();
-      final instance = SingletonDI.get<DestroyableService>();
+      await SingletonDIAccess.add<DestroyableService>();
+      final instance = SingletonDIAccess.get<DestroyableService>();
       expect(instance.destroyed, isFalse);
 
-      SingletonDI.remove<DestroyableService>();
+      SingletonDIAccess.remove<DestroyableService>();
 
       expect(instance.destroyed, isTrue);
     });
 
-    test('static remove<T>() does not fail when instance not registered', () {
+    test('remove<T>() does not fail when instance not registered', () {
       // Should not throw
-      SingletonDI.remove<SimpleService>();
+      SingletonDIAccess.remove<SimpleService>();
     });
 
     test('complete workflow using static methods', () async {
@@ -791,26 +792,26 @@ void main() {
       );
 
       // Register
-      await SingletonDI.add<SimpleService>();
-      await SingletonDI.addAs<IRepository, RepositoryImpl>();
+      await SingletonDIAccess.add<SimpleService>();
+      await SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
 
       // Retrieve
-      final service = SingletonDI.get<SimpleService>();
-      final repo = SingletonDI.get<IRepository>();
+      final service = SingletonDIAccess.get<SimpleService>();
+      final repo = SingletonDIAccess.get<IRepository>();
 
       expect(service.name, equals('workflow-service'));
       expect(repo.getName(), equals('workflow-repo'));
 
       // Remove
-      SingletonDI.remove<SimpleService>();
-      SingletonDI.remove<IRepository>();
+      SingletonDIAccess.remove<SimpleService>();
+      SingletonDIAccess.remove<IRepository>();
 
       expect(
-        () => SingletonDI.get<SimpleService>(),
+        () => SingletonDIAccess.get<SimpleService>(),
         throwsA(isA<StateError>()),
       );
       expect(
-        () => SingletonDI.get<IRepository>(),
+        () => SingletonDIAccess.get<IRepository>(),
         throwsA(isA<StateError>()),
       );
     });
@@ -820,10 +821,10 @@ void main() {
         () => SimpleService(name: 'singleton-test'),
       );
 
-      await SingletonDI.add<SimpleService>();
+      await SingletonDIAccess.add<SimpleService>();
 
       // Both static method and instance method should access same singleton
-      final staticInstance = SingletonDI.get<SimpleService>();
+      final staticInstance = SingletonDIAccess.get<SimpleService>();
       final manager = SingletonManager();
       final managerInstance = manager.get<SimpleService>();
 

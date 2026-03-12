@@ -76,7 +76,7 @@ void main() {
 
     test('RegistryNotFoundError on replaceLazy with nonexistent key', () {
       expect(
-        () => registry.replaceLazy('nonexistent', () => SimpleService()),
+        () => registry.replaceLazy('nonexistent', SimpleService.new),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });
@@ -108,13 +108,13 @@ void main() {
       registry.register('key', SimpleService());
 
       expect(
-        () => registry.registerLazy('key', () => SimpleService()),
+        () => registry.registerLazy('key', SimpleService.new),
         throwsA(isA<DuplicateRegistrationError>()),
       );
     });
 
     test('register throws on duplicate with lazy service', () {
-      registry.registerLazy('key', () => SimpleService());
+      registry.registerLazy('key', SimpleService.new);
 
       expect(
         () => registry.register('key', SimpleService()),
@@ -124,7 +124,7 @@ void main() {
 
     test('getInstance throws for lazy entry with missing factory', () {
       // This is a structural test - lazy entries should always be callable
-      registry.registerLazy('lazy', () => SimpleService());
+      registry.registerLazy('lazy', SimpleService.new);
 
       // Should work
       expect(
@@ -187,12 +187,14 @@ void main() {
     });
 
     test('keys property works even after errors', () {
-      registry.register('key1', SimpleService());
-      registry.register('key2', SimpleService());
+      registry
+        ..register('key1', SimpleService())
+        ..register('key2', SimpleService());
 
       try {
         registry.getInstance('nonexistent');
-      } catch (e) {
+      // ignore: avoid_catching_errors
+      } on RegistryError {
         // Ignored
       }
 
@@ -206,7 +208,8 @@ void main() {
 
       try {
         registry.replace('nonexistent', SimpleService());
-      } catch (e) {
+      // ignore: avoid_catching_errors
+      } on RegistryError {
         // Ignored
       }
 
@@ -219,7 +222,8 @@ void main() {
 
       try {
         registry.getInstance('nonexistent');
-      } catch (e) {
+      // ignore: avoid_catching_errors
+      } on RegistryError {
         // Ignored
       }
 
@@ -232,7 +236,8 @@ void main() {
 
       try {
         registry.replace('nonexistent', SimpleService());
-      } catch (e) {
+      // ignore: avoid_catching_errors
+      } on RegistryError {
         // Ignored
       }
 
@@ -259,11 +264,11 @@ void main() {
     });
 
     test('error in lazy factory does not poison registry', () {
-      registry.registerLazy('failing', () {
-        throw Exception('Factory error');
-      });
-
-      registry.register('working', SimpleService());
+      registry
+        ..registerLazy('failing', () {
+          throw Exception('Factory error');
+        })
+        ..register('working', SimpleService());
 
       expect(
         () => registry.getInstance('failing'),
@@ -317,9 +322,9 @@ void main() {
 
     test('unregister and re-register recovery pattern', () {
       final service1 = SimpleService(name: 'service1');
-      registry.register('key', service1);
-
-      registry.unregister('key');
+      registry
+        ..register('key', service1)
+        ..unregister('key');
 
       // Should be able to re-register
       final service2 = SimpleService(name: 'service2');
@@ -339,7 +344,8 @@ void main() {
 
       try {
         registry.register('key1', SimpleService()); // Duplicate error
-      } catch (e) {
+        // ignore: avoid_catching_errors
+      } on RegistryError {
         // Expected
       }
 

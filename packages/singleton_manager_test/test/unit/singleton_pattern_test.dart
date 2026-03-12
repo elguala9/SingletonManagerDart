@@ -37,8 +37,8 @@ void main() {
     });
 
     test('singleton pattern: single instance throughout lifecycle', () {
-      final service = TrackedService(id: 'singleton-1');
-      service.initialize();
+      final service = TrackedService(id: 'singleton-1')
+        ..initialize();
 
       registry.register('app', service);
 
@@ -77,8 +77,8 @@ void main() {
     });
 
     test('singleton replacement pattern: graceful lifecycle transition', () {
-      final oldService = TrackedService(id: 'old-service');
-      oldService.initialize();
+      final oldService = TrackedService(id: 'old-service')
+        ..initialize();
       registry.register('config', oldService);
 
       final retrieved1 = registry.getInstance('config');
@@ -86,8 +86,8 @@ void main() {
       expect(oldService.isDestroyed, isFalse);
 
       // Replace with new singleton
-      final newService = TrackedService(id: 'new-service');
-      newService.initialize();
+      final newService = TrackedService(id: 'new-service')
+        ..initialize();
       registry.replace('config', newService);
 
       expect(oldService.isDestroyed, isTrue);
@@ -98,17 +98,17 @@ void main() {
     });
 
     test('multi-level dependency pattern: multiple singletons', () {
-      final databaseService = TrackedService(id: 'database');
-      final cacheService = TrackedService(id: 'cache');
-      final apiService = TrackedService(id: 'api');
+      final databaseService = TrackedService(id: 'database')
+        ..initialize();
+      final cacheService = TrackedService(id: 'cache')
+        ..initialize();
+      final apiService = TrackedService(id: 'api')
+        ..initialize();
 
-      databaseService.initialize();
-      cacheService.initialize();
-      apiService.initialize();
-
-      registry.register('db', databaseService);
-      registry.register('cache', cacheService);
-      registry.register('api', apiService);
+      registry
+        ..register('db', databaseService)
+        ..register('cache', cacheService)
+        ..register('api', apiService);
 
       // Verify each is a singleton
       expect(registry.getInstance('db'), same(databaseService));
@@ -130,8 +130,8 @@ void main() {
 
       registry.registerLazy('service', () {
         factoryCallCount++;
-        final service = TrackedService(id: 'factory-generated-$factoryCallCount');
-        service.initialize();
+        final service = TrackedService(id: 'factory-generated-$factoryCallCount')
+          ..initialize();
         return service;
       });
 
@@ -140,7 +140,7 @@ void main() {
       expect(first.id, contains('factory-generated-1'));
 
       // Access many times
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         final retrieved = registry.getInstance('service');
         expect(identical(retrieved, first), isTrue);
         expect(factoryCallCount, equals(1)); // Still 1
@@ -148,15 +148,15 @@ void main() {
     });
 
     test('volatile singleton pattern: replacement while in use', () {
-      final version1 = TrackedService(id: 'v1');
-      version1.initialize();
+      final version1 = TrackedService(id: 'v1')
+        ..initialize();
       registry.register('volatile', version1);
 
       final ref1 = registry.getInstance('volatile');
       expect(ref1.id, equals('v1'));
 
-      final version2 = TrackedService(id: 'v2');
-      version2.initialize();
+      final version2 = TrackedService(id: 'v2')
+        ..initialize();
       registry.replaceLazy('volatile', () => version2);
 
       // Old reference still valid, but registry now has new one
@@ -171,11 +171,10 @@ void main() {
       final scope1 = createTestRegistry<String, TrackedService>();
       final scope2 = createTestRegistry<String, TrackedService>();
 
-      final scope1Service = TrackedService(id: 'scope1-service');
-      final scope2Service = TrackedService(id: 'scope2-service');
-
-      scope1Service.initialize();
-      scope2Service.initialize();
+      final scope1Service = TrackedService(id: 'scope1-service')
+        ..initialize();
+      final scope2Service = TrackedService(id: 'scope2-service')
+        ..initialize();
 
       scope1.register('user-session', scope1Service);
       scope2.register('user-session', scope2Service);
@@ -188,14 +187,14 @@ void main() {
     });
 
     test('circular reference pattern: singleton referencing other singletons', () {
-      final serviceA = TrackedService(id: 'service-a');
-      final serviceB = TrackedService(id: 'service-b');
+      final serviceA = TrackedService(id: 'service-a')
+        ..initialize();
+      final serviceB = TrackedService(id: 'service-b')
+        ..initialize();
 
-      serviceA.initialize();
-      serviceB.initialize();
-
-      registry.register('a', serviceA);
-      registry.register('b', serviceB);
+      registry
+        ..register('a', serviceA)
+        ..register('b', serviceB);
 
       // Services maintain references to each other
       final a = registry.getInstance('a');
@@ -226,8 +225,8 @@ void main() {
       expect(identical(retrieved, service), isTrue);
 
       // Phase 4: Replacement triggers destruction
-      final newService = TrackedService(id: 'lifecycle-test-2');
-      newService.initialize();
+      final newService = TrackedService(id: 'lifecycle-test-2')
+        ..initialize();
       registry.replace('service', newService);
 
       expect(service.isDestroyed, isTrue);
@@ -262,16 +261,16 @@ void main() {
     test('singleton pool pattern: fixed number of instances', () {
       const poolSize = 5;
 
-      for (int i = 0; i < poolSize; i++) {
-        final service = TrackedService(id: 'pooled-$i');
-        service.initialize();
+      for (var i = 0; i < poolSize; i++) {
+        final service = TrackedService(id: 'pooled-$i')
+          ..initialize();
         registry.register('pool-$i', service);
       }
 
       expect(registry.registrySize, equals(poolSize));
 
       // Each pool slot is a singleton
-      for (int i = 0; i < poolSize; i++) {
+      for (var i = 0; i < poolSize; i++) {
         final first = registry.getInstance('pool-$i');
         final second = registry.getInstance('pool-$i');
         expect(identical(first, second), isTrue);
@@ -279,8 +278,8 @@ void main() {
     });
 
     test('singleton aware of its own state changes', () {
-      final service = TrackedService(id: 'stateful');
-      service.initialize();
+      final service = TrackedService(id: 'stateful')
+        ..initialize();
       registry.register('state', service);
 
       expect(registry.getInstance('state').isInitialized, isTrue);
