@@ -1,5 +1,5 @@
 import 'package:singleton_manager/src/errors/registry_errors.dart';
-import 'package:singleton_manager/src/mixin/i_value_for_registry.dart';
+import 'package:singleton_manager/src/interfaces/i_value_for_registry.dart';
 import 'package:singleton_manager/src/mixin/registry_entry.dart';
 import 'package:singleton_manager/src/mixin/value_with_version.dart';
 

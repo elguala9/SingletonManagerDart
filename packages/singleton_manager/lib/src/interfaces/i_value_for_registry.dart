@@ -4,3 +4,11 @@ abstract interface class IValueForRegistry {
   /// Implementations should clean up resources here.
   void destroy();
 }
+
+
+mixin ValueForRegistry implements IValueForRegistry{
+  @override
+  void destroy(){
+
+  }
+}

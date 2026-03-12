@@ -3,7 +3,7 @@
 library;
 
 export 'src/errors/registry_errors.dart';
-export 'src/mixin/i_value_for_registry.dart';
+export 'src/interfaces/i_value_for_registry.dart';
 export 'src/mixin/registry_entry.dart';
 export 'src/mixin/registry_mixin.dart';
 export 'src/mixin/value_with_version.dart';
