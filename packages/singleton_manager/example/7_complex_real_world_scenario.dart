@@ -15,7 +15,7 @@ abstract interface class IDatabase {
   Future<Map<String, dynamic>> query(String sql);
 }
 
-abstract interface class IUserRepository {
+abstract interface class IUserRepository implements ISingleton<dynamic, dynamic> {
   Future<Map<String, dynamic>> getUserById(String id);
   Future<List<Map<String, dynamic>>> getAllUsers();
 }
@@ -76,6 +76,12 @@ class UserRepository implements IUserRepository, IValueForRegistry {
     final user = await _database.query('SELECT * FROM users');
     return [user];
   }
+
+  @override
+  Future<void> initialize(dynamic input) async {}
+
+  @override
+  Future<void> initializeDI() async {}
 
   @override
   void destroy() {

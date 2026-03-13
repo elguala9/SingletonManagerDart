@@ -55,9 +55,7 @@ class SingletonManager {
   /// Destroys all values and clears the registry.
   /// If values implement [IValueForRegistry], calls destroy on each.
   void destroyAll() {
-    for (final value in _registry.values) {
-      _destroyIfNeeded(value);
-    }
+    _registry.values.forEach(_destroyIfNeeded);
     _registry.clear();
   }
 

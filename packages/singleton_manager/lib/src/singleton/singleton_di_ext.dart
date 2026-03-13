@@ -17,7 +17,7 @@ extension SingletonDIExt on SingletonManager {
   /// called after instantiation.
   ///
   /// Throws [StateError] if no factory is registered for T.
-  Future<void> add<T extends Object>() async {
+  Future<void> add<T extends ISingleton<dynamic, dynamic>>() async {
     final factory = SingletonDI.getFactory<T>();
     if (factory == null) {
       throw StateError(
@@ -27,11 +27,8 @@ extension SingletonDIExt on SingletonManager {
     }
 
     final instance = factory();
-
-    // If instance implements ISingleton, initialize it
-    if (instance is ISingleton) {
-      await instance.initializeDI();
-    }
+    await instance.initializeDI();
+    
 
     register<T>(instance);
   }
@@ -48,12 +45,15 @@ extension SingletonDIExt on SingletonManager {
   ///
   /// Example:
   /// ```dart
+  /// // IRepository extends ISingleton<dynamic, dynamic>
+  /// // RepositoryImpl implements IRepository
   /// SingletonDI.registerFactory<RepositoryImpl>(
   ///   () => RepositoryImpl(),
   /// );
   /// await manager.addAs<IRepository, RepositoryImpl>();
   /// ```
-  Future<void> addAs<I extends Object, T extends I>() async {
+  Future<void> addAs<I extends ISingleton<dynamic, dynamic>,
+      T extends I>() async {
     final factory = SingletonDI.getFactory<T>();
     if (factory == null) {
       throw StateError(
@@ -63,30 +63,67 @@ extension SingletonDIExt on SingletonManager {
     }
 
     final instance = factory();
-
-    // If instance implements ISingleton, initialize it
-    if (instance is ISingleton) {
-      // ignore: unnecessary_cast
-      await (instance as ISingleton).initializeDI();
-    }
+    await instance.initializeDI();
 
     // Unregister previous instance if exists
     unregister<I>();
 
     // Register with interface as key, but store the T instance
-    register<I>(instance as I);
+    register<I>(instance);
+  }
+
+  /// Registers an existing singleton instance of type [T].
+  ///
+  /// If the instance implements [ISingleton], the initializeDI method is
+  /// called after registration.
+  ///
+  /// Example:
+  /// ```dart
+  /// final service = MyService(); // MyService implements ISingleton
+  /// await manager.addInstance<MyService>(service);
+  /// ```
+  Future<void> addInstance<T extends ISingleton<dynamic, dynamic>>(
+      T instance) async {
+    await instance.initializeDI();
+    
+    register<T>(instance);
+  }
+
+  /// Registers an existing singleton instance of type [T] under interface [I].
+  ///
+  /// Registers [I] as the key but stores the [instance]. Useful for
+  /// polymorphism: you pass a concrete implementation but register it as an
+  /// interface type. If the instance implements [ISingleton], the
+  /// initializeDI method is called before registration.
+  /// Any previous registration for [I] is unregistered first.
+  ///
+  /// Example:
+  /// ```dart
+  /// final repo = RepositoryImpl(); // RepositoryImpl implements IRepository
+  /// await manager.addInstanceAs<IRepository, RepositoryImpl>(repo);
+  /// // IRepository extends ISingleton<dynamic, dynamic>
+  /// ```
+  Future<void> addInstanceAs<I extends ISingleton<dynamic, dynamic>,
+      T extends I>(T instance) async {
+    final singleton = instance;
+    await singleton.initializeDI();
+    
+    // Unregister previous instance if exists
+    unregister<I>();
+    // Register with interface as key, but store the T instance
+    register<I>(instance);
   }
 
   /// Retrieves a singleton by its type.
   ///
   /// Throws [StateError] if no instance of type T is found.
-  T get<T extends Object>() => getInstance<T>();
+  T get<T extends ISingleton<dynamic, dynamic>>() => getInstance<T>();
 
   /// Removes a singleton by its type.
   ///
   /// If the instance implements [IValueForRegistry], calls destroy before
   /// removal.
-  void remove<T extends Object>() {
+  void remove<T extends ISingleton<dynamic, dynamic>>() {
     unregister<T>();
   }
 }
