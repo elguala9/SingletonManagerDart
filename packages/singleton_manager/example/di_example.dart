@@ -2,7 +2,8 @@
 import 'package:singleton_manager/singleton_manager.dart';
 
 /// Example service interface
-abstract interface class IUserRepository {
+abstract interface class IUserRepository
+    implements ISingleton<dynamic, dynamic> {
   Future<String> getUser(int id);
 }
 

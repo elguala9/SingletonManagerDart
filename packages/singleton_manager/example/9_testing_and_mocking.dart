@@ -15,7 +15,7 @@ abstract interface class IEmailService {
   Future<void> sendEmail(String to, String subject, String body);
 }
 
-abstract interface class IUserRepository {
+abstract interface class IUserRepository implements ISingleton<dynamic, dynamic> {
   Future<Map<String, dynamic>> getUserById(String id);
 }
 
@@ -39,6 +39,12 @@ class ProductionUserRepository implements IUserRepository, IValueForRegistry {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     return {'id': id, 'name': 'John Doe', 'email': 'john@example.com'};
   }
+
+  @override
+  Future<void> initialize(dynamic input) async {}
+
+  @override
+  Future<void> initializeDI() async {}
 
   @override
   void destroy() {
@@ -88,6 +94,12 @@ class MockUserRepository implements IUserRepository, IValueForRegistry {
   void addUser(String id, Map<String, dynamic> userData) {
     _users[id] = userData;
   }
+
+  @override
+  Future<void> initialize(dynamic input) async {}
+
+  @override
+  Future<void> initializeDI() async {}
 
   @override
   void destroy() {

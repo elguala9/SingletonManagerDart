@@ -2,10 +2,16 @@ import 'package:singleton_manager/singleton_manager.dart';
 import 'package:test/test.dart';
 
 // Test fixtures
-class SimpleService {
+class SimpleService implements ISingleton<void, void> {
   SimpleService({this.name = 'SimpleService'});
 
   final String name;
+
+  @override
+  Future<void> initialize(void input) async {}
+
+  @override
+  Future<void> initializeDI() async {}
 
   @override
   String toString() => 'SimpleService($name)';
@@ -32,7 +38,7 @@ class ServiceWithInit implements ISingleton<void, void> {
   String toString() => 'ServiceWithInit($name, initialized=$initialized)';
 }
 
-class HeavyService {
+class HeavyService implements ISingleton<void, void> {
   HeavyService({this.name = 'HeavyService', SimpleService? dependency}) {
     this.dependency = dependency ?? SimpleService(name: 'default-dep');
   }
@@ -41,11 +47,17 @@ class HeavyService {
   late SimpleService dependency;
 
   @override
+  Future<void> initialize(void input) async {}
+
+  @override
+  Future<void> initializeDI() async {}
+
+  @override
   String toString() => 'HeavyService($name)';
 }
 
 // Interface for testing addAs
-abstract class IRepository {
+abstract class IRepository implements ISingleton<void, void> {
   String getName();
 }
 
@@ -56,9 +68,15 @@ class RepositoryImpl implements IRepository {
 
   @override
   String getName() => name;
+
+  @override
+  Future<void> initialize(void input) async {}
+
+  @override
+  Future<void> initializeDI() async {}
 }
 
-class DestroyableService implements IValueForRegistry {
+class DestroyableService implements IValueForRegistry, ISingleton<void, void> {
   DestroyableService({this.name = 'DestroyableService'});
 
   final String name;
@@ -68,6 +86,12 @@ class DestroyableService implements IValueForRegistry {
   void destroy() {
     destroyed = true;
   }
+
+  @override
+  Future<void> initialize(void input) async {}
+
+  @override
+  Future<void> initializeDI() async {}
 }
 
 class RepositoryWithInit implements IRepository, ISingleton<void, void> {

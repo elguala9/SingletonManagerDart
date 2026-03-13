@@ -1,13 +1,14 @@
+// ignore_for_file: cascade_invocations
 import 'package:singleton_manager/src/interfaces/i_value_for_registry.dart';
 import 'package:singleton_manager/src/singleton/singleton_manager.dart';
 import 'package:test/test.dart';
 
 /// Mock implementation that tracks lifecycle calls
 class MockService implements IValueForRegistry {
+  MockService(this.id);
+
   final String id;
   bool isDestroyed = false;
-
-  MockService(this.id);
 
   @override
   void destroy() {
@@ -17,9 +18,9 @@ class MockService implements IValueForRegistry {
 
 /// Regular service without lifecycle
 class RegularService {
-  final String id;
-
   RegularService(this.id);
+
+  final String id;
 }
 
 /// Service that counts destroy calls
@@ -93,9 +94,7 @@ void main() {
           MockService('3'),
         ];
 
-        for (final service in services) {
-          manager.register<MockService>(service);
-        }
+        services.forEach(manager.register<MockService>);
 
         expect(services[0].isDestroyed, true, reason: 'first should be destroyed');
         expect(services[1].isDestroyed, true, reason: 'second should be destroyed');
@@ -221,7 +220,7 @@ void main() {
       test('destroyAll with mixed IValueForRegistry and regular services', () {
         final mock = MockService('mock');
         final regular = RegularService('regular');
-        final string = 'string';
+        const string = 'string';
 
         manager.register<MockService>(mock);
         manager.register<RegularService>(regular);
@@ -289,12 +288,10 @@ void main() {
       test('rapid replacements all trigger destroy', () {
         final services = List.generate(10, (i) => MockService('$i'));
 
-        for (final service in services) {
-          manager.register<MockService>(service);
-        }
+        services.forEach(manager.register<MockService>);
 
         // All but the last should be destroyed
-        for (int i = 0; i < services.length - 1; i++) {
+        for (var i = 0; i < services.length - 1; i++) {
           expect(services[i].isDestroyed, true,
               reason: 'service $i should be destroyed by replacement');
         }
