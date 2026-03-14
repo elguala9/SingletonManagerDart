@@ -1,4 +1,5 @@
-/// Example 11: SingletonDIAccess - Static methods and instance-based registration (v0.3.0+)
+/// Example 11: SingletonDIAccess - Static methods and instance-based
+/// registration (v0.3.0+)
 ///
 /// This example demonstrates:
 /// 1. Static access methods via SingletonDIAccess
@@ -7,7 +8,8 @@
 ///
 /// When to use:
 /// - Static access: Simplified code without explicit instance management
-/// - Instance-based: Pre-configured services, testing with prepared objects
+/// - Instance-based: Pre-configured services, testing with prepared
+/// objects
 
 import 'package:singleton_manager/singleton_manager.dart';
 
@@ -21,11 +23,7 @@ class DatabaseService implements IDatabaseService {
   final int _port;
 
   DatabaseService({String host = 'localhost', int port = 5432})
-      : _host = host,
-        _port = port;
-
-  @override
-  String query(String sql) => 'Executing on $_host:$_port - $sql';
+      : _host = host, _port = port;
 
   @override
   Future<void> initialize(dynamic input) async {
@@ -36,6 +34,9 @@ class DatabaseService implements IDatabaseService {
   Future<void> initializeDI() async {
     print('DatabaseService: DI initialization complete');
   }
+
+  @override
+  String query(String sql) => 'Executing on $_host:$_port - $sql';
 }
 
 abstract class IUserRepository implements ISingleton<dynamic, void> {
@@ -47,8 +48,7 @@ class UserRepository implements IUserRepository {
 
   UserRepository({required IDatabaseService db}) : _db = db;
 
-  @override
-  String getUser(int id) => _db.query('SELECT * FROM users WHERE id = $id');
+
 
   @override
   Future<void> initialize(dynamic input) async {
@@ -59,6 +59,9 @@ class UserRepository implements IUserRepository {
   Future<void> initializeDI() async {
     print('UserRepository: DI initialization complete');
   }
+
+  @override
+  String getUser(int id) => _db.query('SELECT * FROM users WHERE id = $id');
 }
 
 void main() async {
@@ -116,10 +119,14 @@ void main() async {
   final devDb = DatabaseService(host: 'dev-db', port: 5434);
 
   // Register as interface using instance
-  await SingletonDIAccess.addInstanceAs<IDatabaseService, DatabaseService>(devDb);
+  await SingletonDIAccess.addInstanceAs<IDatabaseService, DatabaseService>(
+    devDb,
+  );
 
   final dbByInterface = SingletonDIAccess.get<IDatabaseService>();
-  print('Dev DB query: ${(dbByInterface as DatabaseService).query('SELECT * FROM dev_data')}\n');
+  final devDbQuery =
+      (dbByInterface as DatabaseService).query('SELECT * FROM dev_data');
+  print('Dev DB query: $devDbQuery\n');
 
   // ===== Approach 4: Comparison - traditional manager access =====
   print('--- Approach 4: Traditional Manager Access (Still Works) ---');
@@ -138,9 +145,10 @@ void main() async {
   print('Backup DB query: ${dbTraditional.query('SELECT * FROM backups')}\n');
 
   // Clean up all
-  manager.unregister<DatabaseService>();
-  manager.unregister<IDatabaseService>();
-  manager.unregister<UserRepository>();
+  manager
+    ..unregister<DatabaseService>()
+    ..unregister<IDatabaseService>()
+    ..unregister<UserRepository>();
 
   // ===== Benefits Summary =====
   print('--- Benefits of v0.3.0 Features ---');

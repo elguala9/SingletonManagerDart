@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-03-14
+
+### Fixed
+- Fixed all dart analyzer linting issues and code style violations
+  - Proper line wrapping for lines exceeding 80 characters
+  - Correct member ordering (constructors before methods)
+  - Used cascade operators where appropriate
+  - Added missing newlines at end of files
+- Excluded example files from strict linting rules
+- Added ignore comment for false positive `one_member_abstracts` warning on `ISingletonDI`
+
 ## [0.3.0] - 2026-03-13
 
 ### Added
