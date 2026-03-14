@@ -21,7 +21,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.3.0
+  singleton_manager: ^0.3.1
 ```
 
 ## Quick Start

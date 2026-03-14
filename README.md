@@ -40,12 +40,12 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.3.0
+  singleton_manager: ^0.3.1
 ```
 
-## Features (v0.3.0+)
+## Features (v0.3.1+)
 
-### Dependency Injection with SingletonDI
+### Dependency Injection with SingletonDI and SingletonDIAccess
 
 Register factories and use type-safe extension methods:
 

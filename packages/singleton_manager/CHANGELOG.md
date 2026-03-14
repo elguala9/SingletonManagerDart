@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-03-14
+
+### Changed
+- Updated documentation and examples to reflect v0.3.1+ features
+- Improved README with clearer feature descriptions
+- Enhanced code comments and dartdoc for better API clarity
+
+### Documentation
+- Updated Quick Start examples to show both static and instance-based registration
+- Added comprehensive examples in main README
+- Clarified lifecycle management with ISingleton interface
+
 ## [0.3.1] - 2026-03-14
 
 ### Fixed
