@@ -4,7 +4,7 @@ description: >
   type-safe generics support, lazy loading, and optional scope management.
   Ideal for dependency injection, service locators, and resource management.
 
-version: 0.3.1
+version: 0.3.2
 
 resolution: workspace
 
