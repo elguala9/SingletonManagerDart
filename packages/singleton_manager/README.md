@@ -9,7 +9,7 @@ A high-performance, zero-dependency singleton manager for Dart.
 - **Type-safe**: Full generic support with compile-time type checking
 - **High performance**: O(1) registration and retrieval operations
 - **Zero dependencies**: No external package dependencies
-- **Dependency Injection**: Factory-based DI with `SingletonDI` (v0.2.0+)
+- **Dependency Injection**: Factory-based DI with `SingletonDI` and static access with `SingletonDIAccess` (v0.2.0+, enhanced v0.3.0+)
 - **Lifecycle Management**: `ISingleton` interface for initialization and cleanup
 - **Lazy loading**: Initialize singletons only when first accessed
 - **Multi-platform**: Supports VM, Web, Native, and Flutter
@@ -21,12 +21,12 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.2.0
+  singleton_manager: ^0.3.0
 ```
 
 ## Quick Start
 
-### Dependency Injection (v0.2.0+)
+### Dependency Injection (v0.2.0+, v0.3.0 enhancements)
 
 ```dart
 import 'package:singleton_manager/singleton_manager.dart';
@@ -41,15 +41,22 @@ class UserService implements ISingleton<dynamic, void> {
 }
 
 void main() async {
-  // 2. Register factory
+  // 2. Register factory (factory-based DI)
   SingletonDI.registerFactory<UserService>(UserService.new);
-
-  // 3. Add to manager
   final manager = SingletonManager.instance;
   await manager.add<UserService>();
 
-  // 4. Use it
+  // OR register pre-configured instance (v0.3.0+)
+  final userService = UserService();
+  await manager.addInstance<UserService>(userService);
+
+  // 3. Get service
   final service = manager.get<UserService>();
+
+  // OR use static API (v0.3.0+)
+  SingletonDI.registerFactory<UserService>(UserService.new);
+  await SingletonDIAccess.add<UserService>();
+  final svc = SingletonDIAccess.get<UserService>();
 }
 ```
 

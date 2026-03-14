@@ -40,10 +40,10 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.2.0
+  singleton_manager: ^0.3.0
 ```
 
-## Features (v0.2.0+)
+## Features (v0.3.0+)
 
 ### Dependency Injection with SingletonDI
 
@@ -54,18 +54,31 @@ Register factories and use type-safe extension methods:
 SingletonDI.registerFactory<MyService>(() => MyService());
 SingletonDI.registerFactory<RepositoryImpl>(() => RepositoryImpl());
 
-// Register by type
+// Register by type (factory-based)
 final manager = SingletonManager.instance;
 await manager.add<MyService>();
 
-// Register with interface
+// Register with interface (factory-based)
 await manager.addAs<IRepository, RepositoryImpl>();
+
+// Register pre-configured instance (v0.3.0+)
+final service = MyService();
+await manager.addInstance<MyService>(service);
+
+// Register instance with interface (v0.3.0+)
+final repo = RepositoryImpl();
+await manager.addInstanceAs<IRepository, RepositoryImpl>(repo);
 
 // Retrieve
 final service = manager.get<MyService>();
 
 // Remove
 manager.remove<MyService>();
+
+// Or use static API without instance (v0.3.0+)
+await SingletonDIAccess.add<MyService>();
+final svc = SingletonDIAccess.get<MyService>();
+SingletonDIAccess.remove<MyService>();
 ```
 
 ### Lifecycle Management with ISingleton

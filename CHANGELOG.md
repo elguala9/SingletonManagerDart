@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-03-13
+
+### Added
+- **SingletonDIAccess**: Static convenience class for accessing the global singleton manager
+  - Provides static methods without needing explicit instance access
+  - Supports all DI operations: `add`, `addAs`, `addInstance`, `addInstanceAs`, `get`, `remove`
+- **Instance-Based Registration**: New extension methods for registering existing instances
+  - `addInstance<T>()` - Register an existing singleton instance
+  - `addInstanceAs<I, T>()` - Register existing instance under interface
+  - Useful for pre-configured objects and testing
+
+### Changed
+- Internal code optimization and cleanup
+
 ## [0.2.0] - 2026-03-12
 
 ### Added

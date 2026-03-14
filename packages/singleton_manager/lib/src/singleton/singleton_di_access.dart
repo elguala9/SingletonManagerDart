@@ -20,13 +20,9 @@ class SingletonDIAccess {
   // Private constructor - use static methods only
   SingletonDIAccess._();
 
-  // <dynamic, dynamic> necessary to avoid warning, but i do not know the
-  // value in this moment
   static Future<void> add<T extends ISingleton<dynamic, dynamic>>() =>
       SingletonManager.instance.add<T>();
 
-  // <dynamic, dynamic> necessary to avoid warning, but i do not know the
-  // value in this moment
   static Future<void> addAs<I extends ISingleton<dynamic, dynamic>,
       T extends I>() => SingletonManager.instance.addAs<I, T>();
 

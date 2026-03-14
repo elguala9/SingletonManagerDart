@@ -4,7 +4,7 @@ Comprehensive examples demonstrating all features of the `singleton_manager` pac
 
 ## Overview
 
-This directory contains 10 progressively advanced examples showing how to use singleton_manager in different scenarios:
+This directory contains 11 progressively advanced examples showing how to use singleton_manager in different scenarios:
 
 ### 1. Basic Singleton Manager (`1_basic_singleton_manager.dart`)
 **What it covers:**
@@ -231,6 +231,32 @@ This directory contains 10 progressively advanced examples showing how to use si
 
 ---
 
+### 11. SingletonDIAccess - Static Methods and Instance-Based Registration (v0.3.0+) (`11_singleton_di_access_static_methods.dart`)
+**What it covers:**
+- `SingletonDIAccess` static convenience methods
+- Instance-based registration with `addInstance<T>()`
+- Interface-based instance registration with `addInstanceAs<I, T>()`
+- Comparison with factory-based registration
+- Pre-configured objects for testing
+- Simplified API without explicit instance management
+
+**Key concepts:**
+- `SingletonDIAccess.add<T>()` - Static factory registration
+- `SingletonDIAccess.addInstance<T>(instance)` - Static instance registration
+- `SingletonDIAccess.addInstanceAs<I, T>(instance)` - Static interface-based instance registration
+- `SingletonDIAccess.get<T>()` - Static retrieval
+- `SingletonDIAccess.remove<T>()` - Static removal
+- Benefits of static access and instance-based patterns
+
+**When to use:**
+- Simplified code without manager instance access
+- Pre-configured services for testing
+- Complex object setup before registration
+- Utility functions and test helpers
+- When you need cleaner, more concise code
+
+---
+
 ## Running the Examples
 
 ### Option 1: Run individual examples
@@ -276,6 +302,7 @@ dart run example/1_basic_singleton_manager.dart
 8. Master `8_singleton_di_factory_pattern.dart` - advanced patterns
 9. Optimize with `10_performance_and_best_practices.dart` - production-ready
 10. Deep dive `5_async_initialization.dart` - complex async patterns
+11. Learn `11_singleton_di_access_static_methods.dart` - v0.3.0+ features (static API and instance-based registration)
 
 ---
 
@@ -302,6 +329,20 @@ class AppContainer with Registry<Type, Object> {
 ```dart
 SingletonDI.registerFactory<Service>(() => Service());
 final service = SingletonDI.getFactory<Service>()!();
+```
+
+### Pattern: Static DI Access (v0.3.0+)
+```dart
+SingletonDI.registerFactory<Service>(() => Service());
+await SingletonDIAccess.add<Service>();
+final service = SingletonDIAccess.get<Service>();
+```
+
+### Pattern: Instance-Based Registration (v0.3.0+)
+```dart
+final service = Service(); // Pre-configured
+await SingletonDIAccess.addInstance<Service>(service);
+final retrieved = SingletonDIAccess.get<Service>();
 ```
 
 ### Pattern: Lazy Loading
