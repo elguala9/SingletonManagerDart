@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-03-14
+
+### Changed
+- Updated README and documentation to reflect flexible API (v0.3.3+ improvements)
+- Enhanced examples showing registration of plain objects without interfaces
+- Clarified that `ISingleton` interface is optional
+
+### Documentation
+- Added examples of registering simple objects (strings, maps, configs)
+- Improved feature list highlighting API flexibility
+- Updated installation instructions to v0.3.4
+
 ## [0.3.3] - 2026-03-14
 
 ### Changed
