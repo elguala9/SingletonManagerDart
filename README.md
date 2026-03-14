@@ -40,18 +40,19 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.3.1
+  singleton_manager: ^0.3.3
 ```
 
-## Features (v0.3.2+)
+## Features (v0.3.3+)
 
 ### Core Features
 
 - **Type-Safe Registration**: Generic support with compile-time type checking
+- **Flexible Registration**: Register any Dart objects (not just `ISingleton` implementations)
 - **Factory-Based DI**: Register factory functions via `SingletonDI`
 - **Instance-Based Registration**: Register pre-configured objects (v0.3.0+)
 - **Static API Access**: Simplified `SingletonDIAccess` for static method access (v0.3.0+)
-- **Lifecycle Management**: `ISingleton` interface for initialization/cleanup
+- **Optional Lifecycle Management**: `ISingleton` interface for initialization/cleanup (optional)
 - **Zero Dependencies**: No external package dependencies
 
 ### Dependency Injection with SingletonDI and SingletonDIAccess
@@ -114,19 +115,37 @@ class MyService implements ISingleton<dynamic, void> {
 import 'package:singleton_manager/singleton_manager.dart';
 
 void main() {
-  // Create a manager
-  final manager = SingletonManager<String>();
+  final manager = SingletonManager.instance;
 
-  // Register a singleton
-  manager.register('myService', () => MyService());
+  // Register simple objects (no interface needed)
+  final config = {'apiUrl': 'https://api.example.com'};
+  await manager.addInstance<Map<String, String>>(config);
 
   // Retrieve it (same instance always)
-  final service = manager.get('myService'); // Returns MyService
-  final serviceSame = manager.get('myService'); // Same instance
-}
+  final retrieved = manager.get<Map<String, String>>();
 
+  // Or use static API for simplicity
+  await SingletonDIAccess.addInstance<String>('my-string');
+  final str = SingletonDIAccess.get<String>();
+}
+```
+
+### With Service Classes
+
+```dart
 class MyService {
   void doSomething() => print('Hello from Service!');
+}
+
+void main() async {
+  final manager = SingletonManager.instance;
+
+  // Register and retrieve without implementing ISingleton
+  final service = MyService();
+  await manager.addInstance<MyService>(service);
+
+  final retrieved = manager.get<MyService>();
+  retrieved.doSomething();
 }
 ```
 

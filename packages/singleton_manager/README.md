@@ -9,8 +9,9 @@ A high-performance, zero-dependency singleton manager for Dart.
 - **Type-safe**: Full generic support with compile-time type checking
 - **High performance**: O(1) registration and retrieval operations
 - **Zero dependencies**: No external package dependencies
+- **Flexible API**: Register any Dart objects, not just `ISingleton` implementations (v0.3.3+)
 - **Dependency Injection**: Factory-based DI with `SingletonDI` and static access with `SingletonDIAccess` (v0.2.0+, enhanced v0.3.0+)
-- **Lifecycle Management**: `ISingleton` interface for initialization and cleanup
+- **Optional Lifecycle Management**: `ISingleton` interface for initialization and cleanup (optional, v0.2.0+)
 - **Lazy loading**: Initialize singletons only when first accessed
 - **Multi-platform**: Supports VM, Web, Native, and Flutter
 - **Pure Dart**: No platform-specific code required
@@ -21,7 +22,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.3.1
+  singleton_manager: ^0.3.3
 ```
 
 ## Quick Start
