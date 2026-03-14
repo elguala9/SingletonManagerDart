@@ -17,7 +17,7 @@ extension SingletonDIExt on SingletonManager {
   /// called after instantiation.
   ///
   /// Throws [StateError] if no factory is registered for T.
-  Future<void> add<T extends ISingleton<dynamic, dynamic>>() async {
+  Future<void> add<T extends ISingletonDI<dynamic>>() async {
     final factory = SingletonDI.getFactory<T>();
     if (factory == null) {
       throw StateError(
@@ -51,7 +51,7 @@ extension SingletonDIExt on SingletonManager {
   /// );
   /// await manager.addAs<IRepository, RepositoryImpl>();
   /// ```
-  Future<void> addAs<I extends ISingleton<dynamic, dynamic>,
+  Future<void> addAs<I extends ISingletonDI<dynamic>,
       T extends I>() async {
     final factory = SingletonDI.getFactory<T>();
     if (factory == null) {
@@ -81,7 +81,7 @@ extension SingletonDIExt on SingletonManager {
   /// final service = MyService(); // MyService implements ISingleton
   /// await manager.addInstance<MyService>(service);
   /// ```
-  Future<void> addInstance<T extends ISingleton<dynamic, dynamic>>(
+  Future<void> addInstance<T extends ISingletonDI<dynamic>>(
       T instance) async {
     await instance.initializeDI();
 
@@ -102,7 +102,7 @@ extension SingletonDIExt on SingletonManager {
   /// await manager.addInstanceAs<IRepository, RepositoryImpl>(repo);
   /// // IRepository extends ISingleton<dynamic, dynamic>
   /// ```
-  Future<void> addInstanceAs<I extends ISingleton<dynamic, dynamic>,
+  Future<void> addInstanceAs<I extends ISingletonDI<dynamic>,
       T extends I>(T instance) async {
     await instance.initializeDI();
     
@@ -115,13 +115,13 @@ extension SingletonDIExt on SingletonManager {
   /// Retrieves a singleton by its type.
   ///
   /// Throws [StateError] if no instance of type T is found.
-  T get<T extends ISingleton<dynamic, dynamic>>() => getInstance<T>();
+  T get<T extends ISingletonDI<dynamic>>() => getInstance<T>();
 
   /// Removes a singleton by its type.
   ///
   /// If the instance implements [IValueForRegistry], calls destroy before
   /// removal.
-  void remove<T extends ISingleton<dynamic, dynamic>>() {
+  void remove<T extends ISingletonDI<dynamic>>() {
     unregister<T>();
   }
 }

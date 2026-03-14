@@ -11,6 +11,7 @@ analyzer:
     - .dart_tool/**
     - '**/*.g.dart'
     - '**/*.freezed.dart'
+    - 'example/**'
 
   errors:
     missing_return: error
