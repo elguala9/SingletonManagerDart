@@ -28,7 +28,6 @@ extension SingletonDIExt on SingletonManager {
 
     final instance = factory();
     await instance.initializeDI();
-    
 
     register<T>(instance);
   }
@@ -85,7 +84,7 @@ extension SingletonDIExt on SingletonManager {
   Future<void> addInstance<T extends ISingleton<dynamic, dynamic>>(
       T instance) async {
     await instance.initializeDI();
-    
+
     register<T>(instance);
   }
 
@@ -105,8 +104,7 @@ extension SingletonDIExt on SingletonManager {
   /// ```
   Future<void> addInstanceAs<I extends ISingleton<dynamic, dynamic>,
       T extends I>(T instance) async {
-    final singleton = instance;
-    await singleton.initializeDI();
+    await instance.initializeDI();
     
     // Unregister previous instance if exists
     unregister<I>();
