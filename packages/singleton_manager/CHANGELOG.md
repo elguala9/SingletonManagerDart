@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-03-14
+
+### Changed
+- Made `addInstance` and `addInstanceAs` more permissive by using `Object` constraint instead of `ISingletonDI<dynamic>`
+- Made `get<T>()` and `remove<T>()` accept any `Object` type, not just `ISingletonDI`
+- Removed mandatory `initializeDI()` calls from instance registration methods
+
+### Improved
+- **Simplified API**: No longer requires `ISingletonDI` interface for instance registration and retrieval
+- `get<T>()` now works with any registered type (factory-based or instance-based)
+- `remove<T>()` now works with any registered type
+- More flexible for simple value objects that don't need initialization
+
+### Benefits
+- Can register and retrieve plain Dart objects without implementing interfaces
+- Cleaner API for simple use cases
+- Better compatibility with third-party classes
+
 ## [0.3.2] - 2026-03-14
 
 ### Changed

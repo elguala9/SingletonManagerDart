@@ -81,9 +81,8 @@ extension SingletonDIExt on SingletonManager {
   /// final service = MyService(); // MyService implements ISingleton
   /// await manager.addInstance<MyService>(service);
   /// ```
-  Future<void> addInstance<T extends ISingletonDI<dynamic>>(
+  Future<void> addInstance<T extends Object>(
       T instance) async {
-    await instance.initializeDI();
 
     register<T>(instance);
   }
@@ -102,10 +101,8 @@ extension SingletonDIExt on SingletonManager {
   /// await manager.addInstanceAs<IRepository, RepositoryImpl>(repo);
   /// // IRepository extends ISingleton<dynamic, dynamic>
   /// ```
-  Future<void> addInstanceAs<I extends ISingletonDI<dynamic>,
+  Future<void> addInstanceAs<I extends Object,
       T extends I>(T instance) async {
-    await instance.initializeDI();
-    
     // Unregister previous instance if exists
     unregister<I>();
     // Register with interface as key, but store the T instance
@@ -114,14 +111,15 @@ extension SingletonDIExt on SingletonManager {
 
   /// Retrieves a singleton by its type.
   ///
+  /// Works with any registered type, not just [ISingletonDI] implementations.
   /// Throws [StateError] if no instance of type T is found.
-  T get<T extends ISingletonDI<dynamic>>() => getInstance<T>();
+  T get<T extends Object>() => getInstance<T>();
 
   /// Removes a singleton by its type.
   ///
-  /// If the instance implements [IValueForRegistry], calls destroy before
-  /// removal.
-  void remove<T extends ISingletonDI<dynamic>>() {
+  /// Works with any registered type. If the instance implements
+  /// [IValueForRegistry], calls destroy before removal.
+  void remove<T extends Object>() {
     unregister<T>();
   }
 }
