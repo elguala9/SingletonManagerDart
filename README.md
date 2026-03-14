@@ -43,7 +43,16 @@ dependencies:
   singleton_manager: ^0.3.1
 ```
 
-## Features (v0.3.1+)
+## Features (v0.3.2+)
+
+### Core Features
+
+- **Type-Safe Registration**: Generic support with compile-time type checking
+- **Factory-Based DI**: Register factory functions via `SingletonDI`
+- **Instance-Based Registration**: Register pre-configured objects (v0.3.0+)
+- **Static API Access**: Simplified `SingletonDIAccess` for static method access (v0.3.0+)
+- **Lifecycle Management**: `ISingleton` interface for initialization/cleanup
+- **Zero Dependencies**: No external package dependencies
 
 ### Dependency Injection with SingletonDI and SingletonDIAccess
 
@@ -144,6 +153,72 @@ final id2 = scope.get('requestId'); // Same ID
 // Cleanup when done
 scope.clear();
 ```
+
+## Comparison & Use Cases
+
+### When to Use SingletonManager
+
+| Scenario | Use Case |
+|----------|----------|
+| **Service Locator** | Register and retrieve services globally |
+| **Dependency Injection** | Use with `SingletonDI` for factory-based DI |
+| **Testing** | Pre-configure instances for controlled testing |
+| **Scoped Resources** | Isolate singletons per request/scope |
+
+### DI Patterns
+
+**Factory-Based (v0.2.0+)**
+- Define factories upfront
+- Lazy instantiation
+- Good for complex initialization logic
+
+**Instance-Based (v0.3.0+)**
+- Pre-configure objects
+- Better for testing
+- Direct control over instantiation
+
+**Static API (v0.3.0+)**
+- No need to manage manager instance
+- Cleaner code in utility functions
+- Ideal for small/medium projects
+
+## Best Practices
+
+1. **Define Interfaces**: Use `ISingleton` for lifecycle management
+   ```dart
+   class MyService implements ISingleton<dynamic, void> {
+     @override
+     Future<void> initializeDI() async => print('Initialized');
+   }
+   ```
+
+2. **Register Factories Early**: Before using `add<T>()`
+   ```dart
+   SingletonDI.registerFactory<MyService>(() => MyService());
+   ```
+
+3. **Use Scopes for Isolation**: For request-scoped data
+   ```dart
+   final scope = manager.createScope();
+   // Isolated singletons in scope
+   scope.clear(); // Cleanup
+   ```
+
+4. **Prefer Static API**: For simpler use cases (v0.3.0+)
+   ```dart
+   await SingletonDIAccess.add<MyService>();
+   final svc = SingletonDIAccess.get<MyService>();
+   ```
+
+## Examples
+
+See the [examples directory](packages/singleton_manager/example) for complete working examples:
+
+- **00-basic.dart**: Basic singleton registration and retrieval
+- **01-lazy-loading.dart**: Lazy-loaded singletons
+- **02-di.dart**: Dependency injection with factories
+- **10-static-access.dart**: Static API access patterns
+- **11-singleton_di_access_static_methods.dart**: Advanced static API with instance-based registration
 
 ## Development
 

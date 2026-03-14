@@ -13,11 +13,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation and examples to reflect v0.3.1+ features
 - Improved README with clearer feature descriptions
 - Enhanced code comments and dartdoc for better API clarity
+- Fixed all linting violations (100% clean)
+- Updated dependencies and analysis options
+
+### Added
+- **New Documentation Sections**:
+  - Comparison & Use Cases table
+  - Best Practices guide with code examples
+  - Examples directory reference with all available examples
+  - DI Patterns comparison (Factory vs Instance vs Static)
 
 ### Documentation
 - Updated Quick Start examples to show both static and instance-based registration
 - Added comprehensive examples in main README
 - Clarified lifecycle management with ISingleton interface
+- Improved API clarity with better code examples
 
 ## [0.3.1] - 2026-03-14
 
@@ -87,3 +97,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - O(1) time complexity for registration and retrieval
 - Type-safe generics support
 - Pure Dart implementation (multi-platform compatible)
+
+## Roadmap
+
+### Future Versions (v0.4.0+)
+
+- **Scope Improvements**:
+  - Better scope isolation and management
+  - Automatic scope cleanup on dispose
+  - Scope-specific factory overrides
+
+- **Observable Support**:
+  - Listen to singleton registration/removal events
+  - Reactive notifications on lifecycle changes
+
+- **Advanced Features**:
+  - Conditional registration (factory selection based on criteria)
+  - Singleton reset/re-initialization
+  - Circular dependency detection
+
+- **Performance Enhancements**:
+  - Further optimization of hot paths
+  - Reduced memory footprint for large registries
+
+- **Additional Documentation**:
+  - Architecture deep-dive guide
+  - Performance benchmarks
+  - Migration guides from other DI frameworks
