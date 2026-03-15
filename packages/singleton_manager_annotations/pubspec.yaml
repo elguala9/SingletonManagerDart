@@ -1,0 +1,20 @@
+name: singleton_manager_annotations
+description: >
+  Lightweight runtime annotations for singleton manager dependency injection.
+  Provides @isSingleton and @isInjected annotations for use with singleton_manager_generator.
+
+version: 0.1.0
+
+resolution: workspace
+
+repository: https://github.com/elguala9/SingletonManagerDart
+homepage: https://github.com/elguala9/SingletonManagerDart
+issue_tracker: https://github.com/elguala9/SingletonManagerDart/issues
+
+publish_to: none
+
+environment:
+  sdk: ">=3.11.0 <4.0.0"
+
+dev_dependencies:
+  lints: ^5.1.0
