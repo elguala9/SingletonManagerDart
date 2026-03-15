@@ -12,10 +12,16 @@ dev_dependencies:
 
 workspace:
   - packages/singleton_manager
+  - packages/singleton_manager_annotations
+  - packages/singleton_manager_generator
   - packages/singleton_manager_test
 
 melos:
   scripts:
+    generate:
+      run: melos exec --scope="singleton_manager_generator" -- dart pub run bin/singleton_manager_generator.dart
+      description: Run the singleton manager generator to create augmentation files
+
     barrels:
       run: melos exec --scope="singleton_manager" -- dart pub run index_generator
       description: Generate barrel files for singleton_manager using index_generator.

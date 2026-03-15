@@ -1,0 +1,33 @@
+name: singleton_manager_generator
+description: >
+  CLI tool that generates Dart augmentation files for @isSingleton classes.
+  Automatically creates ISingletonStandardDI.initializeDI() implementations
+  from @isInjected field annotations.
+
+version: 0.1.0
+
+resolution: workspace
+
+repository: https://github.com/elguala9/SingletonManagerDart
+homepage: https://github.com/elguala9/SingletonManagerDart
+issue_tracker: https://github.com/elguala9/SingletonManagerDart/issues
+
+publish_to: none
+
+environment:
+  sdk: ">=3.11.0 <4.0.0"
+
+dependencies:
+  args: ^2.5.0
+  analyzer: ^7.0.0
+  path: ^1.9.0
+  singleton_manager_annotations:
+    path: ../singleton_manager_annotations
+
+dev_dependencies:
+  lints: ^5.1.0
+  test: ^1.25.0
+
+executables:
+  singleton_manager_generator:
+    path: bin/singleton_manager_generator.dart
