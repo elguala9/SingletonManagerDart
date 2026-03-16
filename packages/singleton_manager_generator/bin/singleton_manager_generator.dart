@@ -89,7 +89,7 @@ Future<void> main(List<String> arguments) async {
     final outputFileName = '${p.withoutExtension(sourceFileName)}_di.dart';
     final outputPath = p.join(outputDir.path, outputFileName);
 
-    final diCode = AugmentationGenerator.generate(info);
+    final diCode = AugmentationGenerator.generate(info, outputFilePath: outputPath);
 
     File(outputPath).writeAsStringSync(diCode);
     if (verbose) {

@@ -14,12 +14,16 @@ class SingletonClassInfo {
   /// The source code content of the file containing this class.
   final String sourceFileContent;
 
+  /// All import URIs found in the source file.
+  final List<String> sourceFileImports;
+
   /// Create an instance of [SingletonClassInfo].
   SingletonClassInfo({
     required this.className,
     required this.sourceFilePath,
     required this.injectedFields,
     required this.sourceFileContent,
+    this.sourceFileImports = const [],
   });
 
   @override

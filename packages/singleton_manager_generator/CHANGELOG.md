@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.2] - 2026-03-16
+
+### Fixed
+- Combined instance creation and cast into a single statement in the generated `initializeDI()` factory — `as ClassDI` is now on the same line as the constructor call
+
+## [1.0.1] - 2026-03-16
+
+### Fixed
+- Generated DI files now use the correct relative import path for the source class when the output directory differs from the source directory (e.g. `import 'impl/socket/my_service.dart'` instead of `import 'my_service.dart'`)
+- Generated DI files now include all imports from the source file, rebased relative to the output file's location — field types referenced by `@isInjected` (e.g. interface types) are therefore always resolvable
+
 ## [1.0.0] - 2026-03-16
 
 **First stable release** - The singleton_manager_generator API is now stable and ready for production use.
