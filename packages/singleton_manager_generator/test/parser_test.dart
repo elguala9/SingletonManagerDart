@@ -6,12 +6,20 @@ void main() {
   group('SourceParser', () {
     late Directory tempDir;
 
+    setUpAll(() {
+      tempDir = Directory('test_artifacts/parser_tests');
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+      tempDir.createSync(recursive: true);
+    });
+
     setUp(() {
-      tempDir = Directory.systemTemp.createTempSync('parser_test_');
+      // Each test creates its own subdirectories for isolation
     });
 
     tearDown(() {
-      tempDir.deleteSync(recursive: true);
+      // Keep test_artifacts folder for inspection after tests run
     });
 
     group('parse()', () {
@@ -291,6 +299,179 @@ class MyService {
 
         expect(results[0].injectedFields, hasLength(1));
         expect(results[0].injectedFields[0].fieldName, 'configValue');
+      });
+
+      test('should handle field with late final modifier', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class MyService {
+  @isInjected
+  late final DatabaseConnection db;
+}
+
+class DatabaseConnection {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].className, 'MyService');
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'db');
+        expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
+      });
+
+      test('should handle mix of late and late final fields', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class MyService {
+  @isInjected
+  late DatabaseConnection db;
+
+  @isInjected
+  late final Logger logger;
+
+  @isInjected
+  late ConfigManager config;
+
+  @isInjected
+  late final CacheService cache;
+}
+
+class DatabaseConnection {}
+class Logger {}
+class ConfigManager {}
+class CacheService {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].className, 'MyService');
+        expect(results[0].injectedFields, hasLength(4));
+        expect(results[0].injectedFields[0].fieldName, 'db');
+        expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
+        expect(results[0].injectedFields[1].fieldName, 'logger');
+        expect(results[0].injectedFields[1].fieldType, 'Logger');
+        expect(results[0].injectedFields[2].fieldName, 'config');
+        expect(results[0].injectedFields[2].fieldType, 'ConfigManager');
+        expect(results[0].injectedFields[3].fieldName, 'cache');
+        expect(results[0].injectedFields[3].fieldType, 'CacheService');
+      });
+
+      test('should handle late final fields with multiple classes', () {
+        final dartFile = File('${tempDir.path}/services.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class ServiceA {
+  @isInjected
+  late final ServiceB serviceB;
+
+  @isInjected
+  late final Logger logger;
+}
+
+@isSingleton
+class ServiceB {
+  @isInjected
+  late final ServiceC serviceC;
+}
+
+class ServiceC {}
+class Logger {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(2));
+        expect(results[0].className, 'ServiceA');
+        expect(results[0].injectedFields, hasLength(2));
+        expect(results[0].injectedFields[0].fieldName, 'serviceB');
+        expect(results[0].injectedFields[0].fieldType, 'ServiceB');
+        expect(results[0].injectedFields[1].fieldName, 'logger');
+        expect(results[0].injectedFields[1].fieldType, 'Logger');
+        expect(results[1].className, 'ServiceB');
+        expect(results[1].injectedFields, hasLength(1));
+        expect(results[1].injectedFields[0].fieldName, 'serviceC');
+        expect(results[1].injectedFields[0].fieldType, 'ServiceC');
+      });
+
+      test('should handle plain final fields', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class MyService {
+  @isInjected
+  final DatabaseConnection db;
+
+  @isInjected
+  final Logger logger;
+}
+
+class DatabaseConnection {}
+class Logger {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].className, 'MyService');
+        expect(results[0].injectedFields, hasLength(2));
+        expect(results[0].injectedFields[0].fieldName, 'db');
+        expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
+        expect(results[0].injectedFields[1].fieldName, 'logger');
+        expect(results[0].injectedFields[1].fieldType, 'Logger');
+      });
+
+      test('should handle mix of late, late final, and final fields', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class MyService {
+  @isInjected
+  late DatabaseConnection db;
+
+  @isInjected
+  final Logger logger;
+
+  @isInjected
+  late final ConfigManager config;
+
+  @isInjected
+  final CacheService cache;
+}
+
+class DatabaseConnection {}
+class Logger {}
+class ConfigManager {}
+class CacheService {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].className, 'MyService');
+        expect(results[0].injectedFields, hasLength(4));
+        expect(results[0].injectedFields[0].fieldName, 'db');
+        expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
+        expect(results[0].injectedFields[1].fieldName, 'logger');
+        expect(results[0].injectedFields[1].fieldType, 'Logger');
+        expect(results[0].injectedFields[2].fieldName, 'config');
+        expect(results[0].injectedFields[2].fieldType, 'ConfigManager');
+        expect(results[0].injectedFields[3].fieldName, 'cache');
+        expect(results[0].injectedFields[3].fieldType, 'CacheService');
       });
 
       test('should set sourceFilePath correctly', () {

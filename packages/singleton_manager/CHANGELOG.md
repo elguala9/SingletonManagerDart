@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.5] - 2026-03-16
+
+### Improved
+- Code quality: Optimized cascade operators in `singleton_di_ext.dart`
+  - Improved readability in `add<T>()` method
+  - Improved readability in `addAs<I, T>()` method
+- Resolved all dart analyze issues with zero errors or warnings
+
 ## [0.3.4] - 2026-03-14
 
 ### Changed

@@ -48,10 +48,10 @@ void main() {
     test('ISingleton interface pattern for initialization', () async {
       // This demonstrates using a custom class that implements ISingleton
       // for managing the async initialization of a service
-      final initializer = _ServiceInitializer(registry);
+      _ServiceInitializer(registry).initializeDI();
 
-      // Initialize the service asynchronously
-      await initializer.initializeDI();
+      // Give async initialization time to complete
+      await Future.delayed(const Duration(milliseconds: 50));
 
       // Verify it's registered
       expect(registry.contains('service'), isTrue);
@@ -123,20 +123,20 @@ void main() {
 /// Example implementation of ISingleton interface for managing
 /// async service initialization
 class _ServiceInitializer
-    implements ISingleton<Null, AsyncService> {
+    implements ISingletonStandard<Null> {
   _ServiceInitializer(this.registry);
 
   final RegistryManager<String, AsyncService> registry;
 
   @override
-  Future<AsyncService> initialize(Null input) async {
+  Future<void> initialize(Null input) async {
     final service = await AsyncService.create(name: 'initialized-service');
     registry.register('service', service);
-    return service;
   }
 
   @override
-  Future<AsyncService> initializeDI() async {
-    return initialize(null);
+  void initializeDI() {
+    // Note: fire-and-forget initialization
+    initialize(null);
   }
 }

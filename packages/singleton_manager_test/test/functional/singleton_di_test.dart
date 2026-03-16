@@ -11,7 +11,7 @@ class SimpleService implements ISingleton<void, void> {
   Future<void> initialize(void input) async {}
 
   @override
-  Future<void> initializeDI() async {}
+  void initializeDI() {}
 
   @override
   String toString() => 'SimpleService($name)';
@@ -29,9 +29,8 @@ class ServiceWithInit implements ISingleton<void, void> {
   }
 
   @override
-  Future<void> initializeDI() async {
+  void initializeDI() {
     initialized = true;
-    await Future.delayed(const Duration(milliseconds: 10));
   }
 
   @override
@@ -50,7 +49,7 @@ class HeavyService implements ISingleton<void, void> {
   Future<void> initialize(void input) async {}
 
   @override
-  Future<void> initializeDI() async {}
+  void initializeDI() {}
 
   @override
   String toString() => 'HeavyService($name)';
@@ -73,7 +72,7 @@ class RepositoryImpl implements IRepository {
   Future<void> initialize(void input) async {}
 
   @override
-  Future<void> initializeDI() async {}
+  void initializeDI() {}
 }
 
 class DestroyableService implements IValueForRegistry, ISingleton<void, void> {
@@ -91,7 +90,7 @@ class DestroyableService implements IValueForRegistry, ISingleton<void, void> {
   Future<void> initialize(void input) async {}
 
   @override
-  Future<void> initializeDI() async {}
+  void initializeDI() {}
 }
 
 class RepositoryWithInit implements IRepository, ISingleton<void, void> {
@@ -109,9 +108,8 @@ class RepositoryWithInit implements IRepository, ISingleton<void, void> {
   }
 
   @override
-  Future<void> initializeDI() async {
+  void initializeDI() {
     initialized = true;
-    await Future.delayed(const Duration(milliseconds: 10));
   }
 }
 
@@ -191,16 +189,16 @@ void main() {
         () => SimpleService(name: 'registered'),
       );
 
-      await manager.add<SimpleService>();
+      manager.add<SimpleService>();
 
       final instance = manager.get<SimpleService>();
       expect(instance.name, equals('registered'));
     });
 
-    test('add<T>() throws StateError if factory not registered', () async {
+    test('add<T>() throws StateError if factory not registered', () {
       final manager = SingletonManager();
-      await expectLater(
-        manager.add<SimpleService>(),
+      expect(
+        () => manager.add<SimpleService>(),
         throwsA(isA<StateError>()),
       );
     });
@@ -212,7 +210,7 @@ void main() {
         () => ServiceWithInit(name: 'with-init'),
       );
 
-      await manager.add<ServiceWithInit>();
+      manager.add<ServiceWithInit>();
 
       final instance = manager.get<ServiceWithInit>();
       expect(instance.initialized, isTrue);
@@ -224,7 +222,7 @@ void main() {
         SimpleService.new,
       );
 
-      await manager.add<SimpleService>();
+      manager.add<SimpleService>();
 
       // Verify it was registered
       final instance = manager.get<SimpleService>();
@@ -232,10 +230,10 @@ void main() {
     });
 
     test('add<T>() raises error with helpful message when factory missing',
-        () async {
+        () {
       final manager = SingletonManager();
-      await expectLater(
-        manager.add<SimpleService>(),
+      expect(
+        () => manager.add<SimpleService>(),
         throwsA(
           isA<StateError>().having(
             (e) => e.toString(),
@@ -253,7 +251,7 @@ void main() {
         () => SimpleService(name: 'first-add'),
       );
 
-      await manager.add<SimpleService>();
+      manager.add<SimpleService>();
       final first = manager.get<SimpleService>();
 
       expect(first.name, equals('first-add'));
@@ -266,7 +264,7 @@ void main() {
         SimpleService.new,
       );
 
-      await manager.add<SimpleService>();
+      manager.add<SimpleService>();
       final first = manager.get<SimpleService>();
       final second = manager.get<SimpleService>();
 
@@ -290,17 +288,17 @@ void main() {
         () => RepositoryImpl(name: 'impl-1'),
       );
 
-      await manager.addAs<IRepository, RepositoryImpl>();
+      manager.addAs<IRepository, RepositoryImpl>();
 
       final instance = manager.get<IRepository>();
       expect(instance.getName(), equals('impl-1'));
     });
 
     test('addAs<I, T>() throws StateError if factory not registered',
-        () async {
+        () {
       final manager = SingletonManager();
-      await expectLater(
-        manager.addAs<IRepository, RepositoryImpl>(),
+      expect(
+        () => manager.addAs<IRepository, RepositoryImpl>(),
         throwsA(isA<StateError>()),
       );
     });
@@ -312,7 +310,7 @@ void main() {
         () => RepositoryWithInit(name: 'with-init'),
       );
 
-      await manager.addAs<IRepository, RepositoryWithInit>();
+      manager.addAs<IRepository, RepositoryWithInit>();
 
       final instance = manager.get<IRepository>();
       expect((instance as RepositoryWithInit).initialized, isTrue);
@@ -328,7 +326,7 @@ void main() {
       expect(manager.get<IRepository>().getName(), equals('first'));
 
       SingletonDI.registerFactory<RepositoryImpl>(() => repo2);
-      await manager.addAs<IRepository, RepositoryImpl>();
+      manager.addAs<IRepository, RepositoryImpl>();
 
       expect(manager.get<IRepository>().getName(), equals('second'));
     });
@@ -342,10 +340,10 @@ void main() {
 
       // Register first time manually
       final initial = RepositoryImpl(name: 'initial');
-      manager.register<IRepository>(initial);
-
-      // Then use addAs to update
-      await manager.addAs<IRepository, RepositoryImpl>();
+      manager
+        ..register<IRepository>(initial)
+        // Then use addAs to update
+        ..addAs<IRepository, RepositoryImpl>();
 
       expect(manager.get<IRepository>().getName(), equals('updated'));
     });
@@ -378,9 +376,10 @@ void main() {
       expect(SingletonDI.factoryCount, equals(3));
 
       // Initialize phase
-      await manager.add<SimpleService>();
-      await manager.add<HeavyService>();
-      await manager.addAs<IRepository, RepositoryImpl>();
+      manager
+        ..add<SimpleService>()
+        ..add<HeavyService>()
+        ..addAs<IRepository, RepositoryImpl>();
 
       // Verify phase
       final service = manager.get<SimpleService>();
@@ -399,7 +398,7 @@ void main() {
         () => SimpleService(name: 'singleton-test'),
       );
 
-      await manager.add<SimpleService>();
+      manager.add<SimpleService>();
 
       final first = manager.get<SimpleService>();
       final second = manager.get<SimpleService>();
@@ -416,8 +415,9 @@ void main() {
         () => ServiceWithInit(name: 'with-init'),
       );
 
-      await manager.add<SimpleService>();
-      await manager.add<ServiceWithInit>();
+      manager
+        ..add<SimpleService>()
+        ..add<ServiceWithInit>();
 
       final simple = manager.get<SimpleService>();
       final withInit = manager.get<ServiceWithInit>();
@@ -432,8 +432,8 @@ void main() {
         () => SimpleService(name: 'v1'),
       );
 
-      final manager1 = SingletonManager();
-      await manager1.add<SimpleService>();
+      final manager1 = SingletonManager()
+        ..add<SimpleService>();
       expect(manager1.get<SimpleService>().name, equals('v1'));
 
       // Update factory and create new manager
@@ -441,15 +441,16 @@ void main() {
         () => SimpleService(name: 'v2'),
       );
 
-      manager1.clearRegistry();
-      await manager1.add<SimpleService>();
+      manager1
+        ..clearRegistry()
+        ..add<SimpleService>();
       expect(manager1.get<SimpleService>().name, equals('v2'));
     });
 
-    test('error handling: missing factory shows helpful error', () async {
+    test('error handling: missing factory shows helpful error', () {
       final manager = SingletonManager();
-      await expectLater(
-        manager.add<SimpleService>(),
+      expect(
+        () => manager.add<SimpleService>(),
         throwsA(
           isA<StateError>().having(
             (e) => e.toString(),
@@ -481,7 +482,7 @@ void main() {
         () => SimpleService(name: 'to-remove'),
       );
 
-      await manager.add<SimpleService>();
+      manager.add<SimpleService>();
       expect(manager.get<SimpleService>().name, equals('to-remove'));
 
       manager.remove<SimpleService>();
@@ -498,7 +499,7 @@ void main() {
         () => DestroyableService(name: 'destroyable'),
       );
 
-      await manager.add<DestroyableService>();
+      manager.add<DestroyableService>();
       final instance = manager.get<DestroyableService>();
       expect(instance.destroyed, isFalse);
 
@@ -514,8 +515,9 @@ void main() {
         () => SimpleService(name: 'plain'),
       );
 
-      await manager.add<SimpleService>();
-      manager.remove<SimpleService>();
+      manager
+        ..add<SimpleService>()
+        ..remove<SimpleService>();
 
       expect(
         () => manager.get<SimpleService>(),
@@ -534,7 +536,7 @@ void main() {
         () => SimpleService(name: 'v1'),
       );
 
-      await manager.add<SimpleService>();
+      manager.add<SimpleService>();
       expect(manager.get<SimpleService>().name, equals('v1'));
 
       manager.remove<SimpleService>();
@@ -542,7 +544,7 @@ void main() {
       SingletonDI.registerFactory<SimpleService>(
         () => SimpleService(name: 'v2'),
       );
-      await manager.add<SimpleService>();
+      manager.add<SimpleService>();
       expect(manager.get<SimpleService>().name, equals('v2'));
     });
   });
@@ -574,8 +576,8 @@ void main() {
         () => SimpleService(name: 'test'),
       );
 
-      final manager = SingletonManager();
-      await manager.add<SimpleService>();
+      final manager = SingletonManager()
+        ..add<SimpleService>();
 
       final instance = manager.get<SimpleService>();
       expect(instance, isA<SimpleService>());
@@ -612,7 +614,7 @@ void main() {
         () => SimpleService(name: 'static-add'),
       );
 
-      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.add<SimpleService>();
 
       final instance = SingletonDIAccess.get<SimpleService>();
       expect(instance.name, equals('static-add'));
@@ -623,7 +625,7 @@ void main() {
         () => SimpleService(name: 'equivalence-test'),
       );
 
-      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.add<SimpleService>();
       final staticInstance = SingletonDIAccess.get<SimpleService>();
 
       SingletonManager().clearRegistry();
@@ -631,8 +633,8 @@ void main() {
         () => SimpleService(name: 'equivalence-test'),
       );
 
-      final manager = SingletonManager();
-      await manager.add<SimpleService>();
+      final manager = SingletonManager()
+        ..add<SimpleService>();
       final instanceMethod = manager.get<SimpleService>();
 
       expect(staticInstance.name, equals(instanceMethod.name));
@@ -644,16 +646,16 @@ void main() {
         () => ServiceWithInit(name: 'static-init'),
       );
 
-      await SingletonDIAccess.add<ServiceWithInit>();
+      SingletonDIAccess.add<ServiceWithInit>();
 
       final instance = SingletonDIAccess.get<ServiceWithInit>();
       expect(instance.initialized, isTrue);
     });
 
     test('add<T>() throws StateError if factory not registered',
-        () async {
-      await expectLater(
-        SingletonDIAccess.add<SimpleService>(),
+        () {
+      expect(
+        () => SingletonDIAccess.add<SimpleService>(),
         throwsA(isA<StateError>()),
       );
     });
@@ -663,7 +665,7 @@ void main() {
         () => RepositoryImpl(name: 'static-impl'),
       );
 
-      await SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
+      SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
 
       final instance = SingletonDIAccess.get<IRepository>();
       expect(instance.getName(), equals('static-impl'));
@@ -675,7 +677,7 @@ void main() {
         () => RepositoryImpl(name: 'addas-test'),
       );
 
-      await SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
+      SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
       final staticInstance = SingletonDIAccess.get<IRepository>();
 
       SingletonManager().clearRegistry();
@@ -683,8 +685,8 @@ void main() {
         () => RepositoryImpl(name: 'addas-test'),
       );
 
-      final manager = SingletonManager();
-      await manager.addAs<IRepository, RepositoryImpl>();
+      final manager = SingletonManager()
+        ..addAs<IRepository, RepositoryImpl>();
       final instanceMethod = manager.get<IRepository>();
 
       expect(staticInstance.getName(), equals(instanceMethod.getName()));
@@ -696,16 +698,16 @@ void main() {
         () => RepositoryWithInit(name: 'static-with-init'),
       );
 
-      await SingletonDIAccess.addAs<IRepository, RepositoryWithInit>();
+      SingletonDIAccess.addAs<IRepository, RepositoryWithInit>();
 
       final instance = SingletonDIAccess.get<IRepository>();
       expect((instance as RepositoryWithInit).initialized, isTrue);
     });
 
     test('addAs<I, T>() throws StateError if factory not registered',
-        () async {
-      await expectLater(
-        SingletonDIAccess.addAs<IRepository, RepositoryImpl>(),
+        () {
+      expect(
+        () => SingletonDIAccess.addAs<IRepository, RepositoryImpl>(),
         throwsA(isA<StateError>()),
       );
     });
@@ -715,7 +717,7 @@ void main() {
         () => SimpleService(name: 'get-test'),
       );
 
-      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.add<SimpleService>();
 
       final instance = SingletonDIAccess.get<SimpleService>();
       expect(instance.name, equals('get-test'));
@@ -726,7 +728,7 @@ void main() {
         () => SimpleService(name: 'get-equiv'),
       );
 
-      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.add<SimpleService>();
       final staticResult = SingletonDIAccess.get<SimpleService>();
 
       final manager = SingletonManager();
@@ -747,7 +749,7 @@ void main() {
         () => SimpleService(name: 'to-remove'),
       );
 
-      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.add<SimpleService>();
       SingletonDIAccess.remove<SimpleService>();
 
       expect(
@@ -762,7 +764,7 @@ void main() {
         () => SimpleService(name: 'remove-equiv'),
       );
 
-      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.add<SimpleService>();
       SingletonDIAccess.remove<SimpleService>();
 
       // Verify it's removed
@@ -775,9 +777,9 @@ void main() {
       SingletonDI.registerFactory<SimpleService>(
         () => SimpleService(name: 'remove-equiv'),
       );
-      final manager = SingletonManager();
-      await manager.add<SimpleService>();
-      manager.remove<SimpleService>();
+      final manager = SingletonManager()
+        ..add<SimpleService>()
+        ..remove<SimpleService>();
 
       expect(
         () => manager.get<SimpleService>(),
@@ -791,7 +793,7 @@ void main() {
         () => DestroyableService(name: 'destroyable'),
       );
 
-      await SingletonDIAccess.add<DestroyableService>();
+      SingletonDIAccess.add<DestroyableService>();
       final instance = SingletonDIAccess.get<DestroyableService>();
       expect(instance.destroyed, isFalse);
 
@@ -815,8 +817,8 @@ void main() {
       );
 
       // Register
-      await SingletonDIAccess.add<SimpleService>();
-      await SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
+      SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.addAs<IRepository, RepositoryImpl>();
 
       // Retrieve
       final service = SingletonDIAccess.get<SimpleService>();
@@ -844,7 +846,7 @@ void main() {
         () => SimpleService(name: 'singleton-test'),
       );
 
-      await SingletonDIAccess.add<SimpleService>();
+      SingletonDIAccess.add<SimpleService>();
 
       // Both static method and instance method should access same singleton
       final staticInstance = SingletonDIAccess.get<SimpleService>();

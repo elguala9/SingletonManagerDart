@@ -1,23 +1,33 @@
 import 'dart:io';
 import 'package:test/test.dart';
-import 'package:path/path.dart' as p;
 import 'package:singleton_manager_generator/src/parser/source_parser.dart';
 import 'package:singleton_manager_generator/src/generator/augmentation_generator.dart';
+import 'package:singleton_manager_generator/src/model/singleton_class_info.dart';
 
 void main() {
   group('Integration Tests', () {
     late Directory tempDir;
 
+    setUpAll(() {
+      tempDir = Directory('test_artifacts/integration_tests');
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+      tempDir.createSync(recursive: true);
+    });
+
     setUp(() {
-      tempDir = Directory.systemTemp.createTempSync('generator_integration_');
+      // Each test creates its own subdirectories for isolation
     });
 
     tearDown(() {
-      tempDir.deleteSync(recursive: true);
+      // Keep test_artifacts folder for inspection after tests run
     });
 
     test('should generate augmentation file for single singleton class', () {
-      final dartFile = File('${tempDir.path}/service.dart');
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/user_service.dart');
       dartFile.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -33,15 +43,27 @@ class DatabaseConnection {}
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
 
-      final info = parsed[0];
+      // Create corrected info with proper relative path
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/user_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
       final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      final outputFile = File('${dir.path}/user_service_augment.dart');
+      outputFile.writeAsStringSync(augmentationCode);
 
       expect(augmentationCode, contains("augment class UserService implements ISingletonStandardDI {"));
       expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
     });
 
     test('should process and generate for multiple files', () {
-      final file1 = File('${tempDir.path}/user_service.dart');
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final file1 = File('${dir.path}/user_service.dart');
       file1.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -54,7 +76,7 @@ class UserService {
 class DatabaseConnection {}
 ''');
 
-      final file2 = File('${tempDir.path}/auth_service.dart');
+      final file2 = File('${dir.path}/auth_service.dart');
       file2.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -73,8 +95,25 @@ class Logger {}
       final parsed = SourceParser.parse([file1, file2]);
       expect(parsed, hasLength(2));
 
-      final userServiceCode = AugmentationGenerator.generate(parsed[0]);
-      final authServiceCode = AugmentationGenerator.generate(parsed[1]);
+      final info0 = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/user_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final info1 = SingletonClassInfo(
+        className: parsed[1].className,
+        sourceFilePath: 'lib/src/auth_service.dart',
+        injectedFields: parsed[1].injectedFields,
+        sourceFileContent: parsed[1].sourceFileContent,
+      );
+
+      final userServiceCode = AugmentationGenerator.generate(info0);
+      final authServiceCode = AugmentationGenerator.generate(info1);
+
+      // Save generated code to files for inspection
+      File('${dir.path}/user_service_augment.dart').writeAsStringSync(userServiceCode);
+      File('${dir.path}/auth_service_augment.dart').writeAsStringSync(authServiceCode);
 
       expect(userServiceCode, contains("augment class UserService"));
       expect(userServiceCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
@@ -104,15 +143,26 @@ class RepositoryService {}
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
 
-      final info = parsed[0];
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/services/user_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
       final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      final outputFile = File('${dir.path}/user_service_augment.dart');
+      outputFile.writeAsStringSync(augmentationCode);
 
       expect(augmentationCode, contains("augment library"));
       expect(augmentationCode, contains("augment class UserService"));
     });
 
     test('should handle class with no injected dependencies', () {
-      final dartFile = File('${tempDir.path}/simple_service.dart');
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/simple_service.dart');
       dartFile.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -128,16 +178,27 @@ class SimpleService {
       final info = parsed[0];
       expect(info.injectedFields, isEmpty);
 
-      final augmentationCode = AugmentationGenerator.generate(info);
+      final correctedInfo = SingletonClassInfo(
+        className: info.className,
+        sourceFilePath: 'lib/src/simple_service.dart',
+        injectedFields: info.injectedFields,
+        sourceFileContent: info.sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(correctedInfo);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/simple_service_augment.dart').writeAsStringSync(augmentationCode);
 
       expect(augmentationCode, contains("augment class SimpleService implements ISingletonStandardDI {"));
-      expect(augmentationCode, contains("Future<void> initializeDI() async {"));
+      expect(augmentationCode, contains("void initializeDI() {"));
       // Should not have any field assignments
       expect(augmentationCode, isNot(contains("SingletonDIAccess.get")));
     });
 
     test('should handle complex dependency chain', () {
-      final fileA = File('${tempDir.path}/service_a.dart');
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final fileA = File('${dir.path}/service_a.dart');
       fileA.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -150,7 +211,7 @@ class ServiceA {
 class ServiceB {}
 ''');
 
-      final fileB = File('${tempDir.path}/service_b.dart');
+      final fileB = File('${dir.path}/service_b.dart');
       fileB.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -163,7 +224,7 @@ class ServiceB {
 class ServiceC {}
 ''');
 
-      final fileC = File('${tempDir.path}/service_c.dart');
+      final fileC = File('${dir.path}/service_c.dart');
       fileC.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -179,10 +240,34 @@ class DatabaseConnection {}
       final parsed = SourceParser.parse([fileA, fileB, fileC]);
       expect(parsed, hasLength(3));
 
+      final infoA = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/service_a.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final infoB = SingletonClassInfo(
+        className: parsed[1].className,
+        sourceFilePath: 'lib/src/service_b.dart',
+        injectedFields: parsed[1].injectedFields,
+        sourceFileContent: parsed[1].sourceFileContent,
+      );
+      final infoC = SingletonClassInfo(
+        className: parsed[2].className,
+        sourceFilePath: 'lib/src/service_c.dart',
+        injectedFields: parsed[2].injectedFields,
+        sourceFileContent: parsed[2].sourceFileContent,
+      );
+
       // Generate for all three
-      final codeA = AugmentationGenerator.generate(parsed[0]);
-      final codeB = AugmentationGenerator.generate(parsed[1]);
-      final codeC = AugmentationGenerator.generate(parsed[2]);
+      final codeA = AugmentationGenerator.generate(infoA);
+      final codeB = AugmentationGenerator.generate(infoB);
+      final codeC = AugmentationGenerator.generate(infoC);
+
+      // Save generated code to files for inspection
+      File('${dir.path}/service_a_augment.dart').writeAsStringSync(codeA);
+      File('${dir.path}/service_b_augment.dart').writeAsStringSync(codeB);
+      File('${dir.path}/service_c_augment.dart').writeAsStringSync(codeC);
 
       expect(codeA, contains("serviceB = SingletonDIAccess.get<ServiceB>();"));
       expect(codeB, contains("serviceC = SingletonDIAccess.get<ServiceC>();"));
@@ -190,7 +275,9 @@ class DatabaseConnection {}
     });
 
     test('should handle class with many injected fields (10+)', () {
-      final dartFile = File('${tempDir.path}/service.dart');
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/heavy_service.dart');
       final injectedFields = <String>[];
       for (int i = 1; i <= 15; i++) {
         injectedFields.add('  @isInjected\n  late Service$i service$i;');
@@ -211,7 +298,16 @@ ${List.generate(15, (i) => 'class Service${i + 1} {}').join('\n')}
       expect(parsed, hasLength(1));
       expect(parsed[0].injectedFields, hasLength(15));
 
-      final augmentationCode = AugmentationGenerator.generate(parsed[0]);
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/heavy_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/heavy_service_augment.dart').writeAsStringSync(augmentationCode);
 
       for (int i = 1; i <= 15; i++) {
         expect(
@@ -222,7 +318,9 @@ ${List.generate(15, (i) => 'class Service${i + 1} {}').join('\n')}
     });
 
     test('should handle files with multiple classes (some singleton, some not)', () {
-      final dartFile = File('${tempDir.path}/mixed_services.dart');
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/mixed_services.dart');
       dartFile.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -247,14 +345,25 @@ class AnotherRegular {
       expect(parsed[0].className, 'SingletonService');
       expect(parsed[0].injectedFields, hasLength(1));
 
-      final augmentationCode = AugmentationGenerator.generate(parsed[0]);
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/mixed_services.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/mixed_services_augment.dart').writeAsStringSync(augmentationCode);
+
       expect(augmentationCode, contains("augment class SingletonService"));
       expect(augmentationCode, contains("regular = SingletonDIAccess.get<RegularService>();"));
     });
 
     test('should preserve source file path in augmentation', () {
-      final dartFile = File('${tempDir.path}/deep/nested/path/my_service.dart');
-      dartFile.parent.createSync(recursive: true);
+      final dir = Directory('${tempDir.path}/lib/src/features/auth/services');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/my_service.dart');
       dartFile.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -268,14 +377,25 @@ class MyService {
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
 
-      final augmentationCode = AugmentationGenerator.generate(parsed[0]);
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/features/auth/services/my_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/my_service_augment.dart').writeAsStringSync(augmentationCode);
 
       // The augment library path should contain the original file path
       expect(augmentationCode, contains("augment library"));
     });
 
     test('should handle class with constructor and methods', () {
-      final dartFile = File('${tempDir.path}/service.dart');
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/complex_service.dart');
       dartFile.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
@@ -308,19 +428,30 @@ class Logger {}
       expect(parsed, hasLength(1));
       expect(parsed[0].injectedFields, hasLength(2));
 
-      final augmentationCode = AugmentationGenerator.generate(parsed[0]);
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/complex_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/complex_service_augment.dart').writeAsStringSync(augmentationCode);
 
       expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
       expect(augmentationCode, contains("logger = SingletonDIAccess.get<Logger>();"));
     });
 
     test('should generate valid augmentation for inheritance scenario', () {
-      final dartFile = File('${tempDir.path}/service.dart');
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/concrete_service.dart');
       dartFile.writeAsStringSync('''
 import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
 
 abstract class BaseService {
-  Future<void> initializeDI();
+  void initializeDI();
 }
 
 @isSingleton
@@ -329,7 +460,7 @@ class ConcreteService extends BaseService {
   late String configuration;
 
   @override
-  Future<void> initializeDI() async {
+  void initializeDI() {
     // Might have other logic here
   }
 }
@@ -338,10 +469,199 @@ class ConcreteService extends BaseService {
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
 
-      final augmentationCode = AugmentationGenerator.generate(parsed[0]);
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/concrete_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/concrete_service_augment.dart').writeAsStringSync(augmentationCode);
 
       expect(augmentationCode, contains("augment class ConcreteService"));
       expect(augmentationCode, contains("configuration = SingletonDIAccess.get<String>();"));
+    });
+
+    test('should generate correct augmentation for late final fields', () {
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/late_final_service.dart');
+      dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class LateFinalService {
+  @isInjected
+  late final DatabaseConnection db;
+
+  @isInjected
+  late final Logger logger;
+}
+
+class DatabaseConnection {}
+class Logger {}
+''');
+
+      final parsed = SourceParser.parse([dartFile]);
+      expect(parsed, hasLength(1));
+      expect(parsed[0].injectedFields, hasLength(2));
+
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/late_final_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/late_final_service_augment.dart').writeAsStringSync(augmentationCode);
+
+      expect(augmentationCode, contains("augment class LateFinalService implements ISingletonStandardDI {"));
+      expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
+      expect(augmentationCode, contains("logger = SingletonDIAccess.get<Logger>();"));
+    });
+
+    test('should generate augmentation for class with mixed late and late final fields', () {
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/mixed_field_service.dart');
+      dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class MixedFieldService {
+  @isInjected
+  late DatabaseConnection db;
+
+  @isInjected
+  late final Logger logger;
+
+  @isInjected
+  late ConfigManager config;
+
+  @isInjected
+  late final CacheService cache;
+}
+
+class DatabaseConnection {}
+class Logger {}
+class ConfigManager {}
+class CacheService {}
+''');
+
+      final parsed = SourceParser.parse([dartFile]);
+      expect(parsed, hasLength(1));
+      expect(parsed[0].injectedFields, hasLength(4));
+
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/mixed_field_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/mixed_field_service_augment.dart').writeAsStringSync(augmentationCode);
+
+      expect(augmentationCode, contains("augment class MixedFieldService implements ISingletonStandardDI {"));
+      expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
+      expect(augmentationCode, contains("logger = SingletonDIAccess.get<Logger>();"));
+      expect(augmentationCode, contains("config = SingletonDIAccess.get<ConfigManager>();"));
+      expect(augmentationCode, contains("cache = SingletonDIAccess.get<CacheService>();"));
+    });
+
+    test('should generate correct augmentation for plain final fields', () {
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/final_service.dart');
+      dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class FinalService {
+  @isInjected
+  final DatabaseConnection db;
+
+  @isInjected
+  final Logger logger;
+}
+
+class DatabaseConnection {}
+class Logger {}
+''');
+
+      final parsed = SourceParser.parse([dartFile]);
+      expect(parsed, hasLength(1));
+      expect(parsed[0].injectedFields, hasLength(2));
+
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/final_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/final_service_augment.dart').writeAsStringSync(augmentationCode);
+
+      expect(augmentationCode, contains("augment class FinalService implements ISingletonStandardDI {"));
+      expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
+      expect(augmentationCode, contains("logger = SingletonDIAccess.get<Logger>();"));
+    });
+
+    test('should generate augmentation for class with mixed late, late final, and final fields', () {
+      final dir = Directory('${tempDir.path}/lib/src');
+      dir.createSync(recursive: true);
+      final dartFile = File('${dir.path}/all_modifiers_service.dart');
+      dartFile.writeAsStringSync('''
+import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+
+@isSingleton
+class AllModifiersService {
+  @isInjected
+  late DatabaseConnection db;
+
+  @isInjected
+  final Logger logger;
+
+  @isInjected
+  late final ConfigManager config;
+
+  @isInjected
+  final CacheService cache;
+}
+
+class DatabaseConnection {}
+class Logger {}
+class ConfigManager {}
+class CacheService {}
+''');
+
+      final parsed = SourceParser.parse([dartFile]);
+      expect(parsed, hasLength(1));
+      expect(parsed[0].injectedFields, hasLength(4));
+
+      final info = SingletonClassInfo(
+        className: parsed[0].className,
+        sourceFilePath: 'lib/src/all_modifiers_service.dart',
+        injectedFields: parsed[0].injectedFields,
+        sourceFileContent: parsed[0].sourceFileContent,
+      );
+      final augmentationCode = AugmentationGenerator.generate(info);
+
+      // Save generated code to file for inspection
+      File('${dir.path}/all_modifiers_service_augment.dart').writeAsStringSync(augmentationCode);
+
+      expect(augmentationCode, contains("augment class AllModifiersService implements ISingletonStandardDI {"));
+      expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
+      expect(augmentationCode, contains("logger = SingletonDIAccess.get<Logger>();"));
+      expect(augmentationCode, contains("config = SingletonDIAccess.get<ConfigManager>();"));
+      expect(augmentationCode, contains("cache = SingletonDIAccess.get<CacheService>();"));
     });
   });
 }

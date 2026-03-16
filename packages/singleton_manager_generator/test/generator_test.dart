@@ -10,6 +10,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(
               fieldName: 'db',
@@ -22,10 +23,10 @@ void main() {
 
         expect(code, contains("augment library 'lib/src/my_service.dart';"));
         expect(code, contains("augment class MyService implements ISingletonStandardDI {"));
-        expect(code, contains("static Future<MyService> create() async {"));
+        expect(code, contains("factory MyService.initializeDI() {"));
         expect(code, contains("final instance = MyService();"));
-        expect(code, contains("await instance.initializeDI();"));
-        expect(code, contains("Future<void> initializeDI() async {"));
+        expect(code, contains("instance.initializeDI();"));
+        expect(code, contains("void initializeDI() {"));
         expect(code, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
         expect(code, contains("import 'package:singleton_manager/singleton_manager.dart';"));
       });
@@ -34,6 +35,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'db', fieldType: 'DatabaseConnection'),
             InjectedFieldInfo(fieldName: 'logger', fieldType: 'Logger'),
@@ -66,14 +68,15 @@ void main() {
         final info = SingletonClassInfo(
           className: 'EmptyService',
           sourceFilePath: 'lib/src/empty_service.dart',
+          sourceFileContent: '',
           injectedFields: [],
         );
 
         final code = AugmentationGenerator.generate(info);
 
         expect(code, contains("augment class EmptyService implements ISingletonStandardDI {"));
-        expect(code, contains("Future<void> initializeDI() async {"));
-        expect(code, contains("static Future<EmptyService> create() async {"));
+        expect(code, contains("void initializeDI() {"));
+        expect(code, contains("factory EmptyService.initializeDI() {"));
         // Should not have any field assignments
         expect(code, isNot(contains("SingletonDIAccess.get")));
       });
@@ -82,6 +85,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'My_Service_Impl',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'dep', fieldType: 'Dependency'),
           ],
@@ -90,7 +94,7 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         expect(code, contains("augment class My_Service_Impl implements ISingletonStandardDI {"));
-        expect(code, contains("static Future<My_Service_Impl> create() async {"));
+        expect(code, contains("factory My_Service_Impl.initializeDI() {"));
         expect(code, contains("final instance = My_Service_Impl();"));
       });
 
@@ -98,6 +102,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: '_private_field', fieldType: 'Service'),
             InjectedFieldInfo(fieldName: 'public_field', fieldType: 'OtherService'),
@@ -114,6 +119,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'cache', fieldType: 'CacheManager'),
             InjectedFieldInfo(fieldName: 'repository', fieldType: 'UserRepository'),
@@ -132,6 +138,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'db', fieldType: 'DatabaseConnection'),
           ],
@@ -141,15 +148,16 @@ void main() {
 
         // Verify proper indentation
         expect(code, contains('    db = SingletonDIAccess.get<DatabaseConnection>();'));
-        expect(code, contains('  static Future<MyService> create() async {'));
+        expect(code, contains('  factory MyService.initializeDI() {'));
         expect(code, contains('  @override'));
-        expect(code, contains('  Future<void> initializeDI() async {'));
+        expect(code, contains('  void initializeDI() {'));
       });
 
       test('should contain override annotation', () {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'dep', fieldType: 'Dependency'),
           ],
@@ -158,13 +166,14 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         expect(code, contains("@override"));
-        expect(code, contains("Future<void> initializeDI()"));
+        expect(code, contains("void initializeDI()"));
       });
 
       test('should handle nested directory paths correctly', () {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/features/auth/services/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'auth', fieldType: 'AuthService'),
           ],
@@ -179,6 +188,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib\\src\\my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'dep', fieldType: 'Dependency'),
           ],
@@ -190,10 +200,11 @@ void main() {
         expect(code, contains("augment library 'lib/src/my_service.dart';"));
       });
 
-      test('should generate valid Dart syntax for create method', () {
+      test('should generate valid Dart syntax for initializeDI factory method', () {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'db', fieldType: 'DatabaseConnection'),
           ],
@@ -202,7 +213,7 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         final createMethod = RegExp(
-          r'static Future<MyService> create\(\) async \{[^}]*final instance = MyService\(\);[^}]*await instance\.initializeDI\(\);[^}]*return instance;[^}]*\}',
+          r'factory MyService\.initializeDI\(\) \{[^}]*final instance = MyService\(\);[^}]*instance\.initializeDI\(\);[^}]*return instance;[^}]*\}',
           dotAll: true,
         );
         expect(code, matches(createMethod));
@@ -212,6 +223,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'first', fieldType: 'FirstService'),
             InjectedFieldInfo(fieldName: 'second', fieldType: 'SecondService'),
@@ -236,6 +248,7 @@ void main() {
         final info = SingletonClassInfo(
           className: 'A',
           sourceFilePath: 'lib/a.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'b', fieldType: 'B'),
           ],
@@ -244,13 +257,14 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         expect(code, contains("augment class A implements ISingletonStandardDI {"));
-        expect(code, contains("static Future<A> create() async {"));
+        expect(code, contains("factory A.initializeDI() {"));
       });
 
       test('should handle class names with numbers', () {
         final info = SingletonClassInfo(
           className: 'Service123',
           sourceFilePath: 'lib/service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'dep456', fieldType: 'Service789'),
           ],
@@ -259,6 +273,7 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         expect(code, contains("augment class Service123 implements ISingletonStandardDI {"));
+        expect(code, contains("factory Service123.initializeDI() {"));
         expect(code, contains("dep456 = SingletonDIAccess.get<Service789>();"));
       });
 
@@ -267,6 +282,7 @@ void main() {
         final info = SingletonClassInfo(
           className: longName,
           sourceFilePath: 'lib/service.dart',
+          sourceFileContent: '',
           injectedFields: [
             InjectedFieldInfo(fieldName: 'dependency', fieldType: 'SomeDependency'),
           ],
@@ -275,7 +291,31 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         expect(code, contains("augment class $longName implements ISingletonStandardDI {"));
-        expect(code, contains("static Future<$longName> create() async {"));
+        expect(code, contains("factory $longName.initializeDI() {"));
+      });
+    });
+
+    group('initializeDI() execution', () {
+      test('initializeDI() should be callable and work', () {
+        // Create a simple class that will have initializeDI called
+        final info = SingletonClassInfo(
+          className: 'TestService',
+          sourceFilePath: 'lib/test_service.dart',
+          sourceFileContent: '',
+          injectedFields: [
+            InjectedFieldInfo(fieldName: 'value', fieldType: 'String'),
+          ],
+        );
+
+        final code = AugmentationGenerator.generate(info);
+
+        // Verify the generated code has the factory and initializeDI method
+        expect(code, contains('factory TestService.initializeDI()'));
+        expect(code, contains('void initializeDI()'));
+        expect(code, contains('value = SingletonDIAccess.get<String>()'));
+
+        // The generated code should have the proper structure to call initializeDI
+        expect(code, contains('instance.initializeDI()'));
       });
     });
   });

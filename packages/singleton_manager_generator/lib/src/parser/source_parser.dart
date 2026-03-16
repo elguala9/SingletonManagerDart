@@ -63,6 +63,7 @@ class SourceParser {
 
     final injectedFields = <InjectedFieldInfo>[];
 
+    // ignore: deprecated_member_use
     for (final member in classDecl.members) {
       if (member is FieldDeclaration) {
         final isInjectedAnnotation = _findAnnotation(member, 'isInjected');
@@ -84,6 +85,7 @@ class SourceParser {
     }
 
     return SingletonClassInfo(
+      // ignore: deprecated_member_use
       className: classDecl.name.lexeme,
       sourceFilePath: sourceFile.path,
       injectedFields: injectedFields,
@@ -110,7 +112,7 @@ class SourceParser {
     if (typeAnnotation == null) return null;
 
     if (typeAnnotation is NamedType) {
-      return typeAnnotation.name2.lexeme;
+      return typeAnnotation.name.lexeme;
     }
 
     return null;

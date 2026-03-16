@@ -53,6 +53,7 @@ void main() {
       ];
 
       final info = SingletonClassInfo(
+        sourceFileContent: '',
         className: 'MyService',
         sourceFilePath: 'lib/src/my_service.dart',
         injectedFields: fields,
@@ -67,6 +68,7 @@ void main() {
 
     test('should create instance with empty injectedFields list', () {
       final info = SingletonClassInfo(
+        sourceFileContent: '',
         className: 'EmptyService',
         sourceFilePath: 'lib/src/empty_service.dart',
         injectedFields: [],
@@ -82,6 +84,7 @@ void main() {
       ];
 
       final info = SingletonClassInfo(
+        sourceFileContent: '',
         className: 'TestService',
         sourceFilePath: 'lib/test.dart',
         injectedFields: fields,
@@ -102,6 +105,7 @@ void main() {
       ];
 
       final info = SingletonClassInfo(
+        sourceFileContent: '',
         className: 'MyService',
         sourceFilePath: 'lib/service.dart',
         injectedFields: fields,
@@ -122,6 +126,7 @@ void main() {
       );
 
       final info = SingletonClassInfo(
+        sourceFileContent: '',
         className: 'HeavyService',
         sourceFilePath: 'lib/service.dart',
         injectedFields: fields,
@@ -134,6 +139,7 @@ void main() {
 
     test('should handle Windows-style paths', () {
       final info = SingletonClassInfo(
+        sourceFileContent: '',
         className: 'MyService',
         sourceFilePath: 'lib\\src\\my_service.dart',
         injectedFields: [],
@@ -144,6 +150,7 @@ void main() {
 
     test('should handle Unix-style paths', () {
       final info = SingletonClassInfo(
+        sourceFileContent: '',
         className: 'MyService',
         sourceFilePath: 'lib/src/my_service.dart',
         injectedFields: [],

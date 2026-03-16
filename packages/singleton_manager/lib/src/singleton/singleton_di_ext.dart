@@ -17,7 +17,7 @@ extension SingletonDIExt on SingletonManager {
   /// called after instantiation.
   ///
   /// Throws [StateError] if no factory is registered for T.
-  Future<void> add<T extends ISingletonDI<dynamic>>() async {
+  void add<T extends ISingletonDI<dynamic>>() {
     final factory = SingletonDI.getFactory<T>();
     if (factory == null) {
       throw StateError(
@@ -26,8 +26,8 @@ extension SingletonDIExt on SingletonManager {
       );
     }
 
-    final instance = factory();
-    await instance.initializeDI();
+    final instance = factory()
+      ..initializeDI();
 
     register<T>(instance);
   }
@@ -51,8 +51,8 @@ extension SingletonDIExt on SingletonManager {
   /// );
   /// await manager.addAs<IRepository, RepositoryImpl>();
   /// ```
-  Future<void> addAs<I extends ISingletonDI<dynamic>,
-      T extends I>() async {
+  void addAs<I extends ISingletonDI<dynamic>,
+      T extends I>() {
     final factory = SingletonDI.getFactory<T>();
     if (factory == null) {
       throw StateError(
@@ -61,8 +61,8 @@ extension SingletonDIExt on SingletonManager {
       );
     }
 
-    final instance = factory();
-    await instance.initializeDI();
+    final instance = factory()
+      ..initializeDI();
 
     // Unregister previous instance if exists
     unregister<I>();
@@ -81,8 +81,8 @@ extension SingletonDIExt on SingletonManager {
   /// final service = MyService(); // MyService implements ISingleton
   /// await manager.addInstance<MyService>(service);
   /// ```
-  Future<void> addInstance<T extends Object>(
-      T instance) async {
+  void addInstance<T extends Object>(
+      T instance) {
 
     register<T>(instance);
   }
@@ -101,8 +101,8 @@ extension SingletonDIExt on SingletonManager {
   /// await manager.addInstanceAs<IRepository, RepositoryImpl>(repo);
   /// // IRepository extends ISingleton<dynamic, dynamic>
   /// ```
-  Future<void> addInstanceAs<I extends Object,
-      T extends I>(T instance) async {
+  void addInstanceAs<I extends Object,
+      T extends I>(T instance) {
     // Unregister previous instance if exists
     unregister<I>();
     // Register with interface as key, but store the T instance
