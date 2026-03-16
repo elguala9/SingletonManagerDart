@@ -1,17 +1,5 @@
 # Changelog
 
-## [2.0.0] - 2026-03-16
-
-**Breaking change** - Generator now produces `extends`-based DI classes instead of Dart augmentation files.
-
-### Breaking Changes
-- Generated files now use `class MyServiceDI extends MyService` pattern instead of `augment class MyService`
-- Generated file naming: `my_service_di.dart` (not `my_service_augment.dart`)
-- Usage: instantiate `MyServiceDI.initializeDI()` instead of `MyService.initializeDI()`
-
-### Migration from 1.0.0
-Delete all old `*_augment.dart` generated files and re-run the generator. Update call sites to use the new `ClassNameDI` class.
-
 ## [1.0.0] - 2026-03-16
 
 **First stable release** - The singleton_manager_generator API is now stable and ready for production use.
