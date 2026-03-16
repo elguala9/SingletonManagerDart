@@ -38,25 +38,25 @@ class UserService implements ISingleton<dynamic, void> {
   Future<void> initialize(dynamic input) async => print('init');
 
   @override
-  Future<void> initializeDI() async => print('di init');
+  void initializeDI() => print('di init');
 }
 
-void main() async {
+void main() {
   // 2. Register factory (factory-based DI)
   SingletonDI.registerFactory<UserService>(UserService.new);
   final manager = SingletonManager.instance;
-  await manager.add<UserService>();
+  manager.add<UserService>();
 
   // OR register pre-configured instance (v0.3.0+)
   final userService = UserService();
-  await manager.addInstance<UserService>(userService);
+  manager.addInstance<UserService>(userService);
 
   // 3. Get service
   final service = manager.get<UserService>();
 
   // OR use static API (v0.3.0+)
   SingletonDI.registerFactory<UserService>(UserService.new);
-  await SingletonDIAccess.add<UserService>();
+  SingletonDIAccess.add<UserService>();
   final svc = SingletonDIAccess.get<UserService>();
 }
 ```

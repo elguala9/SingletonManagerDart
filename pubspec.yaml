@@ -12,7 +12,6 @@ dev_dependencies:
 
 workspace:
   - packages/singleton_manager
-  - packages/singleton_manager_annotations
   - packages/singleton_manager_generator
   - packages/singleton_manager_test
 

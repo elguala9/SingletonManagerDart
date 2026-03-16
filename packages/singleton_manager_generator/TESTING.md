@@ -79,7 +79,7 @@ Tests the `AugmentationGenerator` class that creates augmentation file content.
 - ✓ Proper indentation and formatting
 - ✓ `@override` annotation presence
 - ✓ `ISingletonStandardDI` interface implementation
-- ✓ Static `create()` factory method with async/await
+- ✓ `initializeDI()` factory method
 - ✓ Field ordering preservation
 - ✓ Single-character class names
 - ✓ Very long class names
@@ -88,14 +88,14 @@ Tests the `AugmentationGenerator` class that creates augmentation file content.
 **Generated code example:**
 ```dart
 augment class MyService implements ISingletonStandardDI {
-  static Future<MyService> create() async {
+  factory MyService.initializeDI() {
     final instance = MyService();
-    await instance.initializeDI();
+    instance.initializeDI();
     return instance;
   }
 
   @override
-  Future<void> initializeDI() async {
+  void initializeDI() {
     db = SingletonDIAccess.get<DatabaseConnection>();
     logger = SingletonDIAccess.get<Logger>();
   }

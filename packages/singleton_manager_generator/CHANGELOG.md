@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.5] - 2026-03-16
+
+### Changed
+- Removed dependency on `singleton_manager_annotations` (now part of `singleton_manager`)
+- Annotations are now referenced from `singleton_manager` package
+
+### Improved
+- Simplified dependency chain by removing intermediate annotation package
+
 ## [0.1.4] - 2026-03-16
 
 ### Fixed
