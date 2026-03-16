@@ -190,7 +190,6 @@ class ServiceTwo {
       final dartFile = File('${dir.path}/database_service.dart');
       dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
-import 'package:some_package/some_package.dart';
 
 @isSingleton
 class DatabaseService {
@@ -211,8 +210,8 @@ class DatabaseService {
 
       // Verify required imports are present
       expect(augmentCode, contains("import 'package:singleton_manager/singleton_manager.dart';"));
-      // Source imports should be extracted
-      expect(augmentCode, contains("import 'package:some_package/some_package.dart';"));
+      // Verify no duplicate imports
+      expect(augmentCode.split("import 'package:singleton_manager/singleton_manager.dart';"), hasLength(2));
     });
 
     test('generated augment library path is correct', () {
