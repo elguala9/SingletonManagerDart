@@ -574,7 +574,7 @@ class CacheService {}
       expect(augmentationCode, contains("cache = SingletonDIAccess.get<CacheService>();"));
     });
 
-    test('should ignore plain final fields (not late)', () {
+    test('should inject late final fields', () {
       final dir = Directory('${tempDir.path}/lib/src');
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/final_service.dart');
@@ -584,10 +584,10 @@ import 'package:singleton_manager/singleton_manager.dart';
 @isSingleton
 class FinalService {
   @isInjected
-  final DatabaseConnection db;
+  late final DatabaseConnection db;
 
   @isInjected
-  final Logger logger;
+  late final Logger logger;
 }
 
 class DatabaseConnection {}
@@ -596,8 +596,8 @@ class Logger {}
 
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
-      // Plain final fields cannot be injected (they're not late)
-      expect(parsed[0].injectedFields, hasLength(0));
+      // late final fields ARE injected
+      expect(parsed[0].injectedFields, hasLength(2));
 
       final info = SingletonClassInfo(
         className: parsed[0].className,
@@ -610,13 +610,13 @@ class Logger {}
       // Save generated code to file for inspection
       File('${dir.path}/final_service_augment.dart').writeAsStringSync(augmentationCode);
 
-      // Since plain final fields are not injected, the code will have empty initializeDI
+      // late final fields should be injected
       expect(augmentationCode, contains("augment class FinalService implements ISingletonStandardDI {"));
-      expect(augmentationCode, contains("void initializeDI() {"));
-      expect(augmentationCode, isNot(contains("SingletonDIAccess.get")));
+      expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
+      expect(augmentationCode, contains("logger = SingletonDIAccess.get<Logger>();"));
     });
 
-    test('should generate augmentation for class with mixed late, late final, and final fields', () {
+    test('should generate augmentation for class with mixed late and late final fields', () {
       final dir = Directory('${tempDir.path}/lib/src');
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/all_modifiers_service.dart');
@@ -629,24 +629,18 @@ class AllModifiersService {
   late DatabaseConnection db;
 
   @isInjected
-  final Logger logger;
-
-  @isInjected
   late final ConfigManager config;
 
-  @isInjected
-  final CacheService cache;
+  void doSomething() {}
 }
 
 class DatabaseConnection {}
-class Logger {}
 class ConfigManager {}
-class CacheService {}
 ''');
 
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
-      // Only 'late' and 'late final' fields are injected, not plain 'final'
+      // Both 'late' and 'late final' fields are injected
       expect(parsed[0].injectedFields, hasLength(2));
       expect(parsed[0].injectedFields[0].fieldName, 'db');
       expect(parsed[0].injectedFields[1].fieldName, 'config');
