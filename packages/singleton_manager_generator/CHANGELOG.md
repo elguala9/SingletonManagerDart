@@ -3,8 +3,8 @@
 ## [0.1.3] - 2026-03-16
 
 ### Fixed
-- Removed workspace resolution to allow analyzer ^11.0.0 (latest version)
-- Published packages should not have workspace resolution
+- Removed workspace resolution (published packages shouldn't have workspace resolution)
+- Analyzer ^10.0.0 is the latest version compatible with test package
 
 ## [0.1.2] - 2026-03-16
 
