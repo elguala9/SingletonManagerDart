@@ -24,6 +24,32 @@ dev_dependencies:
 
 Note: As of v0.4.0, annotations are included in `singleton_manager`. No separate annotations package needed!
 
+### Global Installation
+
+To install `singleton_manager_generator` globally and use it across multiple projects:
+
+```bash
+dart pub global activate singleton_manager_generator
+```
+
+Then use it directly from anywhere:
+
+```bash
+singleton_manager_generator --input lib/src --output lib/generated
+```
+
+To update the global installation:
+
+```bash
+dart pub global activate singleton_manager_generator
+```
+
+To deactivate the global installation:
+
+```bash
+dart pub global deactivate singleton_manager_generator
+```
+
 ## Usage
 
 ### 1. Annotate your classes
