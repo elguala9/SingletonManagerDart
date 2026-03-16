@@ -11,11 +11,15 @@ class SingletonClassInfo {
   /// The list of fields annotated with @isInjected in this class.
   final List<InjectedFieldInfo> injectedFields;
 
+  /// The source code content of the file containing this class.
+  final String sourceFileContent;
+
   /// Create an instance of [SingletonClassInfo].
   SingletonClassInfo({
     required this.className,
     required this.sourceFilePath,
     required this.injectedFields,
+    required this.sourceFileContent,
   });
 
   @override

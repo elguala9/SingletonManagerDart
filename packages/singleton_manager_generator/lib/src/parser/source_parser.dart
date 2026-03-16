@@ -30,7 +30,7 @@ class SourceParser {
 
         for (final declaration in unit.declarations) {
           if (declaration is ClassDeclaration) {
-            final singleton = _extractSingletonInfo(declaration, file);
+            final singleton = _extractSingletonInfo(declaration, file, content);
             if (singleton != null) {
               results.add(singleton);
               if (verbose) {
@@ -54,6 +54,7 @@ class SourceParser {
   static SingletonClassInfo? _extractSingletonInfo(
     ClassDeclaration classDecl,
     File sourceFile,
+    String sourceFileContent,
   ) {
     final isSingletonAnnotation = _findAnnotation(classDecl, 'isSingleton');
     if (isSingletonAnnotation == null) {
@@ -86,6 +87,7 @@ class SourceParser {
       className: classDecl.name.lexeme,
       sourceFilePath: sourceFile.path,
       injectedFields: injectedFields,
+      sourceFileContent: sourceFileContent,
     );
   }
 
