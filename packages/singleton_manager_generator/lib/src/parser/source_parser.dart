@@ -28,9 +28,15 @@ class SourceParser {
         final result = parseString(content: content);
         final unit = result.unit;
 
+        final imports = unit.directives
+            .whereType<ImportDirective>()
+            .map((d) => d.uri.stringValue ?? '')
+            .where((s) => s.isNotEmpty)
+            .toList();
+
         for (final declaration in unit.declarations) {
           if (declaration is ClassDeclaration) {
-            final singleton = _extractSingletonInfo(declaration, file, content);
+            final singleton = _extractSingletonInfo(declaration, file, content, imports);
             if (singleton != null) {
               results.add(singleton);
               if (verbose) {
@@ -55,6 +61,7 @@ class SourceParser {
     ClassDeclaration classDecl,
     File sourceFile,
     String sourceFileContent,
+    List<String> imports,
   ) {
     final isSingletonAnnotation = _findAnnotation(classDecl, 'isSingleton');
     if (isSingletonAnnotation == null) {
@@ -95,6 +102,7 @@ class SourceParser {
       sourceFilePath: sourceFile.path,
       injectedFields: injectedFields,
       sourceFileContent: sourceFileContent,
+      sourceFileImports: imports,
     );
   }
 

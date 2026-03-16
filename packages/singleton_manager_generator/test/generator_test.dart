@@ -26,7 +26,7 @@ void main() {
         expect(code, contains("import 'my_service.dart';"));
         expect(code, contains("class MyServiceDI extends MyService implements ISingletonStandardDI {"));
         expect(code, contains("factory MyServiceDI.initializeDI() {"));
-        expect(code, contains("final instance = MyServiceDI();"));
+        expect(code, contains("final instance = MyService();"));
         expect(code, contains("instance.initializeDI();"));
         expect(code, contains("void initializeDI() {"));
         expect(code, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
@@ -99,7 +99,7 @@ void main() {
         expect(code, contains("// AUTO-GENERATED - DO NOT CHANGE"));
         expect(code, contains("class My_Service_ImplDI extends My_Service_Impl implements ISingletonStandardDI {"));
         expect(code, contains("factory My_Service_ImplDI.initializeDI() {"));
-        expect(code, contains("final instance = My_Service_ImplDI();"));
+        expect(code, contains("final instance = My_Service_Impl();"));
       });
 
       test('should handle field names with underscores', () {
@@ -183,9 +183,13 @@ void main() {
           ],
         );
 
-        final code = AugmentationGenerator.generate(info);
+        // Output is at lib root; import must be relative from there to the source
+        final code = AugmentationGenerator.generate(
+          info,
+          outputFilePath: 'lib/my_service_di.dart',
+        );
 
-        expect(code, contains("import 'my_service.dart';"));
+        expect(code, contains("import 'src/features/auth/services/my_service.dart';"));
       });
 
       test('should handle Windows-style path separators', () {
@@ -217,7 +221,7 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         final createMethod = RegExp(
-          r'factory MyServiceDI\.initializeDI\(\) \{[^}]*final instance = MyServiceDI\(\);[^}]*instance\.initializeDI\(\);[^}]*return instance;[^}]*\}',
+          r'factory MyServiceDI\.initializeDI\(\) \{[^}]*final instance = MyService\(\);[^}]*instance\.initializeDI\(\);[^}]*return instance as MyServiceDI;[^}]*\}',
           dotAll: true,
         );
         expect(code, matches(createMethod));
