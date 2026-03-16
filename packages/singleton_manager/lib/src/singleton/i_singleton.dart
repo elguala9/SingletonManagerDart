@@ -1,11 +1,11 @@
 // ignore: one_member_abstracts
 abstract interface class ISingletonDI<ReturnType> {
-  Future<ReturnType> initializeDI();
+  ReturnType initializeDI();
 }
 
 abstract interface class ISingletonStandardDI extends ISingletonDI<void> {
   @override
-  Future<void> initializeDI();
+  void initializeDI();
 }
 
 abstract interface class ISingleton<InitializeType, ReturnType>

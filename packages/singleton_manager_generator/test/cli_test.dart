@@ -7,12 +7,20 @@ void main() {
   group('CLI Simulation Tests', () {
     late Directory tempDir;
 
+    setUpAll(() {
+      tempDir = Directory('test_artifacts/cli_tests');
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+      tempDir.createSync(recursive: true);
+    });
+
     setUp(() {
-      tempDir = Directory.systemTemp.createTempSync('cli_test_');
+      // Each test creates its own subdirectories for isolation
     });
 
     tearDown(() {
-      tempDir.deleteSync(recursive: true);
+      // Keep test_artifacts folder for inspection after tests run
     });
 
     test('should find and process dart files in input directory', () {
@@ -135,9 +143,9 @@ class MyService {
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
 
-      // The output filename should be my_service.singleton_di.dart
-      expect('my_service.singleton_di.dart', contains('my_service'));
-      expect('my_service.singleton_di.dart', endsWith('.singleton_di.dart'));
+      // The output filename should be my_service_augment.dart
+      expect('my_service_augment.dart', contains('my_service'));
+      expect('my_service_augment.dart', endsWith('_augment.dart'));
     });
 
     test('should handle files with no singleton classes', () {

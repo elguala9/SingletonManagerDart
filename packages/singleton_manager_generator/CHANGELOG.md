@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.4] - 2026-03-16
+
+### Fixed
+- **CRITICAL**: Fixed undefined getter 'name2' in source_parser.dart that caused generator to crash
+  - Changed `typeAnnotation.name2.lexeme` to `typeAnnotation.name.lexeme`
+  - Generator now correctly extracts field type names from class declarations
+- Fixed unused imports in test files
+- Added `singleton_manager` as dev dependency for integration tests
+- Resolved all dart analyze issues (cascade invocations, deprecated member usage)
+- Added ignore comments for analyzer deprecation warnings that are not yet available in analyzer ^10.0.0
+
+### Improved
+- Code quality: Optimized cascade operators in test suite
+- All tests pass with zero analyzer errors or warnings
+
 ## [0.1.3] - 2026-03-16
 
 ### Fixed
