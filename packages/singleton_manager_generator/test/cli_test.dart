@@ -44,9 +44,10 @@ class TestService {
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
 
-      final augmentationCode = AugmentationGenerator.generate(parsed[0]);
-      expect(augmentationCode, contains('augment class TestService'));
-      expect(augmentationCode, contains('dependency = SingletonDIAccess.get<String>();'));
+      final diCode = AugmentationGenerator.generate(parsed[0]);
+      expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+      expect(diCode, contains('class TestServiceDI extends TestService'));
+      expect(diCode, contains('dependency = SingletonDIAccess.get<String>();'));
     });
 
     test('should handle multiple files correctly', () {
@@ -104,7 +105,8 @@ class Service2 {
       // Generate for both
       for (final info in parsed) {
         final code = AugmentationGenerator.generate(info);
-        expect(code, contains('augment class'));
+        expect(code, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+        expect(code, contains('class'));
       }
     });
 
@@ -143,9 +145,9 @@ class MyService {
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
 
-      // The output filename should be my_service_augment.dart
-      expect('my_service_augment.dart', contains('my_service'));
-      expect('my_service_augment.dart', endsWith('_augment.dart'));
+      // The output filename should be my_service_di.dart
+      expect('my_service_di.dart', contains('my_service'));
+      expect('my_service_di.dart', endsWith('_di.dart'));
     });
 
     test('should handle files with no singleton classes', () {

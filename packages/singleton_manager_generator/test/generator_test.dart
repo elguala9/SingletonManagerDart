@@ -6,7 +6,7 @@ import 'package:singleton_manager_generator/src/model/singleton_class_info.dart'
 void main() {
   group('AugmentationGenerator', () {
     group('generate()', () {
-      test('should generate augmentation for class with single injected field', () {
+      test('should generate DI code for class with single injected field', () {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
@@ -21,17 +21,19 @@ void main() {
 
         final code = AugmentationGenerator.generate(info);
 
-        expect(code, contains("augment library 'lib/src/my_service.dart';"));
-        expect(code, contains("augment class MyService implements ISingletonStandardDI {"));
-        expect(code, contains("factory MyService.initializeDI() {"));
-        expect(code, contains("final instance = MyService();"));
+        expect(code, contains("// AUTO-GENERATED - DO NOT CHANGE"));
+        expect(code, contains("// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import"));
+        expect(code, contains("import 'my_service.dart';"));
+        expect(code, contains("class MyServiceDI extends MyService implements ISingletonStandardDI {"));
+        expect(code, contains("factory MyServiceDI.initializeDI() {"));
+        expect(code, contains("final instance = MyServiceDI();"));
         expect(code, contains("instance.initializeDI();"));
         expect(code, contains("void initializeDI() {"));
         expect(code, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
         expect(code, contains("import 'package:singleton_manager/singleton_manager.dart';"));
       });
 
-      test('should generate augmentation for class with multiple injected fields', () {
+      test('should generate DI code for class with multiple injected fields', () {
         final info = SingletonClassInfo(
           className: 'MyService',
           sourceFilePath: 'lib/src/my_service.dart',
@@ -64,7 +66,7 @@ void main() {
         }
       });
 
-      test('should generate augmentation for class with no injected fields', () {
+      test('should generate DI code for class with no injected fields', () {
         final info = SingletonClassInfo(
           className: 'EmptyService',
           sourceFilePath: 'lib/src/empty_service.dart',
@@ -74,9 +76,10 @@ void main() {
 
         final code = AugmentationGenerator.generate(info);
 
-        expect(code, contains("augment class EmptyService implements ISingletonStandardDI {"));
+        expect(code, contains("// AUTO-GENERATED - DO NOT CHANGE"));
+        expect(code, contains("class EmptyServiceDI extends EmptyService implements ISingletonStandardDI {"));
         expect(code, contains("void initializeDI() {"));
-        expect(code, contains("factory EmptyService.initializeDI() {"));
+        expect(code, contains("factory EmptyServiceDI.initializeDI() {"));
         // Should not have any field assignments
         expect(code, isNot(contains("SingletonDIAccess.get")));
       });
@@ -93,9 +96,10 @@ void main() {
 
         final code = AugmentationGenerator.generate(info);
 
-        expect(code, contains("augment class My_Service_Impl implements ISingletonStandardDI {"));
-        expect(code, contains("factory My_Service_Impl.initializeDI() {"));
-        expect(code, contains("final instance = My_Service_Impl();"));
+        expect(code, contains("// AUTO-GENERATED - DO NOT CHANGE"));
+        expect(code, contains("class My_Service_ImplDI extends My_Service_Impl implements ISingletonStandardDI {"));
+        expect(code, contains("factory My_Service_ImplDI.initializeDI() {"));
+        expect(code, contains("final instance = My_Service_ImplDI();"));
       });
 
       test('should handle field names with underscores', () {
@@ -148,7 +152,7 @@ void main() {
 
         // Verify proper indentation
         expect(code, contains('    db = SingletonDIAccess.get<DatabaseConnection>();'));
-        expect(code, contains('  factory MyService.initializeDI() {'));
+        expect(code, contains('  factory MyServiceDI.initializeDI() {'));
         expect(code, contains('  @override'));
         expect(code, contains('  void initializeDI() {'));
       });
@@ -181,7 +185,7 @@ void main() {
 
         final code = AugmentationGenerator.generate(info);
 
-        expect(code, contains("augment library 'lib/src/features/auth/services/my_service.dart';"));
+        expect(code, contains("import 'my_service.dart';"));
       });
 
       test('should handle Windows-style path separators', () {
@@ -196,8 +200,8 @@ void main() {
 
         final code = AugmentationGenerator.generate(info);
 
-        // Should convert Windows paths to Unix-style for augment library
-        expect(code, contains("augment library 'lib/src/my_service.dart';"));
+        // Should use basename only for the import
+        expect(code, contains("import 'my_service.dart';"));
       });
 
       test('should generate valid Dart syntax for initializeDI factory method', () {
@@ -213,7 +217,7 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         final createMethod = RegExp(
-          r'factory MyService\.initializeDI\(\) \{[^}]*final instance = MyService\(\);[^}]*instance\.initializeDI\(\);[^}]*return instance;[^}]*\}',
+          r'factory MyServiceDI\.initializeDI\(\) \{[^}]*final instance = MyServiceDI\(\);[^}]*instance\.initializeDI\(\);[^}]*return instance;[^}]*\}',
           dotAll: true,
         );
         expect(code, matches(createMethod));
@@ -256,8 +260,9 @@ void main() {
 
         final code = AugmentationGenerator.generate(info);
 
-        expect(code, contains("augment class A implements ISingletonStandardDI {"));
-        expect(code, contains("factory A.initializeDI() {"));
+        expect(code, contains("// AUTO-GENERATED - DO NOT CHANGE"));
+        expect(code, contains("class ADI extends A implements ISingletonStandardDI {"));
+        expect(code, contains("factory ADI.initializeDI() {"));
       });
 
       test('should handle class names with numbers', () {
@@ -272,8 +277,9 @@ void main() {
 
         final code = AugmentationGenerator.generate(info);
 
-        expect(code, contains("augment class Service123 implements ISingletonStandardDI {"));
-        expect(code, contains("factory Service123.initializeDI() {"));
+        expect(code, contains("// AUTO-GENERATED - DO NOT CHANGE"));
+        expect(code, contains("class Service123DI extends Service123 implements ISingletonStandardDI {"));
+        expect(code, contains("factory Service123DI.initializeDI() {"));
         expect(code, contains("dep456 = SingletonDIAccess.get<Service789>();"));
       });
 
@@ -290,8 +296,9 @@ void main() {
 
         final code = AugmentationGenerator.generate(info);
 
-        expect(code, contains("augment class $longName implements ISingletonStandardDI {"));
-        expect(code, contains("factory $longName.initializeDI() {"));
+        expect(code, contains("// AUTO-GENERATED - DO NOT CHANGE"));
+        expect(code, contains("class ${longName}DI extends $longName implements ISingletonStandardDI {"));
+        expect(code, contains("factory ${longName}DI.initializeDI() {"));
       });
     });
 
@@ -310,7 +317,7 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         // Verify the generated code has the factory and initializeDI method
-        expect(code, contains('factory TestService.initializeDI()'));
+        expect(code, contains('factory TestServiceDI.initializeDI()'));
         expect(code, contains('void initializeDI()'));
         expect(code, contains('value = SingletonDIAccess.get<String>()'));
 

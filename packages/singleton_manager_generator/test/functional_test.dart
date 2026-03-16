@@ -5,7 +5,7 @@ import 'package:singleton_manager_generator/src/generator/augmentation_generator
 import 'package:singleton_manager_generator/src/model/singleton_class_info.dart';
 
 void main() {
-  group('Functional Tests - Generated Code Validation', () {
+  group('Functional Tests - DI Code Generation', () {
     late Directory tempDir;
 
     setUpAll(() {
@@ -20,7 +20,7 @@ void main() {
       // Keep test_artifacts folder for inspection after tests run
     });
 
-    test('generated augment file is valid Dart syntax', () {
+    test('generated DI file is valid Dart syntax', () {
       final dir = Directory('${tempDir.path}/lib');
       dir.createSync(recursive: true);
 
@@ -46,18 +46,19 @@ class UserService {
         sourceFileContent: parsed[0].sourceFileContent,
       );
 
-      final augmentCode = AugmentationGenerator.generate(info);
-      final augmentFile = File('${dir.path}/user_service_augment.dart');
-      augmentFile.writeAsStringSync(augmentCode);
+      final diCode = AugmentationGenerator.generate(info);
+      final augmentFile = File('${dir.path}/user_service_di.dart');
+      augmentFile.writeAsStringSync(diCode);
 
       // Verify file exists
       expect(augmentFile.existsSync(), true);
 
       // Verify it's valid Dart by checking syntax
-      expect(augmentCode, contains('augment library'));
-      expect(augmentCode, contains('augment class UserService'));
-      expect(augmentCode, contains('factory UserService.initializeDI()'));
-      expect(augmentCode, contains('implements ISingletonStandardDI'));
+      expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+      expect(diCode, contains('// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import'));
+      expect(diCode, contains('class UserServiceDI'));
+      expect(diCode, contains('factory UserServiceDI.initializeDI()'));
+      expect(diCode, contains('implements ISingletonStandardDI'));
     });
 
     test('generated factory method has correct signature', () {
@@ -86,15 +87,16 @@ class ConfigService {
         sourceFileContent: parsed[0].sourceFileContent,
       );
 
-      final augmentCode = AugmentationGenerator.generate(info);
-      final augmentFile = File('${dir.path}/config_service_augment.dart');
-      augmentFile.writeAsStringSync(augmentCode);
+      final diCode = AugmentationGenerator.generate(info);
+      final augmentFile = File('${dir.path}/config_service_di.dart');
+      augmentFile.writeAsStringSync(diCode);
 
       // Verify factory signature
-      expect(augmentCode, contains('factory ConfigService.initializeDI() {'));
-      expect(augmentCode, contains('final instance = ConfigService();'));
-      expect(augmentCode, contains('instance.initializeDI();'));
-      expect(augmentCode, contains('return instance;'));
+      expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+      expect(diCode, contains('factory ConfigServiceDI.initializeDI() {'));
+      expect(diCode, contains('final instance = ConfigServiceDI();'));
+      expect(diCode, contains('instance.initializeDI();'));
+      expect(diCode, contains('return instance;'));
     });
 
     test('generated initializeDI method initializes all fields', () {
@@ -129,13 +131,13 @@ class PaymentService {
         sourceFileContent: parsed[0].sourceFileContent,
       );
 
-      final augmentCode = AugmentationGenerator.generate(info);
+      final diCode = AugmentationGenerator.generate(info);
 
       // Verify all fields are initialized
-      expect(augmentCode, contains('gatewayKey = SingletonDIAccess.get<String>()'));
-      expect(augmentCode, contains('merchantId = SingletonDIAccess.get<String>()'));
-      expect(augmentCode, contains('port = SingletonDIAccess.get<int>()'));
-      expect(augmentCode, contains('debugMode = SingletonDIAccess.get<bool>()'));
+      expect(diCode, contains('gatewayKey = SingletonDIAccess.get<String>()'));
+      expect(diCode, contains('merchantId = SingletonDIAccess.get<String>()'));
+      expect(diCode, contains('port = SingletonDIAccess.get<int>()'));
+      expect(diCode, contains('debugMode = SingletonDIAccess.get<bool>()'));
     });
 
     test('multiple classes generate separate augment files with correct names', () {
@@ -170,17 +172,18 @@ class ServiceTwo {
       // Generate augment files
       for (final info in parsed) {
         final baseName = info.sourceFilePath.split('/').last.split('.dart')[0];
-        final augmentCode = AugmentationGenerator.generate(info);
-        final augmentFile = File('${dir.path}/${baseName}_augment.dart');
-        augmentFile.writeAsStringSync(augmentCode);
+        final diCode = AugmentationGenerator.generate(info);
+        final augmentFile = File('${dir.path}/${baseName}_di.dart');
+        augmentFile.writeAsStringSync(diCode);
 
         expect(augmentFile.existsSync(), true);
-        expect(augmentCode, contains('augment class'));
+        expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+        expect(diCode, contains('class'));
       }
 
       // Verify both files exist with correct names
-      expect(File('${dir.path}/service_one_augment.dart').existsSync(), true);
-      expect(File('${dir.path}/service_two_augment.dart').existsSync(), true);
+      expect(File('${dir.path}/service_one_di.dart').existsSync(), true);
+      expect(File('${dir.path}/service_two_di.dart').existsSync(), true);
     });
 
     test('generated code has correct imports', () {
@@ -206,12 +209,13 @@ class DatabaseService {
         sourceFileContent: parsed[0].sourceFileContent,
       );
 
-      final augmentCode = AugmentationGenerator.generate(info);
+      final diCode = AugmentationGenerator.generate(info);
 
       // Verify required imports are present
-      expect(augmentCode, contains("import 'package:singleton_manager/singleton_manager.dart';"));
-      // Verify no duplicate imports
-      expect(augmentCode.split("import 'package:singleton_manager/singleton_manager.dart';"), hasLength(2));
+      expect(diCode, contains("// AUTO-GENERATED - DO NOT CHANGE"));
+      expect(diCode, contains("import 'package:singleton_manager/singleton_manager.dart';"));
+      // Verify no duplicate imports (should appear only once)
+      expect(diCode.split("import 'package:singleton_manager/singleton_manager.dart';"), hasLength(2));
     });
 
     test('generated augment library path is correct', () {
@@ -237,10 +241,10 @@ class PathService {
         sourceFileContent: parsed[0].sourceFileContent,
       );
 
-      final augmentCode = AugmentationGenerator.generate(info);
+      final diCode = AugmentationGenerator.generate(info);
 
-      // Verify augment library path matches source file path
-      expect(augmentCode, contains("augment library 'lib/paths/path_service.dart';"));
+      // Verify source file is imported
+      expect(diCode, contains("import 'path_service.dart';"));
     });
 
     test('generated code structure is complete and valid', () {
@@ -269,28 +273,30 @@ class CompleteService {
         sourceFileContent: parsed[0].sourceFileContent,
       );
 
-      final augmentCode = AugmentationGenerator.generate(info);
-      final augmentFile = File('${dir.path}/complete_service_augment.dart');
-      augmentFile.writeAsStringSync(augmentCode);
+      final diCode = AugmentationGenerator.generate(info);
+      final augmentFile = File('${dir.path}/complete_service_di.dart');
+      augmentFile.writeAsStringSync(diCode);
 
       // Verify all required components are present
-      expect(augmentCode, contains("augment library 'lib/complete/complete_service.dart';"));
-      expect(augmentCode, contains("import 'package:singleton_manager/singleton_manager.dart';"));
-      expect(augmentCode,
-          contains('augment class CompleteService implements ISingletonStandardDI {'));
-      expect(augmentCode, contains('factory CompleteService.initializeDI() {'));
-      expect(augmentCode, contains('final instance = CompleteService();'));
-      expect(augmentCode, contains('instance.initializeDI();'));
-      expect(augmentCode, contains('return instance;'));
-      expect(augmentCode, contains('@override'));
-      expect(augmentCode, contains('void initializeDI() {'));
-      expect(augmentCode, contains('param1 = SingletonDIAccess.get<String>();'));
-      expect(augmentCode, contains('param2 = SingletonDIAccess.get<String>();'));
+      expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+      expect(diCode, contains('// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import'));
+      expect(diCode, contains("import 'package:singleton_manager/singleton_manager.dart';"));
+      expect(diCode, contains("import 'complete_service.dart';"));
+      expect(diCode,
+          contains('class CompleteServiceDI extends CompleteService implements ISingletonStandardDI {'));
+      expect(diCode, contains('factory CompleteServiceDI.initializeDI() {'));
+      expect(diCode, contains('final instance = CompleteServiceDI();'));
+      expect(diCode, contains('instance.initializeDI();'));
+      expect(diCode, contains('return instance;'));
+      expect(diCode, contains('@override'));
+      expect(diCode, contains('void initializeDI() {'));
+      expect(diCode, contains('param1 = SingletonDIAccess.get<String>();'));
+      expect(diCode, contains('param2 = SingletonDIAccess.get<String>();'));
 
       // Verify file was written successfully
       expect(augmentFile.existsSync(), true);
       final content = augmentFile.readAsStringSync();
-      expect(content, equals(augmentCode));
+      expect(content, equals(diCode));
     });
 
     test('empty class (no injections) generates valid code', () {
@@ -315,13 +321,14 @@ class EmptyService {
         sourceFileContent: parsed[0].sourceFileContent,
       );
 
-      final augmentCode = AugmentationGenerator.generate(info);
+      final diCode = AugmentationGenerator.generate(info);
 
       // Verify factory and initializeDI are still present even with no fields
-      expect(augmentCode, contains('factory EmptyService.initializeDI() {'));
-      expect(augmentCode, contains('void initializeDI() {'));
+      expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+      expect(diCode, contains('factory EmptyServiceDI.initializeDI() {'));
+      expect(diCode, contains('void initializeDI() {'));
       // But no field assignments
-      expect(augmentCode, isNot(contains('SingletonDIAccess.get')));
+      expect(diCode, isNot(contains('SingletonDIAccess.get')));
     });
   });
 }
