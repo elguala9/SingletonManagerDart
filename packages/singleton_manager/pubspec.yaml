@@ -1,10 +1,11 @@
 name: singleton_manager
 description: >
-  A high-performance singleton manager for Dart with zero dependencies,
+  A high-performance singleton manager for Dart with zero runtime dependencies,
   type-safe generics support, lazy loading, and optional scope management.
+  Includes @isSingleton and @isInjected annotations for code generation.
   Ideal for dependency injection, service locators, and resource management.
 
-version: 0.3.5
+version: 0.4.0
 
 resolution: workspace
 

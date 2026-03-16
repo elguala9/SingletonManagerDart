@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-16
+
+### BREAKING CHANGES
+- **Merged singleton_manager_annotations into singleton_manager**
+  - `@isSingleton` annotation now exported from `singleton_manager` package
+  - `@isInjected` annotation now exported from `singleton_manager` package
+  - `singleton_manager_annotations` package is now DEPRECATED
+  - Migration: Change `import 'package:singleton_manager_annotations/...'` to `import 'package:singleton_manager/singleton_manager.dart'`
+
+### Added
+- Annotations (`@isSingleton`, `@isInjected`) are now included in the main package
+- Single import point for all DI functionality
+
+### Deprecated
+- `singleton_manager_annotations` package is now deprecated in favor of `singleton_manager`
+
 ## [0.3.5] - 2026-03-16
 
 ### Improved
