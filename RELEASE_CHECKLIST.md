@@ -2,20 +2,22 @@
 
 ## Packages to Publish
 
-### 1. singleton_manager_generator v0.1.4
-**Priority**: 🔴 CRITICAL (Bug fix)
+### 1. singleton_manager_generator v1.0.0
+**Priority**: 🟢 STABLE RELEASE (First production-ready version)
 
 ```bash
 cd packages/singleton_manager_generator
 flutter pub publish
 ```
 
-**What's being fixed**:
-- Critical bug in source_parser.dart: undefined getter 'name2'
-- Generator was crashing when extracting field types from class declarations
-- Fix: Changed `typeAnnotation.name2.lexeme` to `typeAnnotation.name.lexeme`
+**What's included**:
+- First stable release marking API stability
+- Critical bug fix: Fixed undefined getter 'name2' in source_parser.dart
+- Simplified dependency chain by removing intermediate annotation package
+- All tests passing with zero analyzer errors or warnings
+- Production-ready quality gates met
 
-**Version**: 0.1.3 → 0.1.4
+**Version**: 0.1.5 → 1.0.0
 **Release Date**: 2026-03-16
 
 ---
@@ -88,14 +90,14 @@ flutter pub publish
 ## Git Commands
 
 ```bash
-# View the release commit
-git show 5a59123
+# Create git tag for 1.0.0 release
+git tag -a singleton_manager_generator-1.0.0 -m "Release singleton_manager_generator v1.0.0 - First stable release"
 
-# View the tags
-git tag -l | grep -E "(singleton_manager_generator-0.1.4|singleton_manager-0.3.5)"
+# View all tags
+git tag -l | grep singleton_manager_generator
 
 # Push tags to remote (if using remote)
-git push origin singleton_manager_generator-0.1.4
+git push origin singleton_manager_generator-1.0.0
 git push origin singleton_manager-0.3.5
 ```
 
