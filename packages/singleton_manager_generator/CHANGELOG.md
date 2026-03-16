@@ -1,13 +1,24 @@
 # Changelog
 
-## [0.1.5] - 2026-03-16
+## [1.0.0] - 2026-03-16
+
+**First stable release** - The singleton_manager_generator API is now stable and ready for production use.
 
 ### Changed
 - Removed dependency on `singleton_manager_annotations` (now part of `singleton_manager`)
 - Annotations are now referenced from `singleton_manager` package
 
+### Fixed
+- **CRITICAL**: Fixed undefined getter 'name2' in source_parser.dart that caused generator to crash
+  - Changed `typeAnnotation.name2.lexeme` to `typeAnnotation.name.lexeme`
+  - Generator now correctly extracts field type names from class declarations
+- Fixed unused imports in test files
+- Resolved all dart analyze issues (cascade invocations, deprecated member usage)
+
 ### Improved
 - Simplified dependency chain by removing intermediate annotation package
+- Code quality: Optimized cascade operators in test suite
+- All tests pass with zero analyzer errors or warnings
 
 ## [0.1.4] - 2026-03-16
 
