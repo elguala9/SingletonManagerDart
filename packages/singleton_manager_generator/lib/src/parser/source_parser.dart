@@ -68,16 +68,21 @@ class SourceParser {
       if (member is FieldDeclaration) {
         final isInjectedAnnotation = _findAnnotation(member, 'isInjected');
         if (isInjectedAnnotation != null) {
-          for (final variable in member.fields.variables) {
-            final fieldName = variable.name.lexeme;
-            final fieldType = _extractFieldType(member.fields.type);
-            if (fieldType != null) {
-              injectedFields.add(
-                InjectedFieldInfo(
-                  fieldName: fieldName,
-                  fieldType: fieldType,
-                ),
-              );
+          // Only inject fields that are 'late' or 'late final'
+          // Plain 'final' fields cannot be assigned after construction
+          final isLate = member.fields.isLate;
+          if (isLate) {
+            for (final variable in member.fields.variables) {
+              final fieldName = variable.name.lexeme;
+              final fieldType = _extractFieldType(member.fields.type);
+              if (fieldType != null) {
+                injectedFields.add(
+                  InjectedFieldInfo(
+                    fieldName: fieldName,
+                    fieldType: fieldType,
+                  ),
+                );
+              }
             }
           }
         }

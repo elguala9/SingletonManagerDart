@@ -198,7 +198,7 @@ import 'package:singleton_manager/singleton_manager.dart';
 @isSingleton
 class MyService {
   @isInjected
-  String? optionalString;
+  late String? optionalString;
 }
 ''');
 
@@ -283,7 +283,7 @@ class Logger {}
         expect(results[0].injectedFields[1].fieldName, 'logger');
       });
 
-      test('should handle field with final modifier', () {
+      test('should ignore field with final modifier (not late)', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
@@ -297,8 +297,8 @@ class MyService {
 
         final results = SourceParser.parse([dartFile]);
 
-        expect(results[0].injectedFields, hasLength(1));
-        expect(results[0].injectedFields[0].fieldName, 'configValue');
+        // Plain final fields cannot be injected (they're not late)
+        expect(results[0].injectedFields, hasLength(0));
       });
 
       test('should handle field with late final modifier', () {
@@ -404,7 +404,7 @@ class Logger {}
         expect(results[1].injectedFields[0].fieldType, 'ServiceC');
       });
 
-      test('should handle plain final fields', () {
+      test('should ignore plain final fields', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
@@ -426,11 +426,8 @@ class Logger {}
 
         expect(results, hasLength(1));
         expect(results[0].className, 'MyService');
-        expect(results[0].injectedFields, hasLength(2));
-        expect(results[0].injectedFields[0].fieldName, 'db');
-        expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
-        expect(results[0].injectedFields[1].fieldName, 'logger');
-        expect(results[0].injectedFields[1].fieldType, 'Logger');
+        // Plain final fields cannot be injected (they're not late)
+        expect(results[0].injectedFields, hasLength(0));
       });
 
       test('should handle mix of late, late final, and final fields', () {
@@ -463,15 +460,12 @@ class CacheService {}
 
         expect(results, hasLength(1));
         expect(results[0].className, 'MyService');
-        expect(results[0].injectedFields, hasLength(4));
+        // Only 'late' and 'late final' fields are injected, not plain 'final'
+        expect(results[0].injectedFields, hasLength(2));
         expect(results[0].injectedFields[0].fieldName, 'db');
         expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
-        expect(results[0].injectedFields[1].fieldName, 'logger');
-        expect(results[0].injectedFields[1].fieldType, 'Logger');
-        expect(results[0].injectedFields[2].fieldName, 'config');
-        expect(results[0].injectedFields[2].fieldType, 'ConfigManager');
-        expect(results[0].injectedFields[3].fieldName, 'cache');
-        expect(results[0].injectedFields[3].fieldType, 'CacheService');
+        expect(results[0].injectedFields[1].fieldName, 'config');
+        expect(results[0].injectedFields[1].fieldType, 'ConfigManager');
       });
 
       test('should set sourceFilePath correctly', () {
