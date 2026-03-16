@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.3] - 2026-03-16
+
+### Fixed
+- Removed workspace resolution to allow analyzer ^11.0.0 (latest version)
+- Published packages should not have workspace resolution
+
 ## [0.1.2] - 2026-03-16
 
 ### Fixed
