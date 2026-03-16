@@ -9,7 +9,7 @@ void main() {
     late Directory tempDir;
 
     setUpAll(() {
-      tempDir = Directory('test_artifacts/functional_tests');
+      tempDir = Directory('lib/test_artifacts/functional_tests');
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
       }

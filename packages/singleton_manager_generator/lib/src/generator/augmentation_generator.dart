@@ -12,10 +12,17 @@ class AugmentationGenerator {
     final injectionCode = _generateInjectionCode(info);
     final sourceImports = _extractImportsFromSource(info.sourceFileContent);
 
-    return '''augment library '$relativePath';
+    // Check if singleton_manager import is already in source imports
+    final singletonImportLine = "import 'package:singleton_manager/singleton_manager.dart';";
+    final hasSingletonImport = sourceImports.contains(singletonImportLine);
 
-import 'package:singleton_manager/singleton_manager.dart';
-$sourceImports
+    final importsSection = hasSingletonImport
+      ? sourceImports
+      : '''import 'package:singleton_manager/singleton_manager.dart';
+$sourceImports''';
+
+    return '''augment library '$relativePath';
+$importsSection
 
 augment class ${info.className} implements ISingletonStandardDI {
   factory ${info.className}.initializeDI() {
