@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.1] - 2026-03-16
+
+### Fixed
+- Updated analyzer dependency to ^8.0.0 for compatibility with test package
+
 ## [0.1.0] - 2026-03-16
 
 ### Added
