@@ -86,7 +86,7 @@ Future<void> main(List<String> arguments) async {
   var generatedCount = 0;
   for (final info in singletonInfos) {
     final sourceFileName = p.basename(info.sourceFilePath);
-    final outputFileName = '${p.withoutExtension(sourceFileName)}.singleton_di.dart';
+    final outputFileName = '${p.withoutExtension(sourceFileName)}_augment.dart';
     final outputPath = p.join(outputDir.path, outputFileName);
 
     final augmentationCode = AugmentationGenerator.generate(info);
@@ -98,7 +98,7 @@ Future<void> main(List<String> arguments) async {
     generatedCount++;
   }
 
-  print('✓ Summary: Found ${singletonInfos.length} @isSingleton class(es), generated $generatedCount augmentation file(s)');
+  print('✓ Generated $generatedCount augmentation file(s) in ${outputDir.path}');
 }
 
 /// Find all .dart files in a directory recursively.

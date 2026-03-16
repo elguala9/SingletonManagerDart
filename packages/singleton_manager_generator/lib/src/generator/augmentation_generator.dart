@@ -10,20 +10,22 @@ class AugmentationGenerator {
   static String generate(SingletonClassInfo info) {
     final relativePath = p.relative(info.sourceFilePath).replaceAll('\\', '/');
     final injectionCode = _generateInjectionCode(info);
+    final sourceImports = _extractImportsFromSource(info.sourceFileContent);
 
     return '''augment library '$relativePath';
 
 import 'package:singleton_manager/singleton_manager.dart';
+$sourceImports
 
 augment class ${info.className} implements ISingletonStandardDI {
-  static Future<${info.className}> create() async {
+  factory ${info.className}.initializeDI() {
     final instance = ${info.className}();
-    await instance.initializeDI();
+    instance.initializeDI();
     return instance;
   }
 
   @override
-  Future<void> initializeDI() async {
+  void initializeDI() {
 $injectionCode  }
 }
 ''';
@@ -40,5 +42,23 @@ $injectionCode  }
     }).join('\n');
 
     return '$lines\n';
+  }
+
+  /// Extract all import statements from the source file content.
+  static String _extractImportsFromSource(String sourceContent) {
+    final lines = sourceContent.split('\n');
+    final imports = <String>[];
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.startsWith('import ') || trimmed.startsWith('export ')) {
+        imports.add(line);
+      } else if (trimmed.isNotEmpty && !trimmed.startsWith('//')) {
+        // Stop at first non-import/non-comment line
+        break;
+      }
+    }
+
+    return imports.isEmpty ? '' : imports.join('\n');
   }
 }
