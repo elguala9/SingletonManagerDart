@@ -1,0 +1,11 @@
+test/
+.dart_tool/
+build/
+*.iml
+.idea/
+.vscode/
+.venv/
+.env
+.DS_Store
+TESTING.md
+analysis_options.yaml
