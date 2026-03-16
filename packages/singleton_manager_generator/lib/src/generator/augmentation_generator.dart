@@ -2,31 +2,24 @@ import 'package:path/path.dart' as p;
 
 import '../model/singleton_class_info.dart';
 
-/// Generator for augmentation files from [SingletonClassInfo].
+/// Generator for DI (Dependency Injection) files from [SingletonClassInfo].
 class AugmentationGenerator {
-  /// Generate the augmentation code for a [SingletonClassInfo].
+  /// Generate the DI code for a [SingletonClassInfo].
   ///
-  /// Returns the complete augmentation file content as a string.
+  /// Returns the complete DI file content as a string.
   static String generate(SingletonClassInfo info) {
-    final relativePath = p.relative(info.sourceFilePath).replaceAll('\\', '/');
+    final sourceFileName = p.basename(info.sourceFilePath);
     final injectionCode = _generateInjectionCode(info);
-    final sourceImports = _extractImportsFromSource(info.sourceFileContent);
 
-    // Check if singleton_manager import is already in source imports
-    final singletonImportLine = "import 'package:singleton_manager/singleton_manager.dart';";
-    final hasSingletonImport = sourceImports.contains(singletonImportLine);
+    return '''// AUTO-GENERATED - DO NOT CHANGE
+// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import
 
-    final importsSection = hasSingletonImport
-      ? sourceImports
-      : '''import 'package:singleton_manager/singleton_manager.dart';
-$sourceImports''';
+import 'package:singleton_manager/singleton_manager.dart';
+import '$sourceFileName';
 
-    return '''augment library '$relativePath';
-$importsSection
-
-augment class ${info.className} implements ISingletonStandardDI {
-  factory ${info.className}.initializeDI() {
-    final instance = ${info.className}();
+class ${info.className}DI extends ${info.className} implements ISingletonStandardDI {
+  factory ${info.className}DI.initializeDI() {
+    final instance = ${info.className}DI();
     instance.initializeDI();
     return instance;
   }
@@ -51,21 +44,4 @@ $injectionCode  }
     return '$lines\n';
   }
 
-  /// Extract all import statements from the source file content.
-  static String _extractImportsFromSource(String sourceContent) {
-    final lines = sourceContent.split('\n');
-    final imports = <String>[];
-
-    for (final line in lines) {
-      final trimmed = line.trim();
-      if (trimmed.startsWith('import ') || trimmed.startsWith('export ')) {
-        imports.add(line);
-      } else if (trimmed.isNotEmpty && !trimmed.startsWith('//')) {
-        // Stop at first non-import/non-comment line
-        break;
-      }
-    }
-
-    return imports.isEmpty ? '' : imports.join('\n');
-  }
 }

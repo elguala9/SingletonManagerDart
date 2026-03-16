@@ -16,7 +16,7 @@ Future<void> main(List<String> arguments) async {
     ..addOption(
       'output',
       abbr: 'o',
-      help: 'Output directory for generated augmentation files (default: same as input)',
+      help: 'Output directory for generated DI files (default: same as input)',
     )
     ..addFlag(
       'verbose',
@@ -82,23 +82,23 @@ Future<void> main(List<String> arguments) async {
     exit(0);
   }
 
-  // Generate augmentation files
+  // Generate DI files
   var generatedCount = 0;
   for (final info in singletonInfos) {
     final sourceFileName = p.basename(info.sourceFilePath);
-    final outputFileName = '${p.withoutExtension(sourceFileName)}_augment.dart';
+    final outputFileName = '${p.withoutExtension(sourceFileName)}_di.dart';
     final outputPath = p.join(outputDir.path, outputFileName);
 
-    final augmentationCode = AugmentationGenerator.generate(info);
+    final diCode = AugmentationGenerator.generate(info);
 
-    File(outputPath).writeAsStringSync(augmentationCode);
+    File(outputPath).writeAsStringSync(diCode);
     if (verbose) {
       print('Generated: $outputPath');
     }
     generatedCount++;
   }
 
-  print('✓ Generated $generatedCount augmentation file(s) in ${outputDir.path}');
+  print('✓ Generated $generatedCount DI file(s) in ${outputDir.path}');
 }
 
 /// Find all .dart files in a directory recursively.
@@ -120,7 +120,7 @@ List<File> _findDartFiles(Directory dir) {
 }
 
 void _printUsage(ArgParser parser) {
-  print('Generate Dart augmentation files for @isSingleton classes');
+  print('Generate Dart DI files for @isSingleton classes');
   print('');
   print('Usage: dart run singleton_manager_generator [options]');
   print('');

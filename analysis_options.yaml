@@ -1,0 +1,3 @@
+analyzer:
+  exclude:
+    - lib/test_artifacts/**  # Exclude test artifacts from root analysis
