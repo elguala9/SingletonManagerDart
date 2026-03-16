@@ -19,8 +19,7 @@ dependencies:
   args: ^2.5.0
   analyzer: ^7.0.0
   path: ^1.9.0
-  singleton_manager_annotations:
-    path: ../singleton_manager_annotations
+  singleton_manager_annotations: ^0.1.0
 
 dev_dependencies:
   lints: ^5.1.0
