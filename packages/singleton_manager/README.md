@@ -2,15 +2,16 @@
 
 [![Pub Version](https://img.shields.io/pub/v/singleton_manager.svg)](https://pub.dev/packages/singleton_manager)
 
-A high-performance, zero-dependency singleton manager for Dart.
+A high-performance, zero-dependency singleton manager for Dart with built-in code generation annotations.
 
 ## Features
 
 - **Type-safe**: Full generic support with compile-time type checking
 - **High performance**: O(1) registration and retrieval operations
-- **Zero dependencies**: No external package dependencies
+- **Zero runtime dependencies**: No external package dependencies
 - **Flexible API**: Register any Dart objects, not just `ISingleton` implementations (v0.3.3+)
 - **Dependency Injection**: Factory-based DI with `SingletonDI` and static access with `SingletonDIAccess` (v0.2.0+, enhanced v0.3.0+)
+- **Code Generation Annotations** (v0.4.0+): Built-in `@isSingleton` and `@isInjected` annotations for automatic DI setup
 - **Optional Lifecycle Management**: `ISingleton` interface for initialization and cleanup (optional, v0.2.0+)
 - **Lazy loading**: Initialize singletons only when first accessed
 - **Multi-platform**: Supports VM, Web, Native, and Flutter
@@ -22,7 +23,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.3.4
+  singleton_manager: ^0.4.0
 ```
 
 ## Quick Start
@@ -91,6 +92,32 @@ manager.registerLazy('expensiveService',
   () => ExpensiveResourceService()
 );
 ```
+
+### Code Generation with Annotations (v0.4.0+)
+
+Use `@isSingleton` and `@isInjected` annotations with `singleton_manager_generator` for automatic DI setup:
+
+```dart
+@isSingleton
+class UserService {
+  @isInjected
+  late DatabaseConnection db;
+
+  @isInjected
+  late Logger logger;
+}
+
+void main() {
+  // Register dependencies
+  SingletonDI.registerFactory<DatabaseConnection>(() => DatabaseConnection());
+  SingletonDI.registerFactory<Logger>(() => Logger());
+
+  // Generator creates initializeDI() factory automatically
+  final service = UserService.initializeDI();
+}
+```
+
+See [singleton_manager_generator](../singleton_manager_generator/README.md) for setup instructions.
 
 ## Documentation
 

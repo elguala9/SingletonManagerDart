@@ -12,23 +12,24 @@ A CLI tool that generates Dart augmentation files for `@isSingleton` classes, au
 
 ## Installation
 
-Add both packages to your `pubspec.yaml`:
+Add the packages to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: any
-  singleton_manager_annotations: any
+  singleton_manager: ^0.4.0
 
 dev_dependencies:
-  singleton_manager_generator: any
+  singleton_manager_generator: ^0.1.5
 ```
+
+Note: As of v0.4.0, annotations are included in `singleton_manager`. No separate annotations package needed!
 
 ## Usage
 
 ### 1. Annotate your classes
 
 ```dart
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -95,9 +96,10 @@ final service = MyService.initializeDI();
 ## Requirements
 
 - Dart SDK >= 3.11.0
-- `package:analyzer` for AST parsing
-- `package:args` for CLI argument handling
-- `package:path` for path utilities
+- `package:singleton_manager` ^0.4.0 (for annotations)
+- `package:analyzer` ^10.0.0 for AST parsing
+- `package:args` ^2.5.0 for CLI argument handling
+- `package:path` ^1.9.0 for path utilities
 
 ## How it works
 
