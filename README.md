@@ -40,10 +40,13 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.3.4
+  singleton_manager: ^1.0.0
+
+dev_dependencies:
+  singleton_manager_generator: ^1.0.0
 ```
 
-## Features (v0.3.4+)
+## Features (v1.0.0+)
 
 ### Core Features
 
