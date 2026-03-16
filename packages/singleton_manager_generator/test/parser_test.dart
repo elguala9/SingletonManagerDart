@@ -26,7 +26,7 @@ void main() {
       test('should find @isSingleton class with single @isInjected field', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -49,7 +49,7 @@ class DatabaseConnection {}
       test('should find @isSingleton class with multiple @isInjected fields', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -84,7 +84,7 @@ class ConfigManager {}
       test('should find @isSingleton class with no @isInjected fields', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -104,7 +104,7 @@ class MyService {
       test('should handle multiple @isSingleton classes in single file', () {
         final dartFile = File('${tempDir.path}/services.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ServiceA {
@@ -133,7 +133,7 @@ class ServiceC {}
       test('should ignore classes without @isSingleton annotation', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 class RegularClass {
   @isInjected
@@ -156,7 +156,7 @@ class SingletonClass {
       test('should ignore @isInjected fields in non-singleton classes', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 class RegularClass {
   @isInjected
@@ -172,7 +172,7 @@ class RegularClass {
       test('should handle generic field types', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -193,7 +193,7 @@ class MyService {
       test('should handle nullable field types', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -212,7 +212,7 @@ class MyService {
       test('should parse multiple files recursively', () {
         final file1 = File('${tempDir.path}/service1.dart');
         file1.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class Service1 {
@@ -225,7 +225,7 @@ class Service1 {
         dir.createSync();
         final file2 = File('${dir.path}/service2.dart');
         file2.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class Service2 {
@@ -244,7 +244,7 @@ class Service2 {
       test('should handle syntax errors gracefully', () {
         final dartFile = File('${tempDir.path}/broken.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class BrokenService {
@@ -261,7 +261,7 @@ class BrokenService {
       test('should handle field with late modifier', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -286,7 +286,7 @@ class Logger {}
       test('should handle field with final modifier', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -304,7 +304,7 @@ class MyService {
       test('should handle field with late final modifier', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -327,7 +327,7 @@ class DatabaseConnection {}
       test('should handle mix of late and late final fields', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -368,7 +368,7 @@ class CacheService {}
       test('should handle late final fields with multiple classes', () {
         final dartFile = File('${tempDir.path}/services.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ServiceA {
@@ -407,7 +407,7 @@ class Logger {}
       test('should handle plain final fields', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -436,7 +436,7 @@ class Logger {}
       test('should handle mix of late, late final, and final fields', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -477,7 +477,7 @@ class CacheService {}
       test('should set sourceFilePath correctly', () {
         final dartFile = File('${tempDir.path}/my_service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -496,7 +496,7 @@ class MyService {
       test('should log parsed classes when verbose is true', () {
         final dartFile = File('${tempDir.path}/service.dart');
         dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {

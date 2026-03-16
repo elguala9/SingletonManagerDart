@@ -26,7 +26,7 @@ void main() {
 
       final dartFile = File('${dir.path}/user_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class UserService {
@@ -66,7 +66,7 @@ class UserService {
 
       final dartFile = File('${dir.path}/config_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ConfigService {
@@ -103,7 +103,7 @@ class ConfigService {
 
       final dartFile = File('${dir.path}/payment_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class PaymentService {
@@ -144,7 +144,7 @@ class PaymentService {
 
       final file1 = File('${dir.path}/service_one.dart');
       file1.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ServiceOne {
@@ -155,7 +155,7 @@ class ServiceOne {
 
       final file2 = File('${dir.path}/service_two.dart');
       file2.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ServiceTwo {
@@ -189,7 +189,7 @@ class ServiceTwo {
 
       final dartFile = File('${dir.path}/database_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 import 'package:some_package/some_package.dart';
 
 @isSingleton
@@ -221,7 +221,7 @@ class DatabaseService {
 
       final dartFile = File('${dir.path}/path_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class PathService {
@@ -250,7 +250,7 @@ class PathService {
 
       final dartFile = File('${dir.path}/complete_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class CompleteService {
@@ -300,7 +300,7 @@ class CompleteService {
 
       final dartFile = File('${dir.path}/empty_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class EmptyService {

@@ -29,7 +29,7 @@ void main() {
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/user_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class UserService {
@@ -65,7 +65,7 @@ class DatabaseConnection {}
       dir.createSync(recursive: true);
       final file1 = File('${dir.path}/user_service.dart');
       file1.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class UserService {
@@ -78,7 +78,7 @@ class DatabaseConnection {}
 
       final file2 = File('${dir.path}/auth_service.dart');
       file2.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class AuthService {
@@ -129,7 +129,7 @@ class Logger {}
 
       final dartFile = File('${dir.path}/user_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class UserService {
@@ -164,7 +164,7 @@ class RepositoryService {}
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/simple_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class SimpleService {
@@ -200,7 +200,7 @@ class SimpleService {
       dir.createSync(recursive: true);
       final fileA = File('${dir.path}/service_a.dart');
       fileA.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ServiceA {
@@ -213,7 +213,7 @@ class ServiceB {}
 
       final fileB = File('${dir.path}/service_b.dart');
       fileB.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ServiceB {
@@ -226,7 +226,7 @@ class ServiceC {}
 
       final fileC = File('${dir.path}/service_c.dart');
       fileC.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ServiceC {
@@ -284,7 +284,7 @@ class DatabaseConnection {}
       }
 
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class HeavyService {
@@ -322,7 +322,7 @@ ${List.generate(15, (i) => 'class Service${i + 1} {}').join('\n')}
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/mixed_services.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 class RegularService {
   @isInjected
@@ -365,7 +365,7 @@ class AnotherRegular {
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/my_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MyService {
@@ -397,7 +397,7 @@ class MyService {
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/complex_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class ComplexService {
@@ -448,7 +448,7 @@ class Logger {}
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/concrete_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 abstract class BaseService {
   void initializeDI();
@@ -489,7 +489,7 @@ class ConcreteService extends BaseService {
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/late_final_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class LateFinalService {
@@ -529,7 +529,7 @@ class Logger {}
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/mixed_field_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class MixedFieldService {
@@ -579,7 +579,7 @@ class CacheService {}
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/final_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class FinalService {
@@ -619,7 +619,7 @@ class Logger {}
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/all_modifiers_service.dart');
       dartFile.writeAsStringSync('''
-import 'package:singleton_manager_annotations/singleton_manager_annotations.dart';
+import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
 class AllModifiersService {
