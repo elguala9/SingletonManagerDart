@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.2] - 2026-03-16
+
+### Fixed
+- Updated analyzer dependency to ^11.0.0 (latest version)
+
 ## [0.1.1] - 2026-03-16
 
 ### Fixed
