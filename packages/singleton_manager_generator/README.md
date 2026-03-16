@@ -6,7 +6,7 @@ A CLI tool that generates Dart augmentation files for `@isSingleton` classes, au
 
 - Scans Dart source files for `@isSingleton` and `@isInjected` annotations
 - Generates augmentation files with `ISingletonStandardDI` implementations
-- Creates static `create()` factory methods for each singleton class
+- Creates `initializeDI()` factory methods for each singleton class
 - Supports multiple injected fields per class
 - Minimal overhead - uses Dart's `analyzer` package for lightweight AST parsing
 
@@ -54,18 +54,18 @@ melos run generate
 
 ### 3. Use the generated code
 
-The generator creates augmentation files (e.g., `my_service.singleton_di.dart`) with:
+The generator creates augmentation files (e.g., `my_service_augment.dart`) with:
 
 ```dart
 augment class MyService implements ISingletonStandardDI {
-  static Future<MyService> create() async {
+  factory MyService.initializeDI() {
     final instance = MyService();
-    await instance.initializeDI();
+    instance.initializeDI();
     return instance;
   }
 
   @override
-  Future<void> initializeDI() async {
+  void initializeDI() {
     db = SingletonDIAccess.get<DatabaseConnection>();
     logger = SingletonDIAccess.get<Logger>();
   }
@@ -80,7 +80,7 @@ SingletonDIAccess.set<DatabaseConnection>(myConnection);
 SingletonDIAccess.set<Logger>(myLogger);
 
 // Create singleton with auto-injected dependencies
-final service = await MyService.create();
+final service = MyService.initializeDI();
 ```
 
 ## CLI Options
