@@ -31,8 +31,8 @@ class MyService {
 final service = SingletonDIAccess.set<OtherService>(OtherService());
 
 // Use the singleton_manager_generator to create augmentation files
-// Then create instances using the generated static factory
-final myService = await MyService.create();
+// Then create instances using the generated factory
+final myService = MyService.initializeDI();
 ```
 
 ## With singleton_manager_generator
