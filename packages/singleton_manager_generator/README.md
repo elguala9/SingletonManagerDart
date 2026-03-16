@@ -16,13 +16,13 @@ Add the packages to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.4.0
+  singleton_manager: ^1.0.0
 
 dev_dependencies:
-  singleton_manager_generator: ^0.1.5
+  singleton_manager_generator: ^1.0.0
 ```
 
-Note: As of v0.4.0, annotations are included in `singleton_manager`. No separate annotations package needed!
+Note: As of v1.0.0, this is the first stable release. Annotations are included in `singleton_manager` v1.0.0+. No separate annotations package needed!
 
 ### Global Installation
 
@@ -122,7 +122,7 @@ final service = MyService.initializeDI();
 ## Requirements
 
 - Dart SDK >= 3.11.0
-- `package:singleton_manager` ^0.4.0 (for annotations)
+- `package:singleton_manager` ^1.0.0 (for annotations)
 - `package:analyzer` ^10.0.0 for AST parsing
 - `package:args` ^2.5.0 for CLI argument handling
 - `package:path` ^1.9.0 for path utilities

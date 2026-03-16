@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Monorepo Updates - 2026-03-16
+
+### singleton_manager_generator [1.0.0]
+**First stable release** - Production-ready CLI tool for generating Dart augmentation files
+
+- Removed dependency on `singleton_manager_annotations` (consolidated into `singleton_manager`)
+- **CRITICAL FIX**: Fixed undefined getter 'name2' that caused generator crashes
+- Fixed unused imports and analyzer warnings
+- All tests passing with zero analyzer errors
+- Ready for production use
+
+### singleton_manager [0.3.5] - Code Quality Update
+- Optimized cascade operators for improved code readability
+- No functional changes
+
 ## [0.3.0] - 2026-03-13
 
 ### Added
