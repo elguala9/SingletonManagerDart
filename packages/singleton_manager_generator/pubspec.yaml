@@ -12,7 +12,7 @@ repository: https://github.com/elguala9/SingletonManagerDart
 homepage: https://github.com/elguala9/SingletonManagerDart
 issue_tracker: https://github.com/elguala9/SingletonManagerDart/issues
 
-publish_to: none
+publish_to: https://pub.dev
 
 environment:
   sdk: ">=3.11.0 <4.0.0"
