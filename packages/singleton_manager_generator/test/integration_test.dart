@@ -574,7 +574,7 @@ class CacheService {}
       expect(augmentationCode, contains("cache = SingletonDIAccess.get<CacheService>();"));
     });
 
-    test('should generate correct augmentation for plain final fields', () {
+    test('should ignore plain final fields (not late)', () {
       final dir = Directory('${tempDir.path}/lib/src');
       dir.createSync(recursive: true);
       final dartFile = File('${dir.path}/final_service.dart');
@@ -596,7 +596,8 @@ class Logger {}
 
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
-      expect(parsed[0].injectedFields, hasLength(2));
+      // Plain final fields cannot be injected (they're not late)
+      expect(parsed[0].injectedFields, hasLength(0));
 
       final info = SingletonClassInfo(
         className: parsed[0].className,
@@ -609,9 +610,10 @@ class Logger {}
       // Save generated code to file for inspection
       File('${dir.path}/final_service_augment.dart').writeAsStringSync(augmentationCode);
 
+      // Since plain final fields are not injected, the code will have empty initializeDI
       expect(augmentationCode, contains("augment class FinalService implements ISingletonStandardDI {"));
-      expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
-      expect(augmentationCode, contains("logger = SingletonDIAccess.get<Logger>();"));
+      expect(augmentationCode, contains("void initializeDI() {"));
+      expect(augmentationCode, isNot(contains("SingletonDIAccess.get")));
     });
 
     test('should generate augmentation for class with mixed late, late final, and final fields', () {
@@ -644,7 +646,10 @@ class CacheService {}
 
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
-      expect(parsed[0].injectedFields, hasLength(4));
+      // Only 'late' and 'late final' fields are injected, not plain 'final'
+      expect(parsed[0].injectedFields, hasLength(2));
+      expect(parsed[0].injectedFields[0].fieldName, 'db');
+      expect(parsed[0].injectedFields[1].fieldName, 'config');
 
       final info = SingletonClassInfo(
         className: parsed[0].className,
@@ -659,9 +664,7 @@ class CacheService {}
 
       expect(augmentationCode, contains("augment class AllModifiersService implements ISingletonStandardDI {"));
       expect(augmentationCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
-      expect(augmentationCode, contains("logger = SingletonDIAccess.get<Logger>();"));
       expect(augmentationCode, contains("config = SingletonDIAccess.get<ConfigManager>();"));
-      expect(augmentationCode, contains("cache = SingletonDIAccess.get<CacheService>();"));
     });
   });
 }
