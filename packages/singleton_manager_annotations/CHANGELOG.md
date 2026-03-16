@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.1.1] - 2026-03-16
+
+### Fixed
+- Removed workspace resolution (published packages shouldn't have workspace resolution)
+
 ## [0.1.0] - 2026-03-16
 
 ### Added
