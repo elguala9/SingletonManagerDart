@@ -1,10 +1,10 @@
 name: singleton_manager_generator
 description: >
-  CLI tool that generates Dart augmentation files for @isSingleton classes.
+  CLI tool that generates Dart DI files for @isSingleton classes.
   Automatically creates ISingletonStandardDI.initializeDI() implementations
   from @isInjected field annotations.
 
-version: 1.0.0
+version: 2.0.0
 
 resolution: workspace
 

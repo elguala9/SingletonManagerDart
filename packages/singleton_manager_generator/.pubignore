@@ -9,3 +9,6 @@ build/
 .DS_Store
 TESTING.md
 analysis_options.yaml
+
+test
+test_artifacts

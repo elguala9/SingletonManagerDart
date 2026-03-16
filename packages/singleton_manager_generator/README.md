@@ -1,11 +1,11 @@
 # singleton_manager_generator
 
-A CLI tool that generates Dart augmentation files for `@isSingleton` classes, automatically implementing dependency injection setup.
+A CLI tool that generates Dart DI files for `@isSingleton` classes, automatically implementing dependency injection setup.
 
 ## Features
 
 - Scans Dart source files for `@isSingleton` and `@isInjected` annotations
-- Generates augmentation files with `ISingletonStandardDI` implementations
+- Generates `extends`-based DI classes implementing `ISingletonStandardDI`
 - Creates `initializeDI()` factory methods for each singleton class
 - Supports multiple injected fields per class
 - Minimal overhead - uses Dart's `analyzer` package for lightweight AST parsing
@@ -19,10 +19,10 @@ dependencies:
   singleton_manager: ^1.0.0
 
 dev_dependencies:
-  singleton_manager_generator: ^1.0.0
+  singleton_manager_generator: ^2.0.0
 ```
 
-Note: As of v1.0.0, this is the first stable release. Annotations are included in `singleton_manager` v1.0.0+. No separate annotations package needed!
+Note: Annotations are included in `singleton_manager` v1.0.0+. No separate annotations package needed!
 
 ### Global Installation
 
@@ -81,12 +81,12 @@ melos run generate
 
 ### 3. Use the generated code
 
-The generator creates augmentation files (e.g., `my_service_augment.dart`) with:
+The generator creates a DI file (e.g., `my_service_di.dart`) with:
 
 ```dart
-augment class MyService implements ISingletonStandardDI {
-  factory MyService.initializeDI() {
-    final instance = MyService();
+class MyServiceDI extends MyService implements ISingletonStandardDI {
+  factory MyServiceDI.initializeDI() {
+    final instance = MyServiceDI();
     instance.initializeDI();
     return instance;
   }
@@ -107,14 +107,14 @@ SingletonDIAccess.set<DatabaseConnection>(myConnection);
 SingletonDIAccess.set<Logger>(myLogger);
 
 // Create singleton with auto-injected dependencies
-final service = MyService.initializeDI();
+final service = MyServiceDI.initializeDI();
 ```
 
 ## CLI Options
 
 ```
 --input, -i       Input directory containing source Dart files (default: lib)
---output, -o      Output directory for generated augmentation files (default: input)
+--output, -o      Output directory for generated DI files (default: input)
 --verbose, -v     Enable verbose logging
 --help, -h        Show help message
 ```
@@ -131,8 +131,8 @@ final service = MyService.initializeDI();
 
 1. **Parsing**: Scans Dart files using the `analyzer` package to find AST nodes
 2. **Annotation Detection**: Identifies classes with `@isSingleton` metadata and fields with `@isInjected` metadata
-3. **Code Generation**: Creates augmentation files that implement `ISingletonStandardDI`
-4. **Output**: Writes `.singleton_di.dart` files alongside the original source
+3. **Code Generation**: Creates `extends`-based DI classes that implement `ISingletonStandardDI`
+4. **Output**: Writes `_di.dart` files alongside the original source
 
 ## Example Project
 
