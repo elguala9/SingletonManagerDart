@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:test/test.dart';
 import 'package:singleton_manager_generator/src/parser/source_parser.dart';
-import 'package:singleton_manager_generator/src/generator/augmentation_generator.dart';
+import 'package:singleton_manager_generator/src/generator/di_class_generator.dart';
 
 void main() {
   group('CLI Simulation Tests', () {

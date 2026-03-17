@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:path/path.dart' as p;
-import 'package:singleton_manager_generator/src/generator/augmentation_generator.dart';
+import 'package:singleton_manager_generator/src/generator/di_class_generator.dart';
 import 'package:singleton_manager_generator/src/parser/source_parser.dart';
 
 Future<void> main(List<String> arguments) async {
