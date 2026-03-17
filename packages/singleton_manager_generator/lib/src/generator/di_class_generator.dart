@@ -33,7 +33,7 @@ class AugmentationGenerator {
     final injectionCode = _generateInjectionCode(info);
 
     return '''// AUTO-GENERATED - DO NOT CHANGE
-// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import
+// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import, unused_import
 
 import '$_singletonManagerImport';
 import '$sourceImport';

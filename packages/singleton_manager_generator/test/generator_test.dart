@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:singleton_manager_generator/src/generator/augmentation_generator.dart';
+import 'package:singleton_manager_generator/src/generator/di_class_generator.dart';
 import 'package:singleton_manager_generator/src/model/injected_field_info.dart';
 import 'package:singleton_manager_generator/src/model/singleton_class_info.dart';
 
