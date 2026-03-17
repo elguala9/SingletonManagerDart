@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.3] - 2026-03-17
+
+### Changed
+- `unused_import` is now treated as an error (moved to `analyzer.errors` in `analysis_options.yaml`)
+
 ## [1.0.2] - 2026-03-16
 
 ### Fixed

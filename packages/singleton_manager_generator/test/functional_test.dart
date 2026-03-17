@@ -94,9 +94,9 @@ class ConfigService {
       // Verify factory signature
       expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
       expect(diCode, contains('factory ConfigServiceDI.initializeDI() {'));
-      expect(diCode, contains('final instance = ConfigService();'));
+      expect(diCode, contains('final instance = ConfigService() as ConfigServiceDI;'));
       expect(diCode, contains('instance.initializeDI();'));
-      expect(diCode, contains('return instance as ConfigServiceDI;'));
+      expect(diCode, contains('return instance;'));
     });
 
     test('generated initializeDI method initializes all fields', () {
@@ -285,9 +285,9 @@ class CompleteService {
       expect(diCode,
           contains('class CompleteServiceDI extends CompleteService implements ISingletonStandardDI {'));
       expect(diCode, contains('factory CompleteServiceDI.initializeDI() {'));
-      expect(diCode, contains('final instance = CompleteService();'));
+      expect(diCode, contains('final instance = CompleteService() as CompleteServiceDI;'));
       expect(diCode, contains('instance.initializeDI();'));
-      expect(diCode, contains('return instance as CompleteServiceDI;'));
+      expect(diCode, contains('return instance;'));
       expect(diCode, contains('@override'));
       expect(diCode, contains('void initializeDI() {'));
       expect(diCode, contains('param1 = SingletonDIAccess.get<String>();'));
