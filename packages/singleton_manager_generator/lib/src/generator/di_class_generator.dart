@@ -39,8 +39,11 @@ import '$_singletonManagerImport';
 import '$sourceImport';
 $extraImportsBlock
 class ${info.className}DI extends ${info.className} implements ISingletonStandardDI {
+
+  ${info.className}DI() : super();
+
   factory ${info.className}DI.initializeDI() {
-    final instance = ${info.className}() as ${info.className}DI;
+    final instance = ${info.className}DI();
     instance.initializeDI();
     return instance;
   }

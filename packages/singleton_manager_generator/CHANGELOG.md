@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4] - 2026-03-18
+
+### Changed
+- Generated factory `initializeDI()` now instantiates `ClassNameDI()` directly instead of casting `ClassName() as ClassNameDI`
+- Generated DI class now includes an explicit default constructor `ClassNameDI() : super()` to ensure correct subclass instantiation
+
 ## [1.0.3] - 2026-03-17
 
 ### Changed
