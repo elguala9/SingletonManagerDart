@@ -75,7 +75,8 @@ class SourceParser {
     // ignore: deprecated_member_use
     for (final member in classDecl.members) {
       if (member is FieldDeclaration) {
-        final isInjectedAnnotation = _findAnnotation(member, 'isInjected');
+        final isInjectedAnnotation = _findAnnotation(member, 'isInjected') ??
+            _findAnnotation(member, 'isMandatoryParameter');
         if (isInjectedAnnotation != null) {
           // Only inject fields that are 'late' or 'late final'
           // Plain 'final' fields cannot be assigned after construction
@@ -83,6 +84,13 @@ class SourceParser {
           if (isLate) {
             for (final variable in member.fields.variables) {
               final fieldName = variable.name.lexeme;
+              if (fieldName.startsWith('_')) {
+                print(
+                  'WARNING: @isInjected on private field "$fieldName" in class '
+                  '${classDecl.name.lexeme} is not supported — skipping.',
+                );
+                continue;
+              }
               final fieldType = _extractFieldType(member.fields.type);
               if (fieldType != null) {
                 injectedFields.add(

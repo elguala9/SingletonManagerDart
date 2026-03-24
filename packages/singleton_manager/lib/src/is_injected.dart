@@ -5,6 +5,10 @@
 /// the field in the generated initializeDI() method using
 /// SingletonDIAccess.get&lt;T&gt;().
 ///
+/// The annotated field must be:
+/// - `late` (plain `final` is not supported)
+/// - non-private (names starting with `_` are ignored by the generator)
+///
 /// Example:
 /// ```dart
 /// @isSingleton

@@ -741,6 +741,151 @@ class Logger {}
       });
     });
 
+    group('repository-like pattern', () {
+      // Pattern from IdHandlerStorageRepository:
+      //   - empty default constructor + named constructor with this. params
+      //   - @isMandatoryParameter on a late field (not constructor param)
+      //   - private late field
+      //   - interface implementation
+
+      test('should find singleton with empty default constructor and named constructor', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+abstract class IMyRepo {}
+
+@isSingleton
+class MyRepo implements IMyRepo {
+  MyRepo();
+  MyRepo.fromDb(this.db);
+
+  late IWorkDb db;
+}
+
+abstract class IWorkDb {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].className, 'MyRepo');
+        // Default constructor has no annotated params
+        expect(results[0].constructorParameters, isEmpty);
+        // No @isInjected fields
+        expect(results[0].injectedFields, isEmpty);
+      });
+
+      test('should treat @isMandatoryParameter on a late field like @isInjected', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyRepo {
+  MyRepo();
+  MyRepo.fromDb(this.db);
+
+  @isMandatoryParameter
+  late IWorkDb db;
+}
+
+abstract class IWorkDb {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'db');
+        expect(results[0].injectedFields[0].fieldType, 'IWorkDb');
+        expect(results[0].constructorParameters, isEmpty);
+      });
+
+      test('should skip private late field annotated with @isMandatoryParameter', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyRepo {
+  MyRepo();
+
+  @isMandatoryParameter
+  late IWorkDb db;
+
+  late String _collection = 'default';
+}
+
+abstract class IWorkDb {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'db');
+      });
+
+      test('should handle full repository-like class', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+abstract class IStorageRepo {}
+
+@isSingleton
+class StorageRepo implements IStorageRepo {
+  StorageRepo();
+  StorageRepo.fromDb(this.db, [this._collection = _defaultCollection]);
+
+  static const String _defaultCollection = 'items';
+
+  @isMandatoryParameter
+  late IWorkDb db;
+
+  late String _collection = _defaultCollection;
+}
+
+abstract class IWorkDb {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].className, 'StorageRepo');
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'db');
+        expect(results[0].injectedFields[0].fieldType, 'IWorkDb');
+        // _collection is private, must be skipped
+        expect(results[0].injectedFields.map((f) => f.fieldName), isNot(contains('_collection')));
+        expect(results[0].constructorParameters, isEmpty);
+      });
+
+      test('should not extract params from named fromDb constructor', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyRepo {
+  MyRepo();
+  MyRepo.fromDb(@isMandatoryParameter this.db);
+
+  late IWorkDb db;
+}
+
+abstract class IWorkDb {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        // Named constructor params are always ignored
+        expect(results[0].constructorParameters, isEmpty);
+      });
+    });
+
     group('verbose output', () {
       test('should log parsed classes when verbose is true', () {
         final dartFile = File('${tempDir.path}/service.dart');
