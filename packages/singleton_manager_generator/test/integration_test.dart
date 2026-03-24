@@ -850,6 +850,101 @@ class AuditRepository {}
         expect(diCode, isNot(contains('factory PaymentServiceDI.initializeDI()')));
       });
 
+      // -----------------------------------------------------------------------
+      // @isMandatoryParameter on late FIELDS (repository pattern)
+      // -----------------------------------------------------------------------
+
+      test('repository pattern: @isMandatoryParameter on late field generates initializeDI with get<T>()', () {
+        final dir = Directory('${tempDir.path}/lib/src/params');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/id_handler_storage_repository.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+abstract class IIdHandlerStorageRepository {}
+abstract class IWorkDb {}
+
+@isSingleton
+class IdHandlerStorageRepository implements IIdHandlerStorageRepository {
+  IdHandlerStorageRepository();
+  IdHandlerStorageRepository.fromDb(this.db);
+
+  @isMandatoryParameter
+  late IWorkDb db;
+
+  late String _collection = 'id_handler';
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].injectedFields, hasLength(1));
+        expect(parsed[0].injectedFields[0].fieldName, 'db');
+        expect(parsed[0].injectedFields[0].fieldType, 'IWorkDb');
+        expect(parsed[0].constructorParameters, isEmpty);
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/id_handler_storage_repository_di.dart').writeAsStringSync(diCode);
+
+        // Header
+        expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+        // Class declaration
+        expect(diCode, contains('class IdHandlerStorageRepositoryDI extends IdHandlerStorageRepository implements ISingletonStandardDI'));
+        // No-arg constructor (default ctor has no params)
+        expect(diCode, contains('IdHandlerStorageRepositoryDI() : super()'));
+        // No-arg factory (no mandatory ctor params)
+        expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeDI()'));
+        // initializeDI injects db via get<T>
+        expect(diCode, contains('db = SingletonDIAccess.get<IWorkDb>()'));
+        // Private field _collection must NOT be injected
+        expect(diCode, isNot(contains('_collection')));
+        // @isMandatoryParameter on field → generates initializeWithParametersDI
+        expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeWithParametersDI(IWorkDb db)'));
+        expect(diCode, contains('instance.db = db'));
+      });
+
+      test('repository pattern: @isMandatoryParameter field + @isOptionalParameter ctor param — correct combined output', () {
+        final dir = Directory('${tempDir.path}/lib/src/params');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/storage_repo.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+abstract class IWorkDb {}
+
+@isSingleton
+class StorageRepo {
+  StorageRepo({@isOptionalParameter String? collection});
+  StorageRepo.fromDb(this.db);
+
+  @isMandatoryParameter
+  late IWorkDb db;
+
+  late String _collection = 'default';
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].injectedFields, hasLength(1));
+        expect(parsed[0].injectedFields[0].fieldName, 'db');
+        expect(parsed[0].constructorParameters, hasLength(1));
+        expect(parsed[0].constructorParameters[0].name, 'collection');
+        expect(parsed[0].constructorParameters[0].isMandatory, isFalse);
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/storage_repo_di.dart').writeAsStringSync(diCode);
+
+        // Optional ctor param → both factories generated
+        expect(diCode, contains('factory StorageRepoDI.initializeDI()'));
+        // mandatory field comes before optional ctor param in factory signature
+        expect(diCode, contains('factory StorageRepoDI.initializeWithParametersDI(IWorkDb db, {String? collection})'));
+        expect(diCode, contains('instance.db = db'));
+        // Field injection in initializeDI() body
+        expect(diCode, contains('db = SingletonDIAccess.get<IWorkDb>()'));
+        expect(diCode, isNot(contains('_collection')));
+      });
+
       test('multiple mandatory positional params end-to-end', () {
         final dir = Directory('${tempDir.path}/lib/src/params');
         dir.createSync(recursive: true);
