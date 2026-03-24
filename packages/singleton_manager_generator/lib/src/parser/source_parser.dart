@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
+import '../model/constructor_parameter_info.dart';
 import '../model/injected_field_info.dart';
 import '../model/singleton_class_info.dart';
 
@@ -69,6 +70,7 @@ class SourceParser {
     }
 
     final injectedFields = <InjectedFieldInfo>[];
+    final constructorParameters = <ConstructorParameterInfo>[];
 
     // ignore: deprecated_member_use
     for (final member in classDecl.members) {
@@ -93,6 +95,12 @@ class SourceParser {
             }
           }
         }
+      } else if (member is ConstructorDeclaration && member.name == null) {
+        // Default (unnamed) constructor — extract annotated parameters.
+        for (final param in member.parameters.parameters) {
+          final info = _extractConstructorParameterInfo(param);
+          if (info != null) constructorParameters.add(info);
+        }
       }
     }
 
@@ -103,6 +111,7 @@ class SourceParser {
       injectedFields: injectedFields,
       sourceFileContent: sourceFileContent,
       sourceFileImports: imports,
+      constructorParameters: constructorParameters,
     );
   }
 
@@ -120,12 +129,70 @@ class SourceParser {
     return null;
   }
 
-  /// Extract the type name from a field type.
+  /// Extract [ConstructorParameterInfo] from a formal parameter if it carries
+  /// @isMandatoryParameter or @isOptionalParameter.
+  static ConstructorParameterInfo? _extractConstructorParameterInfo(
+    FormalParameter param,
+  ) {
+    bool isMandatory = false;
+    bool hasAnnotation = false;
+
+    for (final annotation in param.metadata) {
+      final element = annotation.name;
+      if (element is SimpleIdentifier) {
+        if (element.name == 'isMandatoryParameter') {
+          isMandatory = true;
+          hasAnnotation = true;
+        } else if (element.name == 'isOptionalParameter') {
+          hasAnnotation = true;
+        }
+      }
+    }
+
+    if (!hasAnnotation) return null;
+
+    final isNamed = param.isNamed;
+
+    // Unwrap DefaultFormalParameter to get to the typed parameter.
+    final NormalFormalParameter inner;
+    if (param is DefaultFormalParameter) {
+      inner = param.parameter;
+    } else if (param is NormalFormalParameter) {
+      inner = param;
+    } else {
+      return null;
+    }
+
+    String? type;
+    String? name;
+
+    if (inner is SimpleFormalParameter) {
+      type = _extractFieldType(inner.type);
+      name = inner.name?.lexeme;
+    } else if (inner is FieldFormalParameter) {
+      type = inner.type != null ? _extractFieldType(inner.type) : null;
+      // ignore: deprecated_member_use
+      name = inner.name.lexeme;
+    }
+
+    if (name == null || type == null) return null;
+
+    return ConstructorParameterInfo(
+      name: name,
+      type: type,
+      isMandatory: isMandatory,
+      isNamed: isNamed,
+    );
+  }
+
+  /// Extract the type name from a field type, including the trailing `?`
+  /// for nullable types.
   static String? _extractFieldType(TypeAnnotation? typeAnnotation) {
     if (typeAnnotation == null) return null;
 
     if (typeAnnotation is NamedType) {
-      return typeAnnotation.name.lexeme;
+      final nullable = typeAnnotation.question != null ? '?' : '';
+      return '${typeAnnotation.name.lexeme}$nullable';
     }
 
     return null;

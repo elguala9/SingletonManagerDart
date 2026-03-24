@@ -1,3 +1,4 @@
+import 'constructor_parameter_info.dart';
 import 'injected_field_info.dart';
 
 /// Information about a class annotated with @isSingleton.
@@ -17,6 +18,11 @@ class SingletonClassInfo {
   /// All import URIs found in the source file.
   final List<String> sourceFileImports;
 
+  /// Constructor parameters annotated with @isMandatoryParameter or
+  /// @isOptionalParameter. When non-empty, [initializeWithParametersDI] is
+  /// generated instead of (or alongside) the no-arg [initializeDI] factory.
+  final List<ConstructorParameterInfo> constructorParameters;
+
   /// Create an instance of [SingletonClassInfo].
   SingletonClassInfo({
     required this.className,
@@ -24,8 +30,11 @@ class SingletonClassInfo {
     required this.injectedFields,
     required this.sourceFileContent,
     this.sourceFileImports = const [],
+    this.constructorParameters = const [],
   });
 
   @override
-  String toString() => 'SingletonClassInfo(className: $className, sourceFilePath: $sourceFilePath, injectedFields: $injectedFields)';
+  String toString() =>
+      'SingletonClassInfo(className: $className, sourceFilePath: $sourceFilePath, '
+      'injectedFields: $injectedFields, constructorParameters: $constructorParameters)';
 }

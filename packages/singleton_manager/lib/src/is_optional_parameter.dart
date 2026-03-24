@@ -1,7 +1,7 @@
 /// Annotation to mark a constructor parameter as optional for code generation.
 ///
 /// When a constructor parameter is annotated with [isOptionalParameter] in a
-/// class marked with [isSingleton], the singleton_manager_generator will
+/// class marked with [IsOptionalParameter], the singleton_manager_generator will
 /// treat it as an optional argument when building the generated class.
 ///
 /// Example:

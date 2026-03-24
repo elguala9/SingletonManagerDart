@@ -299,6 +299,77 @@ class CompleteService {
       expect(content, equals(diCode));
     });
 
+    test('class with @isMandatoryParameter and @isOptionalParameter generates initializeWithParametersDI', () {
+      final dir = Directory('${tempDir.path}/lib/params');
+      dir.createSync(recursive: true);
+
+      // Source file with annotated constructor params AND injected fields.
+      final dartFile = File('${dir.path}/payment_gateway.dart');
+      dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class PaymentGateway {
+  PaymentGateway({
+    @isMandatoryParameter required String apiKey,
+    @isOptionalParameter String? currency,
+  });
+
+  @isInjected
+  late Logger logger;
+
+  @isInjected
+  late AuditRepository audit;
+}
+
+class Logger {}
+class AuditRepository {}
+''');
+
+      // Parse — constructorParameters must come through.
+      final parsed = SourceParser.parse([dartFile]);
+      expect(parsed, hasLength(1));
+      expect(parsed[0].constructorParameters, hasLength(2));
+      expect(parsed[0].constructorParameters[0].name, 'apiKey');
+      expect(parsed[0].constructorParameters[0].isMandatory, isTrue);
+      expect(parsed[0].constructorParameters[1].name, 'currency');
+      expect(parsed[0].constructorParameters[1].isMandatory, isFalse);
+      expect(parsed[0].injectedFields, hasLength(2));
+
+      // Generate — pass parsed[0] directly so constructorParameters is preserved.
+      final diCode = AugmentationGenerator.generate(parsed[0]);
+      final diFile = File('${dir.path}/payment_gateway_di.dart');
+      diFile.writeAsStringSync(diCode);
+
+      // -- structural checks --
+      expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+      expect(diCode, contains('class PaymentGatewayDI extends PaymentGateway implements ISingletonStandardDI'));
+
+      // DI constructor mirrors original named params.
+      expect(diCode, contains('PaymentGatewayDI({required String apiKey, String? currency}) : super(apiKey: apiKey, currency: currency)'));
+
+      // No no-arg initializeDI factory (mandatory param present).
+      expect(diCode, isNot(contains('factory PaymentGatewayDI.initializeDI()')));
+
+      // initializeWithParametersDI: mandatory=positional, optional=named.
+      expect(diCode, contains('factory PaymentGatewayDI.initializeWithParametersDI(String apiKey, {String? currency})'));
+      expect(diCode, contains('final instance = PaymentGatewayDI(apiKey: apiKey, currency: currency)'));
+      expect(diCode, contains('instance.initializeDI()'));
+      expect(diCode, contains('return instance'));
+
+      // Blank line between constructor and factory.
+      expect(diCode, contains('super(apiKey: apiKey, currency: currency);\n\n  factory PaymentGatewayDI.initializeWithParametersDI'));
+
+      // @isInjected fields still injected in initializeDI method.
+      expect(diCode, contains('void initializeDI()'));
+      expect(diCode, contains('logger = SingletonDIAccess.get<Logger>()'));
+      expect(diCode, contains('audit = SingletonDIAccess.get<AuditRepository>()'));
+
+      // File written correctly.
+      expect(diFile.existsSync(), isTrue);
+      expect(diFile.readAsStringSync(), equals(diCode));
+    });
+
     test('empty class (no injections) generates valid code', () {
       final dir = Directory('${tempDir.path}/lib/empty');
       dir.createSync(recursive: true);

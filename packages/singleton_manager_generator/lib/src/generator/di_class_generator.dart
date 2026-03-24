@@ -32,6 +32,30 @@ class AugmentationGenerator {
         extraImports.isEmpty ? '' : '${extraImports.join('\n')}\n';
     final injectionCode = _generateInjectionCode(info);
 
+    final params = info.constructorParameters;
+    final hasMandatory = params.any((p) => p.isMandatory);
+
+    final diConstructor = _buildDIConstructorLine(info);
+
+    // Omit the no-arg factory when mandatory params exist (would be a compile error).
+    final initializeDIFactory = hasMandatory
+        ? ''
+        : '  factory ${info.className}DI.initializeDI() {\n'
+            '    final instance = ${info.className}DI();\n'
+            '    instance.initializeDI();\n'
+            '    return instance;\n'
+            '  }\n';
+
+    final initializeWithParamsFactory = params.isNotEmpty
+        ? _buildInitializeWithParamsFactory(info)
+        : '';
+
+    // Each non-empty block is preceded by a blank line.
+    final factoriesBlock = [initializeDIFactory, initializeWithParamsFactory]
+        .where((b) => b.isNotEmpty)
+        .map((b) => '\n$b')
+        .join();
+
     return '''// AUTO-GENERATED - DO NOT CHANGE
 // ignore_for_file: directives_ordering, library_prefixes, unnecessary_import, unused_import, lines_longer_than_80_chars, cascade_invocations
 import '$_singletonManagerImport';
@@ -39,19 +63,73 @@ import '$sourceImport';
 $extraImportsBlock
 class ${info.className}DI extends ${info.className} implements ISingletonStandardDI {
 
-  ${info.className}DI() : super();
-
-  factory ${info.className}DI.initializeDI() {
-    final instance = ${info.className}DI();
-    instance.initializeDI();
-    return instance;
-  }
-
+  $diConstructor;
+$factoriesBlock
   @override
   void initializeDI() {
 $injectionCode  }
 }
 ''';
+  }
+
+  /// Build the DI constructor declaration line (without trailing semicolon).
+  ///
+  /// If no constructor parameters are annotated, produces the classic no-arg form.
+  /// Otherwise mirrors the original parameter structure so the super() call is valid.
+  static String _buildDIConstructorLine(SingletonClassInfo info) {
+    final params = info.constructorParameters;
+    if (params.isEmpty) {
+      return '${info.className}DI() : super()';
+    }
+
+    final positional = params.where((p) => !p.isNamed).toList();
+    final named = params.where((p) => p.isNamed).toList();
+
+    final sigParts = <String>[];
+    for (final p in positional) {
+      sigParts.add('${p.type} ${p.name}');
+    }
+    if (named.isNotEmpty) {
+      final namedParts = named.map((p) {
+        return p.isMandatory ? 'required ${p.type} ${p.name}' : '${p.type} ${p.name}';
+      }).join(', ');
+      sigParts.add('{$namedParts}');
+    }
+
+    final superParts = params.map((p) {
+      return p.isNamed ? '${p.name}: ${p.name}' : p.name;
+    }).join(', ');
+
+    return '${info.className}DI(${sigParts.join(', ')}) : super($superParts)';
+  }
+
+  /// Build the [initializeWithParametersDI] factory.
+  ///
+  /// Mandatory parameters become required positional arguments.
+  /// Optional parameters become named optional arguments.
+  static String _buildInitializeWithParamsFactory(SingletonClassInfo info) {
+    final mandatory = info.constructorParameters.where((p) => p.isMandatory).toList();
+    final optional = info.constructorParameters.where((p) => !p.isMandatory).toList();
+
+    final sigParts = <String>[];
+    for (final p in mandatory) {
+      sigParts.add('${p.type} ${p.name}');
+    }
+    if (optional.isNotEmpty) {
+      final optParts = optional.map((p) => '${p.type} ${p.name}').join(', ');
+      sigParts.add('{$optParts}');
+    }
+
+    // Build the call to the DI constructor using original named/positional style.
+    final ctorCallParts = info.constructorParameters.map((p) {
+      return p.isNamed ? '${p.name}: ${p.name}' : p.name;
+    }).join(', ');
+
+    return '  factory ${info.className}DI.initializeWithParametersDI(${sigParts.join(', ')}) {\n'
+        '    final instance = ${info.className}DI($ctorCallParts);\n'
+        '    instance.initializeDI();\n'
+        '    return instance;\n'
+        '  }\n';
   }
 
   /// Build the list of extra import statements derived from the source file's

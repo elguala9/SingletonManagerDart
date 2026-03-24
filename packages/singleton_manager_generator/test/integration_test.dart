@@ -671,5 +671,214 @@ class ConfigManager {}
       expect(diCode, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
       expect(diCode, contains("config = SingletonDIAccess.get<ConfigManager>();"));
     });
+
+    // -----------------------------------------------------------------------
+    // End-to-end: @isMandatoryParameter / @isOptionalParameter
+    // -----------------------------------------------------------------------
+
+    group('constructor parameter annotations — parse → generate', () {
+      test('mandatory positional param: parser extracts it and generator emits initializeWithParametersDI', () {
+        final dir = Directory('${tempDir.path}/lib/src/params');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/api_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class ApiService {
+  ApiService(@isMandatoryParameter String baseUrl);
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].constructorParameters, hasLength(1));
+        expect(parsed[0].constructorParameters[0].name, 'baseUrl');
+        expect(parsed[0].constructorParameters[0].isMandatory, isTrue);
+        expect(parsed[0].constructorParameters[0].isNamed, isFalse);
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/api_service_di.dart').writeAsStringSync(diCode);
+
+        // DI constructor forwards the param to super
+        expect(diCode, contains('ApiServiceDI(String baseUrl) : super(baseUrl)'));
+        // blank line before factory
+        expect(diCode, contains('ApiServiceDI(String baseUrl) : super(baseUrl);\n\n  factory ApiServiceDI.initializeWithParametersDI'));
+        // initializeWithParametersDI with mandatory as positional
+        expect(diCode, contains('factory ApiServiceDI.initializeWithParametersDI(String baseUrl)'));
+        expect(diCode, contains('final instance = ApiServiceDI(baseUrl)'));
+        // No no-arg factory (would fail to compile without baseUrl)
+        expect(diCode, isNot(contains('factory ApiServiceDI.initializeDI()')));
+      });
+
+      test('mandatory named param: super call uses named syntax', () {
+        final dir = Directory('${tempDir.path}/lib/src/params');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/db_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class DbService {
+  DbService({@isMandatoryParameter required String connectionString});
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].constructorParameters[0].isNamed, isTrue);
+        expect(parsed[0].constructorParameters[0].isMandatory, isTrue);
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/db_service_di.dart').writeAsStringSync(diCode);
+
+        expect(diCode, contains('DbServiceDI({required String connectionString}) : super(connectionString: connectionString)'));
+        expect(diCode, contains('factory DbServiceDI.initializeWithParametersDI(String connectionString)'));
+        expect(diCode, contains('final instance = DbServiceDI(connectionString: connectionString)'));
+        expect(diCode, isNot(contains('factory DbServiceDI.initializeDI()')));
+      });
+
+      test('optional named param: both initializeDI and initializeWithParametersDI are generated', () {
+        final dir = Directory('${tempDir.path}/lib/src/params');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/cache_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class CacheService {
+  CacheService({@isOptionalParameter int? ttlSeconds});
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].constructorParameters[0].name, 'ttlSeconds');
+        expect(parsed[0].constructorParameters[0].type, 'int?');
+        expect(parsed[0].constructorParameters[0].isMandatory, isFalse);
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/cache_service_di.dart').writeAsStringSync(diCode);
+
+        // No-arg factory is kept (no mandatory params)
+        expect(diCode, contains('factory CacheServiceDI.initializeDI()'));
+        // initializeWithParametersDI with optional as named
+        expect(diCode, contains('factory CacheServiceDI.initializeWithParametersDI({int? ttlSeconds})'));
+        expect(diCode, contains('CacheServiceDI({int? ttlSeconds}) : super(ttlSeconds: ttlSeconds)'));
+      });
+
+      test('mandatory + optional: correct factory signature and super call', () {
+        final dir = Directory('${tempDir.path}/lib/src/params');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/http_client.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class HttpClient {
+  HttpClient({
+    @isMandatoryParameter required String baseUrl,
+    @isOptionalParameter int? timeoutMs,
+  });
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].constructorParameters, hasLength(2));
+        expect(parsed[0].constructorParameters[0].name, 'baseUrl');
+        expect(parsed[0].constructorParameters[0].type, 'String');
+        expect(parsed[0].constructorParameters[0].isMandatory, isTrue);
+        expect(parsed[0].constructorParameters[1].name, 'timeoutMs');
+        expect(parsed[0].constructorParameters[1].type, 'int?');
+        expect(parsed[0].constructorParameters[1].isMandatory, isFalse);
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/http_client_di.dart').writeAsStringSync(diCode);
+
+        // DI constructor: named params (mirrors original)
+        expect(diCode, contains('HttpClientDI({required String baseUrl, int? timeoutMs}) : super(baseUrl: baseUrl, timeoutMs: timeoutMs)'));
+        // factory: mandatory=positional, optional=named
+        expect(diCode, contains('factory HttpClientDI.initializeWithParametersDI(String baseUrl, {int? timeoutMs})'));
+        expect(diCode, contains('final instance = HttpClientDI(baseUrl: baseUrl, timeoutMs: timeoutMs)'));
+        expect(diCode, isNot(contains('factory HttpClientDI.initializeDI()')));
+      });
+
+      test('mandatory + optional + @isInjected: complete generated class', () {
+        final dir = Directory('${tempDir.path}/lib/src/params');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/payment_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class PaymentService {
+  PaymentService(@isMandatoryParameter String apiKey, [@isOptionalParameter String? currency]);
+
+  @isInjected
+  late Logger logger;
+
+  @isInjected
+  late AuditRepository audit;
+}
+
+class Logger {}
+class AuditRepository {}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].constructorParameters, hasLength(2));
+        expect(parsed[0].constructorParameters[0].name, 'apiKey');
+        expect(parsed[0].constructorParameters[0].isMandatory, isTrue);
+        expect(parsed[0].constructorParameters[1].name, 'currency');
+        expect(parsed[0].constructorParameters[1].isMandatory, isFalse);
+        expect(parsed[0].injectedFields, hasLength(2));
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/payment_service_di.dart').writeAsStringSync(diCode);
+
+        // Constructor: positional mandatory + positional optional (mirrors original)
+        expect(diCode, contains('PaymentServiceDI(String apiKey, String? currency) : super(apiKey, currency)'));
+        // factory: mandatory=positional, optional=named
+        expect(diCode, contains('factory PaymentServiceDI.initializeWithParametersDI(String apiKey, {String? currency})'));
+        expect(diCode, contains('final instance = PaymentServiceDI(apiKey, currency)'));
+        // @isInjected fields still injected
+        expect(diCode, contains('logger = SingletonDIAccess.get<Logger>()'));
+        expect(diCode, contains('audit = SingletonDIAccess.get<AuditRepository>()'));
+        // No no-arg factory
+        expect(diCode, isNot(contains('factory PaymentServiceDI.initializeDI()')));
+      });
+
+      test('multiple mandatory positional params end-to-end', () {
+        final dir = Directory('${tempDir.path}/lib/src/params');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/smtp_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class SmtpService {
+  SmtpService(
+    @isMandatoryParameter String host,
+    @isMandatoryParameter int port,
+    @isOptionalParameter bool? useTls,
+  );
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].constructorParameters, hasLength(3));
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/smtp_service_di.dart').writeAsStringSync(diCode);
+
+        expect(diCode, contains('SmtpServiceDI(String host, int port, bool? useTls) : super(host, port, useTls)'));
+        expect(diCode, contains('factory SmtpServiceDI.initializeWithParametersDI(String host, int port, {bool? useTls})'));
+        expect(diCode, contains('final instance = SmtpServiceDI(host, port, useTls)'));
+        expect(diCode, isNot(contains('factory SmtpServiceDI.initializeDI()')));
+      });
+    });
   });
 }

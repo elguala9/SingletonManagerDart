@@ -486,6 +486,261 @@ class MyService {
       });
     });
 
+    group('@isMandatoryParameter / @isOptionalParameter', () {
+      test('should extract mandatory positional constructor parameter', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService(@isMandatoryParameter String apiUrl);
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, hasLength(1));
+        expect(results[0].constructorParameters[0].name, 'apiUrl');
+        expect(results[0].constructorParameters[0].type, 'String');
+        expect(results[0].constructorParameters[0].isMandatory, isTrue);
+        expect(results[0].constructorParameters[0].isNamed, isFalse);
+      });
+
+      test('should extract mandatory named constructor parameter', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService({@isMandatoryParameter required String apiUrl});
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, hasLength(1));
+        expect(results[0].constructorParameters[0].name, 'apiUrl');
+        expect(results[0].constructorParameters[0].isMandatory, isTrue);
+        expect(results[0].constructorParameters[0].isNamed, isTrue);
+      });
+
+      test('should extract optional named constructor parameter', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService({@isOptionalParameter String? timeout});
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, hasLength(1));
+        expect(results[0].constructorParameters[0].name, 'timeout');
+        expect(results[0].constructorParameters[0].type, 'String?');
+        expect(results[0].constructorParameters[0].isMandatory, isFalse);
+        expect(results[0].constructorParameters[0].isNamed, isTrue);
+      });
+
+      test('should extract both mandatory and optional params', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService({@isMandatoryParameter required String apiUrl, @isOptionalParameter String? timeout});
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, hasLength(2));
+        expect(results[0].constructorParameters[0].name, 'apiUrl');
+        expect(results[0].constructorParameters[0].type, 'String');
+        expect(results[0].constructorParameters[0].isMandatory, isTrue);
+        expect(results[0].constructorParameters[1].name, 'timeout');
+        expect(results[0].constructorParameters[1].type, 'String?');
+        expect(results[0].constructorParameters[1].isMandatory, isFalse);
+      });
+
+      test('should ignore unannotated constructor parameters', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService(String name, {@isMandatoryParameter required String apiUrl});
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        // Only apiUrl has the annotation, name does not
+        expect(results[0].constructorParameters, hasLength(1));
+        expect(results[0].constructorParameters[0].name, 'apiUrl');
+      });
+
+      test('should return empty constructorParameters when no annotated params', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService(String name);
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, isEmpty);
+      });
+
+      test('should extract multiple mandatory positional params preserving order', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService(@isMandatoryParameter String host, @isMandatoryParameter int port);
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, hasLength(2));
+        expect(results[0].constructorParameters[0].name, 'host');
+        expect(results[0].constructorParameters[0].type, 'String');
+        expect(results[0].constructorParameters[0].isMandatory, isTrue);
+        expect(results[0].constructorParameters[0].isNamed, isFalse);
+        expect(results[0].constructorParameters[1].name, 'port');
+        expect(results[0].constructorParameters[1].type, 'int');
+        expect(results[0].constructorParameters[1].isMandatory, isTrue);
+        expect(results[0].constructorParameters[1].isNamed, isFalse);
+      });
+
+      test('should extract multiple optional params', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService({@isOptionalParameter String? timeout, @isOptionalParameter int? retries});
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, hasLength(2));
+        expect(results[0].constructorParameters[0].name, 'timeout');
+        expect(results[0].constructorParameters[0].type, 'String?');
+        expect(results[0].constructorParameters[0].isMandatory, isFalse);
+        expect(results[0].constructorParameters[1].name, 'retries');
+        expect(results[0].constructorParameters[1].type, 'int?');
+        expect(results[0].constructorParameters[1].isMandatory, isFalse);
+      });
+
+      test('should not extract params from named constructors', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService();
+  MyService.withUrl(@isMandatoryParameter String url);
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        // Named constructor params should be ignored — only the default constructor counts
+        expect(results[0].constructorParameters, isEmpty);
+      });
+
+      test('should return empty constructorParameters for class with no constructor', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  @isInjected
+  late String value;
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, isEmpty);
+        expect(results[0].injectedFields, hasLength(1));
+      });
+
+      test('should handle custom type as mandatory param', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService(@isMandatoryParameter DatabaseConfig config);
+}
+
+class DatabaseConfig {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, hasLength(1));
+        expect(results[0].constructorParameters[0].name, 'config');
+        expect(results[0].constructorParameters[0].type, 'DatabaseConfig');
+        expect(results[0].constructorParameters[0].isMandatory, isTrue);
+      });
+
+      test('should co-exist with @isInjected fields', () {
+        final dartFile = File('${tempDir.path}/service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  MyService({@isMandatoryParameter required String apiUrl, @isOptionalParameter String? timeout});
+
+  @isInjected
+  late Logger logger;
+}
+
+class Logger {}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].constructorParameters, hasLength(2));
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'logger');
+      });
+    });
+
     group('verbose output', () {
       test('should log parsed classes when verbose is true', () {
         final dartFile = File('${tempDir.path}/service.dart');
