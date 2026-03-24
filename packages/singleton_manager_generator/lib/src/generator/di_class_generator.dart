@@ -1,5 +1,6 @@
 import 'package:path/path.dart' as p;
 
+import '../model/injected_field_info.dart';
 import '../model/singleton_class_info.dart';
 
 /// Generator for DI (Dependency Injection) files from [SingletonClassInfo].
@@ -33,12 +34,13 @@ class AugmentationGenerator {
     final injectionCode = _generateInjectionCode(info);
 
     final params = info.constructorParameters;
-    final hasMandatory = params.any((p) => p.isMandatory);
+    final hasMandatoryCtorParams = params.any((p) => p.isMandatory);
+    final mandatoryFields = info.injectedFields.where((f) => f.isMandatory).toList();
 
     final diConstructor = _buildDIConstructorLine(info);
 
-    // Omit the no-arg factory when mandatory params exist (would be a compile error).
-    final initializeDIFactory = hasMandatory
+    // Omit the no-arg factory when mandatory ctor params exist (would be a compile error).
+    final initializeDIFactory = hasMandatoryCtorParams
         ? ''
         : '  factory ${info.className}DI.initializeDI() {\n'
             '    final instance = ${info.className}DI();\n'
@@ -46,8 +48,8 @@ class AugmentationGenerator {
             '    return instance;\n'
             '  }\n';
 
-    final initializeWithParamsFactory = params.isNotEmpty
-        ? _buildInitializeWithParamsFactory(info)
+    final initializeWithParamsFactory = (params.isNotEmpty || mandatoryFields.isNotEmpty)
+        ? _buildInitializeWithParamsFactory(info, mandatoryFields)
         : '';
 
     // Each non-empty block is preceded by a blank line.
@@ -105,15 +107,24 @@ $injectionCode  }
 
   /// Build the [initializeWithParametersDI] factory.
   ///
-  /// Mandatory parameters become required positional arguments.
-  /// Optional parameters become named optional arguments.
-  static String _buildInitializeWithParamsFactory(SingletonClassInfo info) {
+  /// Constructor mandatory params become required positional arguments.
+  /// Constructor optional params become named optional arguments.
+  /// Mandatory fields (@isMandatoryParameter on field) are appended as
+  /// required positional arguments and assigned directly on the instance.
+  static String _buildInitializeWithParamsFactory(
+    SingletonClassInfo info,
+    List<InjectedFieldInfo> mandatoryFields,
+  ) {
     final mandatory = info.constructorParameters.where((p) => p.isMandatory).toList();
     final optional = info.constructorParameters.where((p) => !p.isMandatory).toList();
 
     final sigParts = <String>[];
     for (final p in mandatory) {
       sigParts.add('${p.type} ${p.name}');
+    }
+    // Mandatory fields come after mandatory ctor params, before optional.
+    for (final f in mandatoryFields) {
+      sigParts.add('${f.fieldType} ${f.fieldName}');
     }
     if (optional.isNotEmpty) {
       final optParts = optional.map((p) => '${p.type} ${p.name}').join(', ');
@@ -125,9 +136,21 @@ $injectionCode  }
       return p.isNamed ? '${p.name}: ${p.name}' : p.name;
     }).join(', ');
 
+    final fieldAssignments = mandatoryFields
+        .map((f) => '    instance.${f.fieldName} = ${f.fieldName};')
+        .join('\n');
+    final fieldAssignmentsBlock =
+        fieldAssignments.isNotEmpty ? '$fieldAssignments\n' : '';
+
+    // Call initializeDI() only when there are no mandatory fields being set
+    // directly — otherwise it would overwrite them via SingletonDIAccess.get().
+    final callInitialize =
+        mandatoryFields.isEmpty ? '    instance.initializeDI();\n' : '';
+
     return '  factory ${info.className}DI.initializeWithParametersDI(${sigParts.join(', ')}) {\n'
         '    final instance = ${info.className}DI($ctorCallParts);\n'
-        '    instance.initializeDI();\n'
+        '$fieldAssignmentsBlock'
+        '$callInitialize'
         '    return instance;\n'
         '  }\n';
   }

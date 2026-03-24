@@ -401,5 +401,50 @@ class EmptyService {
       // But no field assignments
       expect(diCode, isNot(contains('SingletonDIAccess.get')));
     });
+
+    test('@isMandatoryParameter on late field + constructor param — generates both initializeWithParametersDI and field injection', () {
+      final dir = Directory('${tempDir.path}/lib/params');
+      dir.createSync(recursive: true);
+
+      final dartFile = File('${dir.path}/id_handler_storage_repository.dart');
+      dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+abstract class IIdHandlerStorageRepository {}
+abstract class IWorkDb {}
+
+@isSingleton
+class IdHandlerStorageRepository implements IIdHandlerStorageRepository {
+  IdHandlerStorageRepository();
+  IdHandlerStorageRepository.fromDb(this.db, [this._collection = _defaultCollection]);
+
+  static const String _defaultCollection = 'id_handler';
+
+  @isMandatoryParameter
+  @protected
+  late IWorkDb db;
+
+  late String _collection = _defaultCollection;
+}
+''');
+
+      final parsed = SourceParser.parse([dartFile]);
+      expect(parsed, hasLength(1));
+      expect(parsed[0].injectedFields, hasLength(1));
+      expect(parsed[0].injectedFields[0].fieldName, 'db');
+      expect(parsed[0].injectedFields[0].fieldType, 'IWorkDb');
+      expect(parsed[0].constructorParameters, isEmpty);
+
+      final diCode = AugmentationGenerator.generate(parsed[0]);
+      File('${dir.path}/id_handler_storage_repository_di.dart').writeAsStringSync(diCode);
+
+      expect(diCode, contains('class IdHandlerStorageRepositoryDI extends IdHandlerStorageRepository implements ISingletonStandardDI'));
+      expect(diCode, contains('IdHandlerStorageRepositoryDI() : super()'));
+      expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeDI()'));
+      expect(diCode, contains('db = SingletonDIAccess.get<IWorkDb>()'));
+      expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeWithParametersDI(IWorkDb db)'));
+      expect(diCode, contains('instance.db = db'));
+      expect(diCode, isNot(contains('_collection')));
+    });
   });
 }
