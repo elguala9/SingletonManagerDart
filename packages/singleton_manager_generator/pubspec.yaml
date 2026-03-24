@@ -4,7 +4,7 @@ description: >
   Automatically creates ISingletonStandardDI.initializeDI() implementations
   from @isInjected field annotations.
 
-version: 1.0.4
+version: 1.0.5
 
 resolution: workspace
 
