@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0] - 2026-03-24
+
+### Added
+- Support for `@isMandatoryParameter` and `@isOptionalParameter` annotations on constructor parameters
+- New `ConstructorParameterInfo` model to represent annotated constructor parameters
+- Parser now extracts constructor parameters annotated with `@isMandatoryParameter` / `@isOptionalParameter`
+- Generator creates a typed DI constructor that mirrors the original constructor signature
+- New `initializeWithParametersDI()` factory generated for classes with annotated constructor parameters
+  - Mandatory parameters become positional arguments in the factory
+  - Optional parameters become named optional arguments in the factory
+- No-arg `initializeDI()` factory is omitted when mandatory constructor parameters are present (avoids compile error)
+- `initializeWithParametersDI()` and `@isInjected` field injection can be combined in the same class
+
 ## [1.0.5] - 2026-03-24
 
 ### Changed
