@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-03-24
+
+### Added
+- `@isMandatoryParameter` annotation (`IsMandatoryParameter`) to mark constructor parameters as required for code generation
+- `@isOptionalParameter` annotation (`IsOptionalParameter`) to mark constructor parameters as optional for code generation
+
 ## [0.4.0] - 2026-03-16
 
 ### BREAKING CHANGES

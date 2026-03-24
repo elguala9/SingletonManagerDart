@@ -5,6 +5,8 @@ library;
 export 'src/errors/registry_errors.dart';
 export 'src/interfaces/i_value_for_registry.dart';
 export 'src/is_injected.dart';
+export 'src/is_mandatory_parameter.dart';
+export 'src/is_optional_parameter.dart';
 export 'src/is_singleton.dart';
 export 'src/mixin/registry_entry.dart';
 export 'src/mixin/registry_mixin.dart';
