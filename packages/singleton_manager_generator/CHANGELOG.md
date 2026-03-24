@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.5] - 2026-03-24
+
+### Changed
+- Generated files now include `// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import, unused_import, lines_longer_than_80_chars, cascade_invocations` to suppress analyzer warnings in generated code
+
 ## [1.0.4] - 2026-03-18
 
 ### Changed
