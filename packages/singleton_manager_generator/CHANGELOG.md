@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.0] - 2026-03-26
+
+### Changed
+- **Breaking**: generated DI class no longer uses the default constructor — renamed to `.emptyForDI()` to avoid conflicts when the parent class also defines a default constructor
+  - `ClassNameDI() : super()` → `ClassNameDI.emptyForDI() : super()`
+  - `initializeDI()` factory instantiates via `ClassNameDI.emptyForDI()`
+  - `initializeWithParametersDI()` factory instantiates via `ClassNameDI.emptyForDI()` when no constructor parameters are present, or via `ClassNameDI(params)` when constructor parameters exist
+
 ## [1.2.0] - 2026-03-25
 
 ### Added

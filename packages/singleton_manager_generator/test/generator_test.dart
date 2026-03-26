@@ -26,9 +26,9 @@ void main() {
         expect(code, contains("// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import"));
         expect(code, contains("import 'my_service.dart';"));
         expect(code, contains("class MyServiceDI extends MyService implements ISingletonStandardDI {"));
-        expect(code, contains("MyServiceDI() : super();"));
+        expect(code, contains("MyServiceDI.emptyForDI() : super();"));
         expect(code, contains("factory MyServiceDI.initializeDI() {"));
-        expect(code, contains("final instance = MyServiceDI();"));
+        expect(code, contains("final instance = MyServiceDI.emptyForDI();"));
         expect(code, contains("instance.initializeDI();"));
         expect(code, contains("void initializeDI() {"));
         expect(code, contains("db = SingletonDIAccess.get<DatabaseConnection>();"));
@@ -101,7 +101,7 @@ void main() {
         expect(code, contains("// AUTO-GENERATED - DO NOT CHANGE"));
         expect(code, contains("class My_Service_ImplDI extends My_Service_Impl implements ISingletonStandardDI {"));
         expect(code, contains("factory My_Service_ImplDI.initializeDI() {"));
-        expect(code, contains("final instance = My_Service_ImplDI();"));
+        expect(code, contains("final instance = My_Service_ImplDI.emptyForDI();"));
       });
 
       test('should handle field names with underscores', () {
@@ -223,7 +223,7 @@ void main() {
         final code = AugmentationGenerator.generate(info);
 
         final createMethod = RegExp(
-          r'factory MyServiceDI\.initializeDI\(\) \{[^}]*final instance = MyServiceDI\(\);[^}]*instance\.initializeDI\(\);[^}]*return instance;[^}]*\}',
+          r'factory MyServiceDI\.initializeDI\(\) \{[^}]*final instance = MyServiceDI\.emptyForDI\(\);[^}]*instance\.initializeDI\(\);[^}]*return instance;[^}]*\}',
           dotAll: true,
         );
         expect(code, matches(createMethod));

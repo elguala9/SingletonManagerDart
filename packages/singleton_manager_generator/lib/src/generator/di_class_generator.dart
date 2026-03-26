@@ -43,7 +43,7 @@ class AugmentationGenerator {
     final initializeDIFactory = hasMandatoryCtorParams
         ? ''
         : '  factory ${info.className}DI.initializeDI() {\n'
-            '    final instance = ${info.className}DI();\n'
+            '    final instance = ${info.className}DI.emptyForDI();\n'
             '    instance.initializeDI();\n'
             '    return instance;\n'
             '  }\n';
@@ -82,7 +82,7 @@ $injectionCode  }
   static String _buildDIConstructorLine(SingletonClassInfo info) {
     final params = info.constructorParameters;
     if (params.isEmpty) {
-      return '${info.className}DI() : super()';
+      return '${info.className}DI.emptyForDI() : super()';
     }
 
     final positional = params.where((p) => !p.isNamed).toList();
@@ -142,9 +142,14 @@ $injectionCode  }
     }
 
     // Build the call to the DI constructor using original named/positional style.
+    // When there are no constructor parameters, use the .emptyForDI() named constructor
+    // to avoid calling the default constructor and prevent conflicts with the parent class.
     final ctorCallParts = info.constructorParameters.map((p) {
       return p.isNamed ? '${p.name}: ${p.name}' : p.name;
     }).join(', ');
+    final ctorCall = info.constructorParameters.isEmpty
+        ? '${info.className}DI.emptyForDI()'
+        : '${info.className}DI($ctorCallParts)';
 
     // Inject pure @isInjected fields explicitly from the container.
     final injectedFields = info.injectedFields.where((f) => !f.isMandatory && !f.isOptional).toList();
@@ -167,7 +172,7 @@ $injectionCode  }
         fieldAssignments.isNotEmpty ? '$fieldAssignments\n' : '';
 
     return '  factory ${info.className}DI.initializeWithParametersDI(${sigParts.join(', ')}) {\n'
-        '    final instance = ${info.className}DI($ctorCallParts);\n'
+        '    final instance = $ctorCall;\n'
         '$injectionBlock'
         '$optionalAssignmentsBlock'
         '$fieldAssignmentsBlock'
