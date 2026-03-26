@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0] - 2026-03-27
+
+### Changed
+- **Breaking**: generated DI subclass now uses the default constructor instead of `.emptyForDI()`, while the parent class `emptyForDI()` contract is preserved via `super.emptyForDI()`
+  - `ClassNameDI.emptyForDI() : super.emptyForDI()` → `ClassNameDI() : super.emptyForDI()`
+  - `initializeDI()` factory instantiates via `ClassNameDI()` instead of `ClassNameDI.emptyForDI()`
+  - The parent class must still define `ClassName.emptyForDI()` — only the DI subclass naming changes
+
 ## [1.3.1] - 2026-03-26
 
 ### Fixed

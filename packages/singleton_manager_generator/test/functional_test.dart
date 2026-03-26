@@ -94,7 +94,7 @@ class ConfigService {
       // Verify factory signature
       expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
       expect(diCode, contains('factory ConfigServiceDI.initializeDI() {'));
-      expect(diCode, contains('final instance = ConfigServiceDI.emptyForDI();'));
+      expect(diCode, contains('final instance = ConfigServiceDI();'));
       expect(diCode, contains('instance.initializeDI();'));
       expect(diCode, contains('return instance;'));
     });
@@ -285,7 +285,7 @@ class CompleteService {
       expect(diCode,
           contains('class CompleteServiceDI extends CompleteService implements ISingletonStandardDI {'));
       expect(diCode, contains('factory CompleteServiceDI.initializeDI() {'));
-      expect(diCode, contains('final instance = CompleteServiceDI.emptyForDI();'));
+      expect(diCode, contains('final instance = CompleteServiceDI();'));
       expect(diCode, contains('instance.initializeDI();'));
       expect(diCode, contains('return instance;'));
       expect(diCode, contains('@override'));

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Monorepo Updates - 2026-03-27
+
+### singleton_manager_generator [1.4.0]
+
+- **Breaking**: generated DI subclass now uses the default constructor instead of `.emptyForDI()`; parent class `emptyForDI()` is still called via `super.emptyForDI()`
+  - `ClassNameDI.emptyForDI() : super.emptyForDI()` → `ClassNameDI() : super.emptyForDI()`
+
 ## Monorepo Updates - 2026-03-26 (patch)
 
 ### singleton_manager_generator [1.3.1]
