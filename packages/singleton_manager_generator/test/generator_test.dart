@@ -514,7 +514,6 @@ void main() {
         final factoryPattern = RegExp(
           r'factory MyServiceDI\.initializeWithParametersDI\(String url, \{int\? timeout\}\) \{[^}]*'
           r'final instance = MyServiceDI\(url, timeout: timeout\);[^}]*'
-          r'instance\.initializeDI\(\);[^}]*'
           r'return instance;[^}]*\}',
           dotAll: true,
         );

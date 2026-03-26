@@ -354,7 +354,9 @@ class AuditRepository {}
       // initializeWithParametersDI: mandatory=positional, optional=named.
       expect(diCode, contains('factory PaymentGatewayDI.initializeWithParametersDI(String apiKey, {String? currency})'));
       expect(diCode, contains('final instance = PaymentGatewayDI(apiKey: apiKey, currency: currency)'));
-      expect(diCode, contains('instance.initializeDI()'));
+      // @isInjected fields injected explicitly (no initializeDI() call).
+      expect(diCode, contains('instance.logger = SingletonDIAccess.get<Logger>()'));
+      expect(diCode, contains('instance.audit = SingletonDIAccess.get<AuditRepository>()'));
       expect(diCode, contains('return instance'));
 
       // Blank line between constructor and factory.
@@ -402,7 +404,7 @@ class EmptyService {
       expect(diCode, isNot(contains('SingletonDIAccess.get')));
     });
 
-    test('@isMandatoryParameter on late field + constructor param — generates both initializeWithParametersDI and field injection', () {
+    test('@isMandatoryParameter on late field + optional ctor param + @isInjected — generates initializeWithParametersDI with explicit injection then mandatory field assignment', () {
       final dir = Directory('${tempDir.path}/lib/params');
       dir.createSync(recursive: true);
 
@@ -412,10 +414,11 @@ import 'package:singleton_manager/singleton_manager.dart';
 
 abstract class IIdHandlerStorageRepository {}
 abstract class IWorkDb {}
+abstract class ILogger {}
 
 @isSingleton
 class IdHandlerStorageRepository implements IIdHandlerStorageRepository {
-  IdHandlerStorageRepository();
+  IdHandlerStorageRepository({@isOptionalParameter String? collection});
   IdHandlerStorageRepository.fromDb(this.db, [this._collection = _defaultCollection]);
 
   static const String _defaultCollection = 'id_handler';
@@ -424,25 +427,39 @@ class IdHandlerStorageRepository implements IIdHandlerStorageRepository {
   @protected
   late IWorkDb db;
 
+  @isInjected
+  late ILogger logger;
+
   late String _collection = _defaultCollection;
 }
 ''');
 
       final parsed = SourceParser.parse([dartFile]);
       expect(parsed, hasLength(1));
-      expect(parsed[0].injectedFields, hasLength(1));
+      expect(parsed[0].injectedFields, hasLength(2));
       expect(parsed[0].injectedFields[0].fieldName, 'db');
       expect(parsed[0].injectedFields[0].fieldType, 'IWorkDb');
-      expect(parsed[0].constructorParameters, isEmpty);
+      expect(parsed[0].injectedFields[0].isMandatory, isTrue);
+      expect(parsed[0].injectedFields[1].fieldName, 'logger');
+      expect(parsed[0].injectedFields[1].fieldType, 'ILogger');
+      expect(parsed[0].injectedFields[1].isMandatory, isFalse);
+      expect(parsed[0].constructorParameters, hasLength(1));
+      expect(parsed[0].constructorParameters[0].name, 'collection');
+      expect(parsed[0].constructorParameters[0].isMandatory, isFalse);
 
       final diCode = AugmentationGenerator.generate(parsed[0]);
       File('${dir.path}/id_handler_storage_repository_di.dart').writeAsStringSync(diCode);
 
       expect(diCode, contains('class IdHandlerStorageRepositoryDI extends IdHandlerStorageRepository implements ISingletonStandardDI'));
-      expect(diCode, contains('IdHandlerStorageRepositoryDI() : super()'));
+      expect(diCode, contains('IdHandlerStorageRepositoryDI({String? collection}) : super(collection: collection)'));
       expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeDI()'));
+      // initializeDI() injects ALL annotated fields (mandatory + non-mandatory)
       expect(diCode, contains('db = SingletonDIAccess.get<IWorkDb>()'));
-      expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeWithParametersDI(IWorkDb db)'));
+      expect(diCode, contains('logger = SingletonDIAccess.get<ILogger>()'));
+      // initializeWithParametersDI: mandatory field as positional, optional ctor param as named
+      expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeWithParametersDI(IWorkDb db, {String? collection})'));
+      // factory injects @isInjected fields explicitly, then sets mandatory field from parameter
+      expect(diCode, contains('instance.logger = SingletonDIAccess.get<ILogger>()'));
       expect(diCode, contains('instance.db = db'));
       expect(diCode, isNot(contains('_collection')));
     });

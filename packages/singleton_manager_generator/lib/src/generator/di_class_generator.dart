@@ -48,7 +48,8 @@ class AugmentationGenerator {
             '    return instance;\n'
             '  }\n';
 
-    final initializeWithParamsFactory = (params.isNotEmpty || mandatoryFields.isNotEmpty)
+    final optionalFields = info.injectedFields.where((f) => f.isOptional).toList();
+    final initializeWithParamsFactory = (params.isNotEmpty || mandatoryFields.isNotEmpty || optionalFields.isNotEmpty)
         ? _buildInitializeWithParamsFactory(info, mandatoryFields)
         : '';
 
@@ -111,6 +112,9 @@ $injectionCode  }
   /// Constructor optional params become named optional arguments.
   /// Mandatory fields (@isMandatoryParameter on field) are appended as
   /// required positional arguments and assigned directly on the instance.
+  /// Non-mandatory fields (@isInjected) are resolved from the container
+  /// explicitly — initializeDI() is NOT called, to avoid fetching mandatory
+  /// fields from the container when they are provided as parameters.
   static String _buildInitializeWithParamsFactory(
     SingletonClassInfo info,
     List<InjectedFieldInfo> mandatoryFields,
@@ -118,17 +122,23 @@ $injectionCode  }
     final mandatory = info.constructorParameters.where((p) => p.isMandatory).toList();
     final optional = info.constructorParameters.where((p) => !p.isMandatory).toList();
 
+    final optionalFields = info.injectedFields.where((f) => f.isOptional).toList();
+
     final sigParts = <String>[];
     for (final p in mandatory) {
       sigParts.add('${p.type} ${p.name}');
     }
-    // Mandatory fields come after mandatory ctor params, before optional.
+    // Mandatory fields come after mandatory ctor params, before optional block.
     for (final f in mandatoryFields) {
       sigParts.add('${f.fieldType} ${f.fieldName}');
     }
-    if (optional.isNotEmpty) {
-      final optParts = optional.map((p) => '${p.type} ${p.name}').join(', ');
-      sigParts.add('{$optParts}');
+    // Optional ctor params + optional fields share the named block.
+    final namedParts = <String>[
+      ...optional.map((p) => '${p.type} ${p.name}'),
+      ...optionalFields.map((f) => '${f.fieldType}? ${f.fieldName}'),
+    ];
+    if (namedParts.isNotEmpty) {
+      sigParts.add('{${namedParts.join(', ')}}');
     }
 
     // Build the call to the DI constructor using original named/positional style.
@@ -136,21 +146,31 @@ $injectionCode  }
       return p.isNamed ? '${p.name}: ${p.name}' : p.name;
     }).join(', ');
 
+    // Inject pure @isInjected fields explicitly from the container.
+    final injectedFields = info.injectedFields.where((f) => !f.isMandatory && !f.isOptional).toList();
+    final injectionLines = injectedFields
+        .map((f) => '    instance.${f.fieldName} = SingletonDIAccess.get<${f.fieldType}>();')
+        .join('\n');
+    final injectionBlock = injectionLines.isNotEmpty ? '$injectionLines\n' : '';
+
+    // Optional fields: assign directly from parameter.
+    final optionalAssignments = optionalFields
+        .map((f) => '    instance.${f.fieldName} = ${f.fieldName};')
+        .join('\n');
+    final optionalAssignmentsBlock = optionalAssignments.isNotEmpty ? '$optionalAssignments\n' : '';
+
+    // Assign mandatory fields from parameters.
     final fieldAssignments = mandatoryFields
         .map((f) => '    instance.${f.fieldName} = ${f.fieldName};')
         .join('\n');
     final fieldAssignmentsBlock =
         fieldAssignments.isNotEmpty ? '$fieldAssignments\n' : '';
 
-    // Call initializeDI() only when there are no mandatory fields being set
-    // directly — otherwise it would overwrite them via SingletonDIAccess.get().
-    final callInitialize =
-        mandatoryFields.isEmpty ? '    instance.initializeDI();\n' : '';
-
     return '  factory ${info.className}DI.initializeWithParametersDI(${sigParts.join(', ')}) {\n'
         '    final instance = ${info.className}DI($ctorCallParts);\n'
+        '$injectionBlock'
+        '$optionalAssignmentsBlock'
         '$fieldAssignmentsBlock'
-        '$callInitialize'
         '    return instance;\n'
         '  }\n';
   }
@@ -193,12 +213,22 @@ $injectionCode  }
   }
 
   /// Generate the field injection statements.
+  ///
+  /// Injects ALL annotated fields (@isInjected and @isMandatoryParameter) from
+  /// the container. Mandatory fields appear here so that [initializeDI] works
+  /// as a full singleton factory (all deps from container). In
+  /// [initializeWithParametersDI] the mandatory fields are overridden with the
+  /// explicit parameters instead.
   static String _generateInjectionCode(SingletonClassInfo info) {
-    if (info.injectedFields.isEmpty) {
+    final injected = info.injectedFields;
+    if (injected.isEmpty) {
       return '';
     }
 
-    final lines = info.injectedFields.map((field) {
+    final lines = injected.map((field) {
+      if (field.isOptional) {
+        return '    if (SingletonDIAccess.exists<${field.fieldType}>()) ${field.fieldName} = SingletonDIAccess.get<${field.fieldType}>();';
+      }
       return '    ${field.fieldName} = SingletonDIAccess.get<${field.fieldType}>();';
     }).join('\n');
 

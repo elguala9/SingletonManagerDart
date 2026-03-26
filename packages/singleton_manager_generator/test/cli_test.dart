@@ -205,7 +205,7 @@ class Logger {}
       // initializeWithParametersDI written to disk.
       expect(written, contains('factory MyServiceDI.initializeWithParametersDI(String apiUrl, {int? timeoutMs})'));
       expect(written, contains('final instance = MyServiceDI(apiUrl, timeoutMs: timeoutMs)'));
-      expect(written, contains('instance.initializeDI()'));
+      expect(written, contains('instance.logger = SingletonDIAccess.get<Logger>()'));
       // No no-arg factory (mandatory param present).
       expect(written, isNot(contains('factory MyServiceDI.initializeDI()')));
       // @isInjected still works.

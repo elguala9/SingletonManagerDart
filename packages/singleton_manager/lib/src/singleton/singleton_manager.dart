@@ -39,6 +39,9 @@ class SingletonManager {
     _registry.remove(T);
   }
 
+  /// Returns true if an instance of type T is registered.
+  bool exists<T extends Object>() => _registry.containsKey(T);
+
   /// Retrieves a value by its Type.
   /// Throws [StateError] if no instance of type T is found.
   T getInstance<T extends Object>() {

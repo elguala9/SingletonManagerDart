@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.2.0] - 2026-03-25
+
+### Added
+- `@isOptionalParameter` annotation now supported on **fields** (in addition to constructor parameters)
+  - Parser sets a new `isOptional` flag on `InjectedFieldInfo` when `@isOptionalParameter` is found on a field
+  - In `initializeDI()`: optional fields are guarded with `if (SingletonDIAccess.exists<T>())` before injection
+  - In `initializeWithParametersDI()`: optional fields appear as nullable named parameters `{T? fieldName}`; assigned directly if provided
+
+### Changed
+- `initializeDI()` now injects **all** annotated fields including `@isMandatoryParameter` fields (previously excluded). This makes `initializeDI()` a full singleton factory where every dependency is resolved from the container
+- `initializeWithParametersDI()` no longer calls `initializeDI()` internally. Instead it injects each category of field explicitly:
+  - `@isInjected` fields → always fetched from container via `SingletonDIAccess.get<T>()`
+  - `@isOptionalParameter` fields → assigned from the optional named parameter
+  - `@isMandatoryParameter` fields → assigned from the required positional parameter
+
+## [1.1.3] - 2026-03-25
+
+### Changed
+- Parser now emits a warning when a field annotated with `@isOptionalParameter` has a non-nullable type (e.g., `String` instead of `String?`)
+
 ## [1.1.0] - 2026-03-24
 
 ### Added
