@@ -1023,5 +1023,164 @@ class SmtpService {
         expect(diCode, isNot(contains('factory SmtpServiceDI.initializeDI()')));
       });
     });
+
+    group('generic types - parse - generate', () {
+      test('single generic: IRepository<BookData> is preserved in get<>', () {
+        final dir = Directory('${tempDir.path}/lib/src/generic');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/book_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class ErmesBookServiceBase {
+  ErmesBookServiceBase.emptyForDI();
+
+  @isInjected
+  late IErmesBookRepository<BookData> repository;
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].injectedFields[0].fieldType, 'IErmesBookRepository<BookData>');
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/book_service_di.dart').writeAsStringSync(diCode);
+
+        expect(diCode, contains('repository = SingletonDIAccess.get<IErmesBookRepository<BookData>>();'));
+      });
+
+      test('nullable generic: IRepository<BookData>? is preserved in exists<> and get<>', () {
+        final dir = Directory('${tempDir.path}/lib/src/generic_nullable');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/nullable_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class NullableService {
+  NullableService.emptyForDI();
+
+  @isOptionalParameter
+  late IRepository<BookData>? repo;
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].injectedFields[0].fieldType, 'IRepository<BookData>?');
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/nullable_service_di.dart').writeAsStringSync(diCode);
+
+        expect(diCode, contains('if (SingletonDIAccess.exists<IRepository<BookData>?>()) repo = SingletonDIAccess.get<IRepository<BookData>?>();'));
+      });
+
+      test('nested generic: ICache<Map<String, int>> is preserved', () {
+        final dir = Directory('${tempDir.path}/lib/src/generic_nested');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/cache_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class CacheService {
+  CacheService.emptyForDI();
+
+  @isInjected
+  late ICache<Map<String, int>> cache;
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].injectedFields[0].fieldType, 'ICache<Map<String, int>>');
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/cache_service_di.dart').writeAsStringSync(diCode);
+
+        expect(diCode, contains('cache = SingletonDIAccess.get<ICache<Map<String, int>>>();'));
+      });
+
+      test('multi-param generic: IMap<String, BookData> is preserved', () {
+        final dir = Directory('${tempDir.path}/lib/src/generic_multi');
+        dir.createSync(recursive: true);
+        final dartFile = File('${dir.path}/map_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MapService {
+  MapService.emptyForDI();
+
+  @isInjected
+  late IMap<String, BookData> map;
+}
+''');
+
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].injectedFields[0].fieldType, 'IMap<String, BookData>');
+
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File('${dir.path}/map_service_di.dart').writeAsStringSync(diCode);
+
+        expect(diCode, contains('map = SingletonDIAccess.get<IMap<String, BookData>>();'));
+      });
+    });
+  });
+
+  group('Integration Tests - generic artifact files', () {
+    const paramsDir = 'lib/test_artifacts/integration_tests/lib/src/params';
+
+    setUpAll(() {
+      Directory(paramsDir).createSync(recursive: true);
+    });
+
+    test('ErmesBookServiceBase with IErmesBookRepository<BookData>: parse → generate → write artifact', () {
+      // Write source artifact to disk
+      final sourceFile = File('$paramsDir/generic_book_service.dart');
+      sourceFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+abstract class IErmesBookRepository<T> {}
+abstract class ILogger {}
+class BookData {}
+
+@isSingleton
+class ErmesBookServiceBase {
+  ErmesBookServiceBase();
+  ErmesBookServiceBase.emptyForDI();
+
+  @isInjected
+  late IErmesBookRepository<BookData> repository;
+
+  @isInjected
+  late ILogger logger;
+}
+''');
+
+      final parsed = SourceParser.parse([sourceFile]);
+      expect(parsed, hasLength(1));
+
+      // Parser preserves generic type arguments
+      expect(parsed[0].injectedFields[0].fieldName, 'repository');
+      expect(parsed[0].injectedFields[0].fieldType, 'IErmesBookRepository<BookData>');
+      expect(parsed[0].injectedFields[1].fieldName, 'logger');
+      expect(parsed[0].injectedFields[1].fieldType, 'ILogger');
+
+      final outputPath = '$paramsDir/generic_book_service_di.dart';
+      final diCode = AugmentationGenerator.generate(parsed[0], outputFilePath: outputPath);
+
+      // Write generated DI artifact to disk for inspection
+      File(outputPath).writeAsStringSync(diCode);
+
+      // Verify generic type is preserved end-to-end
+      expect(diCode, contains('repository = SingletonDIAccess.get<IErmesBookRepository<BookData>>();'));
+      expect(diCode, contains('logger = SingletonDIAccess.get<ILogger>();'));
+      expect(diCode, contains("import 'generic_book_service.dart';"));
+      expect(diCode, contains('class ErmesBookServiceBaseDI extends ErmesBookServiceBase implements ISingletonStandardDI'));
+    });
   });
 }

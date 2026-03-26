@@ -906,5 +906,87 @@ class MyService {
         expect(results, hasLength(1));
       });
     });
+
+    group('generic types', () {
+      test('should parse single generic type argument', () {
+        final dartFile = File('${tempDir.path}/generic_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class ErmesBookServiceBase {
+  @isInjected
+  late IErmesBookRepository<BookData> repository;
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'repository');
+        expect(results[0].injectedFields[0].fieldType, 'IErmesBookRepository<BookData>');
+      });
+
+      test('should parse nullable generic type', () {
+        final dartFile = File('${tempDir.path}/nullable_generic_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  @isOptionalParameter
+  late IRepository<BookData>? repo;
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'repo');
+        expect(results[0].injectedFields[0].fieldType, 'IRepository<BookData>?');
+      });
+
+      test('should parse nested generic type', () {
+        final dartFile = File('${tempDir.path}/nested_generic_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  @isInjected
+  late ICache<Map<String, int>> cache;
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'cache');
+        expect(results[0].injectedFields[0].fieldType, 'ICache<Map<String, int>>');
+      });
+
+      test('should parse multi-parameter generic type', () {
+        final dartFile = File('${tempDir.path}/multi_generic_service.dart');
+        dartFile.writeAsStringSync('''
+import 'package:singleton_manager/singleton_manager.dart';
+
+@isSingleton
+class MyService {
+  @isInjected
+  late IMap<String, BookData> map;
+}
+''');
+
+        final results = SourceParser.parse([dartFile]);
+
+        expect(results, hasLength(1));
+        expect(results[0].injectedFields, hasLength(1));
+        expect(results[0].injectedFields[0].fieldName, 'map');
+        expect(results[0].injectedFields[0].fieldType, 'IMap<String, BookData>');
+      });
+    });
   });
 }

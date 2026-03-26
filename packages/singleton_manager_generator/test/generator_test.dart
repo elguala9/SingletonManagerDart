@@ -229,6 +229,81 @@ void main() {
         expect(code, matches(createMethod));
       });
 
+      group('generic field types', () {
+        test('should generate get with single generic type argument', () {
+          final info = SingletonClassInfo(
+            className: 'ErmesBookServiceBase',
+            sourceFilePath: 'lib/src/ermes_book_service.dart',
+            sourceFileContent: '',
+            injectedFields: [
+              InjectedFieldInfo(
+                fieldName: 'repository',
+                fieldType: 'IErmesBookRepository<BookData>',
+              ),
+            ],
+          );
+
+          final code = AugmentationGenerator.generate(info);
+
+          expect(code, contains('repository = SingletonDIAccess.get<IErmesBookRepository<BookData>>();'));
+        });
+
+        test('should generate exists+get with nullable generic type', () {
+          final info = SingletonClassInfo(
+            className: 'MyService',
+            sourceFilePath: 'lib/src/my_service.dart',
+            sourceFileContent: '',
+            injectedFields: [
+              InjectedFieldInfo(
+                fieldName: 'repo',
+                fieldType: 'IRepository<BookData>?',
+                isOptional: true,
+              ),
+            ],
+          );
+
+          final code = AugmentationGenerator.generate(info);
+
+          expect(code, contains('if (SingletonDIAccess.exists<IRepository<BookData>?>()) repo = SingletonDIAccess.get<IRepository<BookData>?>();'));
+        });
+
+        test('should generate get with nested generic type', () {
+          final info = SingletonClassInfo(
+            className: 'MyService',
+            sourceFilePath: 'lib/src/my_service.dart',
+            sourceFileContent: '',
+            injectedFields: [
+              InjectedFieldInfo(
+                fieldName: 'cache',
+                fieldType: 'ICache<Map<String, int>>',
+              ),
+            ],
+          );
+
+          final code = AugmentationGenerator.generate(info);
+
+          expect(code, contains('cache = SingletonDIAccess.get<ICache<Map<String, int>>>();'));
+        });
+
+        test('should generate get with multi-parameter generic type', () {
+          final info = SingletonClassInfo(
+            className: 'MyService',
+            sourceFilePath: 'lib/src/my_service.dart',
+            sourceFileContent: '',
+            injectedFields: [
+              InjectedFieldInfo(
+                fieldName: 'map',
+                fieldType: 'IMap<String, BookData>',
+              ),
+            ],
+          );
+
+          final code = AugmentationGenerator.generate(info);
+
+          expect(code, contains('map = SingletonDIAccess.get<IMap<String, BookData>>();'));
+        });
+      });
+
       test('should maintain field order in generated code', () {
         final info = SingletonClassInfo(
           className: 'MyService',

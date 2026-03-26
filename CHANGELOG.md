@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Monorepo Updates - 2026-03-26 (patch)
+
+### singleton_manager_generator [1.3.1]
+
+- **Fixed**: parser now preserves generic type arguments in `@isInjected` / `@isMandatoryParameter` / `@isOptionalParameter` fields — `IErmesBookRepository<BookData>` was incorrectly stripped to `IErmesBookRepository`, causing `SingletonDIAccess.get<IErmesBookRepository>()` (missing type param) in the generated DI file
+- **Added**: tests covering single, multi-parameter, nested, and nullable generic field types (parser, generator, and integration tests)
+
 ## Monorepo Updates - 2026-03-26
 
 ### singleton_manager_generator [1.3.0]
