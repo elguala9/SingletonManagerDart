@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.1] - 2026-03-26
+
+### Fixed
+- Parser now correctly preserves generic type arguments in field types (e.g. `IErmesBookRepository<BookData>` was stripped to `IErmesBookRepository`)
+  - `_extractFieldType` is now recursive and captures `NamedType.typeArguments`
+  - Supports single generics (`IRepository<BookData>`), multi-parameter generics (`IMap<String, BookData>`), nested generics (`ICache<Map<String, int>>`), and nullable generics (`IRepository<BookData>?`)
+  - Generated `SingletonDIAccess.get<T>()` calls now include the full generic type, e.g. `get<IErmesBookRepository<BookData>>()`
+
+### Added
+- Tests for generic type support: parser tests, generator tests, and integration tests (including artifact files in `lib/test_artifacts/integration_tests/lib/src/params/`)
+
 ## [1.3.0] - 2026-03-26
 
 ### Changed

@@ -203,13 +203,21 @@ class SourceParser {
     );
   }
 
-  /// Extract the type name from a field type, including the trailing `?`
-  /// for nullable types.
+  /// Extract the type name from a field type, including generic type arguments
+  /// and the trailing `?` for nullable types.
   static String? _extractFieldType(TypeAnnotation? typeAnnotation) {
     if (typeAnnotation == null) return null;
 
     if (typeAnnotation is NamedType) {
       final nullable = typeAnnotation.question != null ? '?' : '';
+      final typeArgs = typeAnnotation.typeArguments;
+      if (typeArgs != null && typeArgs.arguments.isNotEmpty) {
+        final args = typeArgs.arguments
+            .map(_extractFieldType)
+            .whereType<String>()
+            .join(', ');
+        return '${typeAnnotation.name.lexeme}<$args>$nullable';
+      }
       return '${typeAnnotation.name.lexeme}$nullable';
     }
 
