@@ -854,7 +854,7 @@ class AuditRepository {}
       // @isMandatoryParameter on late FIELDS (repository pattern)
       // -----------------------------------------------------------------------
 
-      test('repository pattern: @isMandatoryParameter on late field generates initializeDI with get<T>()', () {
+      test('repository pattern: @isMandatoryParameter field + @isOptionalParameter ctor param + @isInjected field — initializeWithParametersDI calls initializeDI() then assigns mandatory fields', () {
         final dir = Directory('${tempDir.path}/lib/src/params');
         dir.createSync(recursive: true);
         final dartFile = File('${dir.path}/id_handler_storage_repository.dart');
@@ -863,14 +863,31 @@ import 'package:singleton_manager/singleton_manager.dart';
 
 abstract class IIdHandlerStorageRepository {}
 abstract class IWorkDb {}
+abstract class ILogger {}
+abstract class IOptionalField {}
+abstract class IOptionalInjected {}
 
 @isSingleton
 class IdHandlerStorageRepository implements IIdHandlerStorageRepository {
-  IdHandlerStorageRepository();
+  IdHandlerStorageRepository({@isOptionalParameter String? collection});
   IdHandlerStorageRepository.fromDb(this.db);
 
   @isMandatoryParameter
   late IWorkDb db;
+
+  @isInjected
+  late ILogger logger;
+
+  @isMandatoryParameter
+  @isInjected
+  late int test;
+
+  @isOptionalParameter
+  late IOptionalField optionalField;
+
+  @isOptionalParameter
+  @isInjected
+  late IOptionalInjected optionalInjected;
 
   late String _collection = 'id_handler';
 }
@@ -878,10 +895,30 @@ class IdHandlerStorageRepository implements IIdHandlerStorageRepository {
 
         final parsed = SourceParser.parse([dartFile]);
         expect(parsed, hasLength(1));
-        expect(parsed[0].injectedFields, hasLength(1));
+        // @isOptionalParameter on field → treated as @isInjected (isMandatory=false)
+        expect(parsed[0].injectedFields, hasLength(5));
         expect(parsed[0].injectedFields[0].fieldName, 'db');
         expect(parsed[0].injectedFields[0].fieldType, 'IWorkDb');
-        expect(parsed[0].constructorParameters, isEmpty);
+        expect(parsed[0].injectedFields[0].isMandatory, isTrue);
+        expect(parsed[0].injectedFields[1].fieldName, 'logger');
+        expect(parsed[0].injectedFields[1].fieldType, 'ILogger');
+        expect(parsed[0].injectedFields[1].isMandatory, isFalse);
+        expect(parsed[0].injectedFields[2].fieldName, 'test');
+        expect(parsed[0].injectedFields[2].fieldType, 'int');
+        expect(parsed[0].injectedFields[2].isMandatory, isTrue);
+        // @isOptionalParameter on field → isOptional=true
+        expect(parsed[0].injectedFields[3].fieldName, 'optionalField');
+        expect(parsed[0].injectedFields[3].fieldType, 'IOptionalField');
+        expect(parsed[0].injectedFields[3].isMandatory, isFalse);
+        expect(parsed[0].injectedFields[3].isOptional, isTrue);
+        // @isOptionalParameter @isInjected on field → isOptional=true
+        expect(parsed[0].injectedFields[4].fieldName, 'optionalInjected');
+        expect(parsed[0].injectedFields[4].fieldType, 'IOptionalInjected');
+        expect(parsed[0].injectedFields[4].isMandatory, isFalse);
+        expect(parsed[0].injectedFields[4].isOptional, isTrue);
+        expect(parsed[0].constructorParameters, hasLength(1));
+        expect(parsed[0].constructorParameters[0].name, 'collection');
+        expect(parsed[0].constructorParameters[0].isMandatory, isFalse);
 
         final diCode = AugmentationGenerator.generate(parsed[0]);
         File('${dir.path}/id_handler_storage_repository_di.dart').writeAsStringSync(diCode);
@@ -890,17 +927,28 @@ class IdHandlerStorageRepository implements IIdHandlerStorageRepository {
         expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
         // Class declaration
         expect(diCode, contains('class IdHandlerStorageRepositoryDI extends IdHandlerStorageRepository implements ISingletonStandardDI'));
-        // No-arg constructor (default ctor has no params)
-        expect(diCode, contains('IdHandlerStorageRepositoryDI() : super()'));
-        // No-arg factory (no mandatory ctor params)
+        // Constructor mirrors optional ctor param
+        expect(diCode, contains('IdHandlerStorageRepositoryDI({String? collection}) : super(collection: collection)'));
+        // No-arg factory present (no mandatory ctor params, only optional)
         expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeDI()'));
-        // initializeDI injects db via get<T>
+        // initializeDI injects ALL annotated fields (mandatory + non-mandatory)
         expect(diCode, contains('db = SingletonDIAccess.get<IWorkDb>()'));
+        expect(diCode, contains('test = SingletonDIAccess.get<int>()'));
+        expect(diCode, contains('logger = SingletonDIAccess.get<ILogger>()'));
+        expect(diCode, contains('if (SingletonDIAccess.exists<IOptionalField>()) optionalField = SingletonDIAccess.get<IOptionalField>()'));
+        expect(diCode, contains('if (SingletonDIAccess.exists<IOptionalInjected>()) optionalInjected = SingletonDIAccess.get<IOptionalInjected>()'));
         // Private field _collection must NOT be injected
         expect(diCode, isNot(contains('_collection')));
-        // @isMandatoryParameter on field → generates initializeWithParametersDI
-        expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeWithParametersDI(IWorkDb db)'));
+        // initializeWithParametersDI: mandatory positional + optional named (ctor + fields)
+        expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeWithParametersDI(IWorkDb db, int test, {String? collection, IOptionalField? optionalField, IOptionalInjected? optionalInjected})'));
+        // pure @isInjected → always from container
+        expect(diCode, contains('instance.logger = SingletonDIAccess.get<ILogger>()'));
+        // @isOptionalParameter fields → direct assignment from parameter
+        expect(diCode, contains('instance.optionalField = optionalField'));
+        expect(diCode, contains('instance.optionalInjected = optionalInjected'));
+        // mandatory fields from parameters
         expect(diCode, contains('instance.db = db'));
+        expect(diCode, contains('instance.test = test'));
       });
 
       test('repository pattern: @isMandatoryParameter field + @isOptionalParameter ctor param — correct combined output', () {
@@ -940,7 +988,7 @@ class StorageRepo {
         // mandatory field comes before optional ctor param in factory signature
         expect(diCode, contains('factory StorageRepoDI.initializeWithParametersDI(IWorkDb db, {String? collection})'));
         expect(diCode, contains('instance.db = db'));
-        // Field injection in initializeDI() body
+        // db is mandatory — also injected in initializeDI() (full singleton mode)
         expect(diCode, contains('db = SingletonDIAccess.get<IWorkDb>()'));
         expect(diCode, isNot(contains('_collection')));
       });

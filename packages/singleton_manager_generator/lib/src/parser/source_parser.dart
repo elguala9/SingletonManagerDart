@@ -76,7 +76,8 @@ class SourceParser {
     for (final member in classDecl.members) {
       if (member is FieldDeclaration) {
         final isMandatoryAnnotation = _findAnnotation(member, 'isMandatoryParameter');
-        final isInjectedAnnotation = _findAnnotation(member, 'isInjected');
+        final isOptionalAnnotation = _findAnnotation(member, 'isOptionalParameter');
+        final isInjectedAnnotation = _findAnnotation(member, 'isInjected') ?? isOptionalAnnotation;
         final annotation = isMandatoryAnnotation ?? isInjectedAnnotation;
         if (annotation != null) {
           // Only inject fields that are 'late' or 'late final'
@@ -88,17 +89,25 @@ class SourceParser {
               if (fieldName.startsWith('_')) {
                 print(
                   'WARNING: @isInjected/@isMandatoryParameter on private field "$fieldName" in class '
-                  '${classDecl.name.lexeme} is not supported — skipping.',
+                  '${classDecl.namePart.typeName.lexeme} is not supported — skipping.',
                 );
                 continue;
               }
               final fieldType = _extractFieldType(member.fields.type);
               if (fieldType != null) {
+                final isOptional = isMandatoryAnnotation == null && isOptionalAnnotation != null;
+                if (isOptional && !fieldType.endsWith('?')) {
+                  print(
+                    'WARNING: @isOptionalParameter field "$fieldName" in class '
+                    '${classDecl.namePart.typeName.lexeme} should be nullable (use "$fieldType?" instead of "$fieldType").',
+                  );
+                }
                 injectedFields.add(
                   InjectedFieldInfo(
                     fieldName: fieldName,
                     fieldType: fieldType,
                     isMandatory: isMandatoryAnnotation != null,
+                    isOptional: isOptional,
                   ),
                 );
               }
@@ -115,8 +124,7 @@ class SourceParser {
     }
 
     return SingletonClassInfo(
-      // ignore: deprecated_member_use
-      className: classDecl.name.lexeme,
+      className: classDecl.namePart.typeName.lexeme,
       sourceFilePath: sourceFile.path,
       injectedFields: injectedFields,
       sourceFileContent: sourceFileContent,

@@ -35,6 +35,9 @@ class SingletonDIAccess {
       T extends I>(T instance) =>
       SingletonManager.instance.addInstanceAs<I, T>(instance);
 
+  static bool exists<T extends Object>() =>
+      SingletonManager.instance.exists<T>();
+
   static T get<T extends Object>() =>
       SingletonManager.instance.get<T>();
 

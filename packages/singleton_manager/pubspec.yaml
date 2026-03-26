@@ -5,7 +5,7 @@ description: >
   Includes @isSingleton and @isInjected annotations for code generation.
   Ideal for dependency injection, service locators, and resource management.
 
-version: 0.4.2
+version: 0.5.0
 
 resolution: workspace
 

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-03-25
+
+### Fixed
+- Doc comment lines exceeding 80-character limit in `is_mandatory_parameter.dart` and `is_optional_parameter.dart`
+
 ## [0.4.1] - 2026-03-24
 
 ### Added
