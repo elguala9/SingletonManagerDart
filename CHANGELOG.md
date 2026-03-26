@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Monorepo Updates - 2026-03-26
+
+### singleton_manager_generator [1.3.0]
+
+- **Breaking**: generated DI class no longer uses the default constructor — replaced with named constructor `.emptyForDI()` to avoid conflicts with the parent class default constructor
+  - `ClassName DI() : super()` → `ClassNameDI.emptyForDI() : super()`
+  - All generated factory methods (`initializeDI`, `initializeWithParametersDI`) now instantiate via `.emptyForDI()`
+- Added test artifact `id_handler_storage_repository_no_ctor_params` covering the full combination of `@isMandatoryParameter`, `@isOptionalParameter`, and `@isInjected` fields with an empty constructor
+
 ## Monorepo Updates - 2026-03-16
 
 ### singleton_manager_generator [1.0.0]

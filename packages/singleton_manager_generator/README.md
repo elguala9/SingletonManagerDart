@@ -6,8 +6,10 @@ A CLI tool that generates Dart DI files for `@isSingleton` classes, automaticall
 
 - Scans Dart source files for `@isSingleton` and `@isInjected` annotations
 - Generates `extends`-based DI classes implementing `ISingletonStandardDI`
-- Creates `initializeDI()` factory methods for each singleton class
-- Supports multiple injected fields per class
+- Creates `initializeDI()` factory for pure container-resolved singletons
+- Creates `initializeWithParametersDI()` factory for singletons with mandatory/optional parameters
+- Named constructor `.emptyForDI()` avoids conflicts with the parent class default constructor
+- Supports `@isMandatoryParameter` and `@isOptionalParameter` on both constructor params and fields
 - Minimal overhead - uses Dart's `analyzer` package for lightweight AST parsing
 
 ## Installation
@@ -85,8 +87,11 @@ The generator creates a DI file (e.g., `my_service_di.dart`) with:
 
 ```dart
 class MyServiceDI extends MyService implements ISingletonStandardDI {
+
+  MyServiceDI.emptyForDI() : super();
+
   factory MyServiceDI.initializeDI() {
-    final instance = MyServiceDI();
+    final instance = MyServiceDI.emptyForDI();
     instance.initializeDI();
     return instance;
   }
@@ -99,6 +104,8 @@ class MyServiceDI extends MyService implements ISingletonStandardDI {
 }
 ```
 
+> **Note**: since v1.3.0 the generated class uses the named constructor `.emptyForDI()` instead of the default constructor, to avoid conflicts when the parent class defines its own default constructor.
+
 Use it in your code:
 
 ```dart
@@ -109,6 +116,55 @@ SingletonDIAccess.set<Logger>(myLogger);
 // Create singleton with auto-injected dependencies
 final service = MyServiceDI.initializeDI();
 ```
+
+## Advanced Annotations
+
+### Constructor parameters
+
+Annotate constructor parameters to expose them in the generated `initializeWithParametersDI()` factory:
+
+```dart
+@isSingleton
+class ApiService {
+  ApiService({
+    @isMandatoryParameter required String baseUrl,
+    @isOptionalParameter String? timeout,
+  });
+
+  @isInjected
+  late Logger logger;
+}
+```
+
+Generated:
+
+```dart
+class ApiServiceDI extends ApiService implements ISingletonStandardDI {
+
+  ApiServiceDI({required String baseUrl, String? timeout}) : super(baseUrl: baseUrl, timeout: timeout);
+
+  factory ApiServiceDI.initializeWithParametersDI(String baseUrl, {String? timeout}) {
+    final instance = ApiServiceDI(baseUrl: baseUrl, timeout: timeout);
+    instance.logger = SingletonDIAccess.get<Logger>();
+    return instance;
+  }
+
+  @override
+  void initializeDI() {
+    logger = SingletonDIAccess.get<Logger>();
+  }
+}
+```
+
+### Field annotations
+
+| Annotation | Effect in `initializeDI()` | Effect in `initializeWithParametersDI()` |
+|---|---|---|
+| `@isInjected` | `field = SingletonDIAccess.get<T>()` | fetched from container |
+| `@isMandatoryParameter` | `field = SingletonDIAccess.get<T>()` | required positional parameter |
+| `@isOptionalParameter` | `if (exists<T>()) field = get<T>()` | nullable named parameter `{T? field}` |
+
+> Fields annotated with `@isOptionalParameter` should use a nullable type (e.g., `IMyService?`).
 
 ## CLI Options
 
