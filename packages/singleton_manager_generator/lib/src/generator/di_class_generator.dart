@@ -43,7 +43,7 @@ class AugmentationGenerator {
     final initializeDIFactory = hasMandatoryCtorParams
         ? ''
         : '  factory ${info.className}DI.initializeDI() {\n'
-            '    final instance = ${info.className}DI.emptyForDI();\n'
+            '    final instance = ${info.className}DI();\n'
             '    instance.initializeDI();\n'
             '    return instance;\n'
             '  }\n';
@@ -82,7 +82,7 @@ $injectionCode  }
   static String _buildDIConstructorLine(SingletonClassInfo info) {
     final params = info.constructorParameters;
     if (params.isEmpty) {
-      return '${info.className}DI.emptyForDI() : super()';
+      return '${info.className}DI() : super.emptyForDI()';
     }
 
     final positional = params.where((p) => !p.isNamed).toList();
