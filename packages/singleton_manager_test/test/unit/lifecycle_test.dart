@@ -4,10 +4,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('RegistryManager - Lifecycle Management', () {
-    late RegistryManager<String, SimpleService> registry;
+    late IRegistry<String> registry;
 
     setUp(() {
-      registry = createTestRegistry();
+      registry = createTestRegistry<String>();
     });
 
     tearDown(() {
@@ -16,7 +16,7 @@ void main() {
 
     test('destroy() is called on manually destroyed items', () {
       final service = SimpleService();
-      registry.register('key1', service);
+      registry.register<SimpleService>('key1', service);
 
       service.destroy();
 
@@ -28,8 +28,8 @@ void main() {
       final service2 = SimpleService(name: 'service2');
 
       registry
-        ..register('key1', service1)
-        ..register('key2', service2)
+        ..register<SimpleService>('key1', service1)
+        ..register<SimpleService>('key2', service2)
         ..destroyAll();
 
       expect(service1.destroyed, isTrue);
@@ -41,8 +41,8 @@ void main() {
       final service2 = SimpleService();
 
       registry
-        ..register('key1', service1)
-        ..register('key2', service2);
+        ..register<SimpleService>('key1', service1)
+        ..register<SimpleService>('key2', service2);
 
       expect(registry.registrySize, equals(2));
 
@@ -55,7 +55,7 @@ void main() {
     test('clearRegistry() empties the registry without destroying', () {
       final service = SimpleService();
       registry
-        ..register('key1', service)
+        ..register<SimpleService>('key1', service)
         ..clearRegistry();
 
       expect(registry.isEmpty, isTrue);
@@ -63,12 +63,11 @@ void main() {
     });
 
     test('destroyAll() handles lazy entries correctly', () {
-      final lazyRegistry = createTestRegistry<String, SimpleService>()
-        ..registerLazy('lazy1', () => SimpleService(name: 'lazy1'))
-        ..registerLazy('lazy2', () => SimpleService(name: 'lazy2'));
+      final lazyRegistry = createTestRegistry<String>()
+        ..registerLazy<SimpleService>('lazy1', () => SimpleService(name: 'lazy1'))
+        ..registerLazy<SimpleService>('lazy2', () => SimpleService(name: 'lazy2'));
 
-      // Access one to initialize it
-      final initializedService = lazyRegistry.getInstance('lazy1');
+      final initializedService = lazyRegistry.getInstance<SimpleService>('lazy1');
 
       lazyRegistry.destroyAll();
 
@@ -81,24 +80,22 @@ void main() {
     test('multiple destroy calls are safe', () {
       final service = SimpleService();
       registry
-        ..register('key1', service)
+        ..register<SimpleService>('key1', service)
         ..destroyAll();
-      // This should not throw even though already destroyed
       expect(service.destroyed, isTrue);
 
-      // Manually destroying again should be safe (no exception)
       service.destroy();
       expect(service.destroyed, isTrue);
     });
 
-    test('destroy on unregister', () {
+    test('unregister does not destroy', () {
       final service = SimpleService();
-      registry.register('key1', service);
+      registry.register<SimpleService>('key1', service);
 
-      final unregistered = registry.unregister('key1');
+      final unregistered = registry.unregister<SimpleService>('key1');
 
       expect(unregistered, isNotNull);
-      expect(service.destroyed, isFalse); // unregister doesn't destroy
+      expect(service.destroyed, isFalse);
     });
   });
 }

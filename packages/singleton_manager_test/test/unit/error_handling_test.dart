@@ -4,10 +4,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('RegistryManager - Error Handling & Edge Cases', () {
-    late RegistryManager<String, SimpleService> registry;
+    late IRegistry<String> registry;
 
     setUp(() {
-      registry = createTestRegistry();
+      registry = createTestRegistry<String>();
     });
 
     tearDown(() {
@@ -18,23 +18,22 @@ void main() {
       final service1 = SimpleService(name: 'first');
       final service2 = SimpleService(name: 'second');
 
-      registry.register('key', service1);
+      registry.register<SimpleService>('key', service1);
 
       expect(
-        () => registry.register('key', service2),
+        () => registry.register<SimpleService>('key', service2),
         throwsA(isA<DuplicateRegistrationError>()),
       );
 
-      // Original should still be registered
-      expect(registry.getInstance('key'), same(service1));
+      expect(registry.getInstance<SimpleService>('key'), same(service1));
     });
 
     test('DuplicateRegistrationError message is informative', () {
       final service = SimpleService();
-      registry.register('key', service);
+      registry.register<SimpleService>('key', service);
 
       expect(
-        () => registry.register('key', SimpleService()),
+        () => registry.register<SimpleService>('key', SimpleService()),
         throwsA(
           isA<DuplicateRegistrationError>().having(
             (e) => e.message,
@@ -47,14 +46,14 @@ void main() {
 
     test('RegistryNotFoundError on getInstance with nonexistent key', () {
       expect(
-        () => registry.getInstance('nonexistent'),
+        () => registry.getInstance<SimpleService>('nonexistent'),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });
 
     test('RegistryNotFoundError message includes key info', () {
       expect(
-        () => registry.getInstance('missing-key'),
+        () => registry.getInstance<SimpleService>('missing-key'),
         throwsA(
           isA<RegistryNotFoundError>().having(
             (e) => e.message,
@@ -69,146 +68,145 @@ void main() {
       final service = SimpleService();
 
       expect(
-        () => registry.replace('nonexistent', service),
+        () => registry.replace<SimpleService>('nonexistent', service),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });
 
     test('RegistryNotFoundError on replaceLazy with nonexistent key', () {
       expect(
-        () => registry.replaceLazy('nonexistent', SimpleService.new),
+        () => registry.replaceLazy<SimpleService>('nonexistent', SimpleService.new),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });
 
     test('unregister returns null for nonexistent key', () {
-      final result = registry.unregister('nonexistent');
+      final result = registry.unregister<SimpleService>('nonexistent');
       expect(result, isNull);
     });
 
     test('getByKey returns null instead of throwing', () {
-      final result = registry.getByKey('nonexistent');
+      final result = registry.getByKey<SimpleService>('nonexistent');
       expect(result, isNull);
     });
 
     test('contains returns false for nonexistent key', () {
-      expect(registry.contains('nonexistent'), isFalse);
+      expect(registry.contains<SimpleService>('nonexistent'), isFalse);
     });
 
     test('registerLazy also throws DuplicateRegistrationError', () {
-      registry.registerLazy('key', () => SimpleService(name: 'first'));
+      registry.registerLazy<SimpleService>(
+        'key',
+        () => SimpleService(name: 'first'),
+      );
 
       expect(
-        () => registry.registerLazy('key', () => SimpleService(name: 'second')),
+        () => registry.registerLazy<SimpleService>(
+          'key',
+          () => SimpleService(name: 'second'),
+        ),
         throwsA(isA<DuplicateRegistrationError>()),
       );
     });
 
     test('registerLazy throws on duplicate with eager service', () {
-      registry.register('key', SimpleService());
+      registry.register<SimpleService>('key', SimpleService());
 
       expect(
-        () => registry.registerLazy('key', SimpleService.new),
+        () => registry.registerLazy<SimpleService>('key', SimpleService.new),
         throwsA(isA<DuplicateRegistrationError>()),
       );
     });
 
     test('register throws on duplicate with lazy service', () {
-      registry.registerLazy('key', SimpleService.new);
+      registry.registerLazy<SimpleService>('key', SimpleService.new);
 
       expect(
-        () => registry.register('key', SimpleService()),
+        () => registry.register<SimpleService>('key', SimpleService()),
         throwsA(isA<DuplicateRegistrationError>()),
       );
     });
 
-    test('getInstance throws for lazy entry with missing factory', () {
-      // This is a structural test - lazy entries should always be callable
-      registry.registerLazy('lazy', SimpleService.new);
+    test('getInstance works for lazy entry', () {
+      registry.registerLazy<SimpleService>('lazy', SimpleService.new);
 
-      // Should work
       expect(
-        () => registry.getInstance('lazy'),
+        () => registry.getInstance<SimpleService>('lazy'),
         returnsNormally,
       );
     });
 
     test('error state does not corrupt registry', () {
       final service1 = SimpleService(name: 'service1');
-      registry.register('key1', service1);
+      registry.register<SimpleService>('key1', service1);
 
-      // Try to register duplicate
       expect(
-        () => registry.register('key1', SimpleService()),
+        () => registry.register<SimpleService>('key1', SimpleService()),
         throwsA(isA<DuplicateRegistrationError>()),
       );
 
-      // Registry should still be valid
-      expect(registry.contains('key1'), isTrue);
-      expect(registry.getInstance('key1'), same(service1));
+      expect(registry.contains<SimpleService>('key1'), isTrue);
+      expect(registry.getInstance<SimpleService>('key1'), same(service1));
       expect(registry.registrySize, equals(1));
 
-      // Should be able to register other keys
       final service2 = SimpleService(name: 'service2');
-      registry.register('key2', service2);
+      registry.register<SimpleService>('key2', service2);
       expect(registry.registrySize, equals(2));
     });
 
-    test('replace triggers destroy even on error', () {
+    test('replace triggers destroy on old value', () {
       final oldService = SimpleService(name: 'old');
-      registry.register('key', oldService);
+      registry.register<SimpleService>('key', oldService);
 
       final newService = SimpleService(name: 'new');
-      registry.replace('key', newService);
+      registry.replace<SimpleService>('key', newService);
 
       expect(oldService.destroyed, isTrue);
     });
 
     test('sequential errors do not break registry', () {
-      registry.register('key1', SimpleService());
+      registry.register<SimpleService>('key1', SimpleService());
 
-      // First error
       expect(
-        () => registry.getInstance('nonexistent1'),
+        () => registry.getInstance<SimpleService>('nonexistent1'),
         throwsA(isA<RegistryNotFoundError>()),
       );
 
-      // Registry should still work
-      expect(registry.getInstance('key1'), isNotNull);
+      expect(registry.getInstance<SimpleService>('key1'), isNotNull);
 
-      // Second error
       expect(
-        () => registry.getInstance('nonexistent2'),
+        () => registry.getInstance<SimpleService>('nonexistent2'),
         throwsA(isA<RegistryNotFoundError>()),
       );
 
-      // Registry still functional
-      expect(registry.getInstance('key1'), isNotNull);
+      expect(registry.getInstance<SimpleService>('key1'), isNotNull);
     });
 
     test('keys property works even after errors', () {
       registry
-        ..register('key1', SimpleService())
-        ..register('key2', SimpleService());
+        ..register<SimpleService>('key1', SimpleService())
+        ..register<SimpleService>('key2', SimpleService());
 
       try {
-        registry.getInstance('nonexistent');
-      // ignore: avoid_catching_errors
+        registry.getInstance<SimpleService>('nonexistent');
+        // ignore: avoid_catching_errors
       } on RegistryError {
         // Ignored
       }
 
-      final keys = registry.keys;
-      expect(keys, containsAll(['key1', 'key2']));
+      expect(
+        extractKeys(registry.keys),
+        containsAll(['key1', 'key2']),
+      );
     });
 
     test('isEmpty/isNotEmpty consistent after errors', () {
-      registry.register('key', SimpleService());
+      registry.register<SimpleService>('key', SimpleService());
       expect(registry.isNotEmpty, isTrue);
 
       try {
-        registry.replace('nonexistent', SimpleService());
-      // ignore: avoid_catching_errors
+        registry.replace<SimpleService>('nonexistent', SimpleService());
+        // ignore: avoid_catching_errors
       } on RegistryError {
         // Ignored
       }
@@ -218,11 +216,11 @@ void main() {
     });
 
     test('clearRegistry after errors', () {
-      registry.register('key', SimpleService());
+      registry.register<SimpleService>('key', SimpleService());
 
       try {
-        registry.getInstance('nonexistent');
-      // ignore: avoid_catching_errors
+        registry.getInstance<SimpleService>('nonexistent');
+        // ignore: avoid_catching_errors
       } on RegistryError {
         // Ignored
       }
@@ -232,11 +230,11 @@ void main() {
     });
 
     test('destroyAll after errors', () {
-      registry.register('key', SimpleService());
+      registry.register<SimpleService>('key', SimpleService());
 
       try {
-        registry.replace('nonexistent', SimpleService());
-      // ignore: avoid_catching_errors
+        registry.replace<SimpleService>('nonexistent', SimpleService());
+        // ignore: avoid_catching_errors
       } on RegistryError {
         // Ignored
       }
@@ -248,55 +246,53 @@ void main() {
     test('error in lazy factory is deferred', () {
       var factoryCallCount = 0;
 
-      registry.registerLazy('failing-lazy', () {
+      registry.registerLazy<SimpleService>('failing-lazy', () {
         factoryCallCount++;
         throw Exception('Factory error');
       });
 
-      expect(factoryCallCount, equals(0)); // Not called yet
+      expect(factoryCallCount, equals(0));
 
       expect(
-        () => registry.getInstance('failing-lazy'),
+        () => registry.getInstance<SimpleService>('failing-lazy'),
         throwsA(isA<Exception>()),
       );
 
-      expect(factoryCallCount, equals(1)); // Called on access
+      expect(factoryCallCount, equals(1));
     });
 
     test('error in lazy factory does not poison registry', () {
       registry
-        ..registerLazy('failing', () {
+        ..registerLazy<SimpleService>('failing', () {
           throw Exception('Factory error');
         })
-        ..register('working', SimpleService());
+        ..register<SimpleService>('working', SimpleService());
 
       expect(
-        () => registry.getInstance('failing'),
+        () => registry.getInstance<SimpleService>('failing'),
         throwsA(isA<Exception>()),
       );
 
-      // Working service should still be accessible
-      expect(registry.getInstance('working'), isNotNull);
-
-      // Registry size should reflect both
+      expect(registry.getInstance<SimpleService>('working'), isNotNull);
       expect(registry.registrySize, equals(2));
     });
 
     test('multiple registries error independence', () {
-      final registry1 = createTestRegistry<String, SimpleService>();
-      final registry2 = createTestRegistry<String, SimpleService>();
+      final registry1 = createTestRegistry<String>();
+      final registry2 = createTestRegistry<String>();
 
-      registry1.register('key', SimpleService(name: 'reg1'));
-      registry2.register('key', SimpleService(name: 'reg2'));
+      registry1.register<SimpleService>('key', SimpleService(name: 'reg1'));
+      registry2.register<SimpleService>('key', SimpleService(name: 'reg2'));
 
-      // Error in registry1
       expect(
-        () => registry1.getInstance('nonexistent'),
+        () => registry1.getInstance<SimpleService>('nonexistent'),
         throwsA(isA<RegistryNotFoundError>()),
       );
 
-      // Registry2 should not be affected
-      expect(registry2.getInstance('key').name, equals('reg2'));
+      expect(
+        registry2.getInstance<SimpleService>('key').name,
+        equals('reg2'),
+      );
 
       cleanupRegistry(registry1);
       cleanupRegistry(registry2);
@@ -304,54 +300,51 @@ void main() {
 
     test('error recovery with replace', () {
       final service1 = SimpleService(name: 'v1');
-      registry.register('key', service1);
+      registry.register<SimpleService>('key', service1);
 
-      // Try to register duplicate (error)
       expect(
-        () => registry.register('key', SimpleService()),
+        () => registry.register<SimpleService>('key', SimpleService()),
         throwsA(isA<DuplicateRegistrationError>()),
       );
 
-      // Recover with replace
       final service2 = SimpleService(name: 'v2');
-      registry.replace('key', service2);
+      registry.replace<SimpleService>('key', service2);
 
       expect(service1.destroyed, isTrue);
-      expect(registry.getInstance('key'), same(service2));
+      expect(registry.getInstance<SimpleService>('key'), same(service2));
     });
 
     test('unregister and re-register recovery pattern', () {
       final service1 = SimpleService(name: 'service1');
       registry
-        ..register('key', service1)
-        ..unregister('key');
+        ..register<SimpleService>('key', service1)
+        ..unregister<SimpleService>('key');
 
-      // Should be able to re-register
       final service2 = SimpleService(name: 'service2');
       expect(
-        () => registry.register('key', service2),
+        () => registry.register<SimpleService>('key', service2),
         returnsNormally,
       );
 
-      expect(registry.getInstance('key'), same(service2));
+      expect(registry.getInstance<SimpleService>('key'), same(service2));
     });
 
     test('registrySize accurate after error conditions', () {
       expect(registry.registrySize, equals(0));
 
-      registry.register('key1', SimpleService());
+      registry.register<SimpleService>('key1', SimpleService());
       expect(registry.registrySize, equals(1));
 
       try {
-        registry.register('key1', SimpleService()); // Duplicate error
+        registry.register<SimpleService>('key1', SimpleService());
         // ignore: avoid_catching_errors
       } on RegistryError {
         // Expected
       }
 
-      expect(registry.registrySize, equals(1)); // Should not change
+      expect(registry.registrySize, equals(1));
 
-      registry.register('key2', SimpleService());
+      registry.register<SimpleService>('key2', SimpleService());
       expect(registry.registrySize, equals(2));
     });
   });

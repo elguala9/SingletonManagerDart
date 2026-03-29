@@ -4,10 +4,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('RegistryManager - Lazy Registration', () {
-    late RegistryManager<String, LazyService> registry;
+    late IRegistry<String> registry;
 
     setUp(() {
-      registry = createTestRegistry();
+      registry = createTestRegistry<String>();
       LazyService.reset();
     });
 
@@ -16,55 +16,53 @@ void main() {
     });
 
     test('registerLazy() adds a lazy value without calling the factory', () {
-      registry.registerLazy('key1', LazyService.tracked);
+      registry.registerLazy<LazyService>('key1', LazyService.tracked);
 
       expect(LazyService.constructorCalled, isFalse);
-      expect(registry.contains('key1'), isTrue);
+      expect(registry.contains<LazyService>('key1'), isTrue);
     });
 
     test('registerLazy() throws DuplicateRegistrationError for duplicate keys',
         () {
-      registry.registerLazy('key1', LazyService.new);
+      registry.registerLazy<LazyService>('key1', LazyService.new);
 
       expect(
-        () => registry.registerLazy('key1', LazyService.new),
+        () => registry.registerLazy<LazyService>('key1', LazyService.new),
         throwsA(isA<DuplicateRegistrationError>()),
       );
     });
 
     test('getInstance() calls the factory function on first access', () {
-      registry.registerLazy('key1', LazyService.tracked);
+      registry.registerLazy<LazyService>('key1', LazyService.tracked);
 
       expect(LazyService.constructorCalled, isFalse);
 
-      final service = registry.getInstance('key1');
+      final service = registry.getInstance<LazyService>('key1');
 
       expect(LazyService.constructorCalled, isTrue);
       expect(service, isNotNull);
     });
 
     test('getInstance() caches the lazy instance on subsequent calls', () {
-      registry.registerLazy('key1', LazyService.tracked);
+      registry.registerLazy<LazyService>('key1', LazyService.tracked);
 
-      final service1 = registry.getInstance('key1');
-      final service2 = registry.getInstance('key1');
+      final service1 = registry.getInstance<LazyService>('key1');
+      final service2 = registry.getInstance<LazyService>('key1');
 
       expect(service1, same(service2));
       expect(LazyService.instantiationCount, equals(1));
     });
 
     test('replaceLazy() updates a lazy entry and destroys the old one', () {
-      // Access it to initialize
       registry
-        ..registerLazy('key1', LazyService.new)
-        ..getInstance('key1');
+        ..registerLazy<LazyService>('key1', LazyService.new)
+        ..getInstance<LazyService>('key1');
 
       LazyService.reset();
 
-      registry.replaceLazy('key1', LazyService.tracked);
+      registry.replaceLazy<LazyService>('key1', LazyService.tracked);
 
-      // The old service should not be destroyed until a new one is created
-      final newService = registry.getInstance('key1');
+      final newService = registry.getInstance<LazyService>('key1');
 
       expect(newService, isNotNull);
       expect(LazyService.instantiationCount, equals(1));
@@ -72,7 +70,7 @@ void main() {
 
     test('replaceLazy() throws RegistryNotFoundError if key does not exist', () {
       expect(
-        () => registry.replaceLazy('nonexistent', LazyService.new),
+        () => registry.replaceLazy<LazyService>('nonexistent', LazyService.new),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });
@@ -80,22 +78,22 @@ void main() {
     test('mixed eager and lazy registrations work together', () {
       final eagerService = LazyService();
       registry
-        ..register('eager', eagerService)
-        ..registerLazy('lazy', LazyService.tracked);
+        ..register<LazyService>('eager', eagerService)
+        ..registerLazy<LazyService>('lazy', LazyService.tracked);
 
       expect(LazyService.constructorCalled, isFalse);
 
-      final retrievedEager = registry.getInstance('eager');
+      final retrievedEager = registry.getInstance<LazyService>('eager');
       expect(retrievedEager, same(eagerService));
 
-      final retrievedLazy = registry.getInstance('lazy');
+      final retrievedLazy = registry.getInstance<LazyService>('lazy');
       expect(LazyService.constructorCalled, isTrue);
       expect(retrievedLazy, isNotNull);
     });
 
     test('getInstance() throws RegistryNotFoundError for missing lazy keys', () {
       expect(
-        () => registry.getInstance('nonexistent'),
+        () => registry.getInstance<LazyService>('nonexistent'),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });

@@ -4,10 +4,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('RegistryManager - Complex Scenarios', () {
-    late RegistryManager<String, SimpleService> registry;
+    late IRegistry<String> registry;
 
     setUp(() {
-      registry = createTestRegistry();
+      registry = createTestRegistry<String>();
     });
 
     tearDown(() {
@@ -19,57 +19,63 @@ void main() {
       final eagerService2 = SimpleService(name: 'eager2');
 
       registry
-        ..register('eager1', eagerService1)
-        ..register('eager2', eagerService2)
-        ..registerLazy('lazy1', () => SimpleService(name: 'lazy1'))
-        ..registerLazy('lazy2', () => SimpleService(name: 'lazy2'));
+        ..register<SimpleService>('eager1', eagerService1)
+        ..register<SimpleService>('eager2', eagerService2)
+        ..registerLazy<SimpleService>('lazy1', () => SimpleService(name: 'lazy1'))
+        ..registerLazy<SimpleService>('lazy2', () => SimpleService(name: 'lazy2'));
 
       expect(registry.registrySize, equals(4));
 
-      // Verify eager services are immediately available
-      expect(registry.getInstance('eager1'), same(eagerService1));
-      expect(registry.getInstance('eager2'), same(eagerService2));
+      expect(registry.getInstance<SimpleService>('eager1'), same(eagerService1));
+      expect(registry.getInstance<SimpleService>('eager2'), same(eagerService2));
 
-      // Verify lazy services work after access
-      final lazy1 = registry.getInstance('lazy1');
+      final lazy1 = registry.getInstance<SimpleService>('lazy1');
       expect(lazy1.name, equals('lazy1'));
 
-      final lazy2 = registry.getInstance('lazy2');
+      final lazy2 = registry.getInstance<SimpleService>('lazy2');
       expect(lazy2.name, equals('lazy2'));
     });
 
     test('replace eager with lazy and vice versa', () {
       final eagerService = SimpleService(name: 'eager');
-      registry.register('key', eagerService);
+      registry.register<SimpleService>('key', eagerService);
 
-      expect(registry.getInstance('key').name, equals('eager'));
+      expect(registry.getInstance<SimpleService>('key').name, equals('eager'));
 
-      registry.replaceLazy('key', () => SimpleService(name: 'lazy'));
-      final lazyService = registry.getInstance('key');
+      registry.replaceLazy<SimpleService>('key', () => SimpleService(name: 'lazy'));
+      final lazyService = registry.getInstance<SimpleService>('key');
 
       expect(lazyService.name, equals('lazy'));
       expect(eagerService.destroyed, isTrue);
     });
 
     test('DI container with multiple service types', () {
-      // Simulate a DI container with different service types
-      final registry1 = createTestRegistry<String, SimpleService>()
-        ..register('database', SimpleService(name: 'DatabaseService'))
-        ..register('cache', SimpleService(name: 'CacheService'))
-        ..registerLazy('logger', () => SimpleService(name: 'LoggerService'))
-        ..registerLazy('api', () => SimpleService(name: 'ApiService'));
+      final registry1 = createTestRegistry<String>()
+        ..register<SimpleService>('database', SimpleService(name: 'DatabaseService'))
+        ..register<SimpleService>('cache', SimpleService(name: 'CacheService'))
+        ..registerLazy<SimpleService>('logger', () => SimpleService(name: 'LoggerService'))
+        ..registerLazy<SimpleService>('api', () => SimpleService(name: 'ApiService'));
 
-      // Verify all are accessible
-      expect(registry1.getInstance('database').name, equals('DatabaseService'));
-      expect(registry1.getInstance('cache').name, equals('CacheService'));
-      expect(registry1.getInstance('logger').name, equals('LoggerService'));
-      expect(registry1.getInstance('api').name, equals('ApiService'));
-
-      // Verify we have all keys
-      final keys = registry1.keys;
-      expect(keys, hasLength(4));
       expect(
-        keys,
+        registry1.getInstance<SimpleService>('database').name,
+        equals('DatabaseService'),
+      );
+      expect(
+        registry1.getInstance<SimpleService>('cache').name,
+        equals('CacheService'),
+      );
+      expect(
+        registry1.getInstance<SimpleService>('logger').name,
+        equals('LoggerService'),
+      );
+      expect(
+        registry1.getInstance<SimpleService>('api').name,
+        equals('ApiService'),
+      );
+
+      expect(registry1.keys, hasLength(4));
+      expect(
+        extractKeys(registry1.keys),
         containsAll(['database', 'cache', 'logger', 'api']),
       );
 
@@ -79,17 +85,15 @@ void main() {
     test('registry handles repeated destroy cycles', () {
       final service = SimpleService(name: 'test');
       registry
-        ..register('key', service)
+        ..register<SimpleService>('key', service)
         ..destroyAll();
       expect(service.destroyed, isTrue);
       expect(registry.isEmpty, isTrue);
 
-      // Re-register
       final newService = SimpleService(name: 'test2');
-      registry.register('key', newService);
+      registry.register<SimpleService>('key', newService);
       expect(registry.isNotEmpty, isTrue);
 
-      // Second destroy
       registry.destroyAll();
       expect(newService.destroyed, isTrue);
       expect(registry.isEmpty, isTrue);
@@ -99,13 +103,13 @@ void main() {
       SimpleService.instantiationCount = 0;
 
       registry
-        ..registerLazy('lazy1', SimpleService.counted)
-        ..registerLazy('lazy2', SimpleService.counted)
-        ..registerLazy('lazy3', SimpleService.counted);
+        ..registerLazy<SimpleService>('lazy1', SimpleService.counted)
+        ..registerLazy<SimpleService>('lazy2', SimpleService.counted)
+        ..registerLazy<SimpleService>('lazy3', SimpleService.counted);
 
-      final service1 = registry.getInstance('lazy1');
-      final service2 = registry.getInstance('lazy2');
-      final service3 = registry.getInstance('lazy3');
+      final service1 = registry.getInstance<SimpleService>('lazy1');
+      final service2 = registry.getInstance<SimpleService>('lazy2');
+      final service3 = registry.getInstance<SimpleService>('lazy3');
 
       expect(SimpleService.instantiationCount, equals(3));
       expect(service1, isNot(same(service2)));
@@ -114,17 +118,17 @@ void main() {
 
     test('version tracking across updates', () {
       final service1 = SimpleService(name: 'v1');
-      registry.register('key', service1);
+      registry.register<SimpleService>('key', service1);
 
-      final wrapper1 = registry.getByKey('key');
+      final wrapper1 = registry.getByKey<SimpleService>('key');
       expect(wrapper1!.version, equals(0));
 
-      registry.replace('key', SimpleService(name: 'v2'));
-      final wrapper2 = registry.getByKey('key');
+      registry.replace<SimpleService>('key', SimpleService(name: 'v2'));
+      final wrapper2 = registry.getByKey<SimpleService>('key');
       expect(wrapper2!.version, equals(1));
 
-      registry.replace('key', SimpleService(name: 'v3'));
-      final wrapper3 = registry.getByKey('key');
+      registry.replace<SimpleService>('key', SimpleService(name: 'v3'));
+      final wrapper3 = registry.getByKey<SimpleService>('key');
       expect(wrapper3!.version, equals(2));
     });
   });

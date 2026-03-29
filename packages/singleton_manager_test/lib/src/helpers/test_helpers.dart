@@ -4,15 +4,17 @@ import 'package:singleton_manager/singleton_manager.dart';
 import 'package:test/test.dart';
 
 /// Cleanup helper for use in tearDown()
-void cleanupRegistry<Key, Value extends IValueForRegistry>(
-  Registry<Key, Value> registry,
-) {
+void cleanupRegistry<Key>(IRegistry<Key> registry) {
   registry.destroyAll();
 }
 
+/// Extracts only the Key part from compound (Type, Key) registry keys.
+/// Useful for assertions that don't care about the type dimension.
+Set<Key> extractKeys<Key>(Set<(Type, Key)> compoundKeys) =>
+    compoundKeys.map((k) => k.$2).toSet();
+
 /// Matcher for checking if two instances are the same (identical)
-Matcher isSameInstance<T>(T expected) =>
-    _SameInstanceMatcher<T>(expected);
+Matcher isSameInstance<T>(T expected) => _SameInstanceMatcher<T>(expected);
 
 class _SameInstanceMatcher<T> extends Matcher {
   _SameInstanceMatcher(this.expected);
@@ -48,7 +50,6 @@ class _DestroyedMatcher extends Matcher {
     if (item is! IValueForRegistry) {
       return false;
     }
-    // We can't directly check _destroyed, so we rely on external tracking
     return true;
   }
 
@@ -67,8 +68,9 @@ class _DestroyedMatcher extends Matcher {
   }
 }
 
-/// Create a test registry manager for the given key and value types
-RegistryManager<Key, Value> createTestRegistry<Key,
-    Value extends IValueForRegistry>() {
-  return RegistryManager<Key, Value>();
+/// Create a test registry for the given key type.
+IRegistry<Key> createTestRegistry<Key>() {
+  return _TestRegistry<Key>();
 }
+
+class _TestRegistry<Key> with Registry<Key> implements IRegistry<Key> {}

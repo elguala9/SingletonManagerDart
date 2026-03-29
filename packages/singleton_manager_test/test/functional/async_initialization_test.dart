@@ -4,10 +4,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('RegistryManager - Async Initialization Pattern', () {
-    late RegistryManager<String, AsyncService> registry;
+    late IRegistry<String> registry;
 
     setUp(() {
-      registry = createTestRegistry();
+      registry = createTestRegistry<String>();
       AsyncService.reset();
     });
 
@@ -16,67 +16,51 @@ void main() {
     });
 
     test('async pattern: initialize then register', () async {
-      // This demonstrates the async pattern where you initialize
-      // the service asynchronously and then register it
       final service = await AsyncService.create(name: 'async-service');
 
-      registry.register('async', service);
+      registry.register<AsyncService>('async', service);
 
-      expect(registry.getInstance('async'), same(service));
+      expect(registry.getInstance<AsyncService>('async'), same(service));
       expect(service.initialized, isTrue);
     });
 
     test('async pattern with multiple services', () async {
-      // Initialize multiple services asynchronously
       final db = await AsyncService.create(name: 'database');
       final cache = await AsyncService.create(name: 'cache');
       final logger = await AsyncService.create(name: 'logger');
 
-      // Register them
       registry
-        ..register('db', db)
-        ..register('cache', cache)
-        ..register('logger', logger);
+        ..register<AsyncService>('db', db)
+        ..register<AsyncService>('cache', cache)
+        ..register<AsyncService>('logger', logger);
 
-      // Verify all are properly registered
-      expect(registry.getInstance('db'), same(db));
-      expect(registry.getInstance('cache'), same(cache));
-      expect(registry.getInstance('logger'), same(logger));
+      expect(registry.getInstance<AsyncService>('db'), same(db));
+      expect(registry.getInstance<AsyncService>('cache'), same(cache));
+      expect(registry.getInstance<AsyncService>('logger'), same(logger));
       expect(AsyncService.instantiationCount, equals(3));
     });
 
     test('ISingleton interface pattern for initialization', () async {
-      // This demonstrates using a custom class that implements ISingleton
-      // for managing the async initialization of a service
       _ServiceInitializer(registry).initializeDI();
 
-      // Give async initialization time to complete
-      await Future.delayed(const Duration(milliseconds: 50));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      // Verify it's registered
-      expect(registry.contains('service'), isTrue);
-      final service = registry.getInstance('service');
+      expect(registry.contains<AsyncService>('service'), isTrue);
+      final service = registry.getInstance<AsyncService>('service');
       expect(service.initialized, isTrue);
     });
 
     test('lazy factories in async context', () async {
-      // Lazy factories can be used to defer async initialization
-      // until the service is actually needed
       var initialized = false;
 
-      registry.registerLazy('lazy-async', () {
+      registry.registerLazy<AsyncService>('lazy-async', () {
         initialized = true;
-        // In reality, you'd call an async factory here
-        // For this test, we just create a sync service
-        return AsyncService(
-          name: 'lazy-async',
-          initialized: true,
-        );
+        return AsyncService(name: 'lazy-async', initialized: true);
       });
 
       expect(initialized, isFalse);
 
-      final service = registry.getInstance('lazy-async');
+      final service = registry.getInstance<AsyncService>('lazy-async');
 
       expect(initialized, isTrue);
       expect(service.initialized, isTrue);
@@ -85,7 +69,7 @@ void main() {
     test('factory error handling in lazy registration', () async {
       var errorThrown = false;
 
-      registry.registerLazy('error-factory', () {
+      registry.registerLazy<AsyncService>('error-factory', () {
         errorThrown = true;
         throw Exception('Factory failed');
       });
@@ -93,7 +77,7 @@ void main() {
       expect(errorThrown, isFalse);
 
       expect(
-        () => registry.getInstance('error-factory'),
+        () => registry.getInstance<AsyncService>('error-factory'),
         throwsA(isA<Exception>()),
       );
       expect(errorThrown, isTrue);
@@ -104,7 +88,7 @@ void main() {
 
       for (var i = 0; i < 3; i++) {
         final service = await AsyncService.create(name: 'service-$i');
-        registry.register('service-$i', service);
+        registry.register<AsyncService>('service-$i', service);
         services.add(service);
       }
 
@@ -122,16 +106,15 @@ void main() {
 
 /// Example implementation of ISingleton interface for managing
 /// async service initialization
-class _ServiceInitializer
-    implements ISingletonStandard<Null> {
+class _ServiceInitializer implements ISingletonStandard<Null> {
   _ServiceInitializer(this.registry);
 
-  final RegistryManager<String, AsyncService> registry;
+  final IRegistry<String> registry;
 
   @override
   Future<void> initialize(Null input) async {
     final service = await AsyncService.create(name: 'initialized-service');
-    registry.register('service', service);
+    registry.register<AsyncService>('service', service);
   }
 
   @override
