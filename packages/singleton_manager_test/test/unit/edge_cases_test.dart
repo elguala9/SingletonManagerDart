@@ -4,10 +4,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('RegistryManager - Edge Cases', () {
-    late RegistryManager<String, SimpleService> registry;
+    late IRegistry<String> registry;
 
     setUp(() {
-      registry = createTestRegistry();
+      registry = createTestRegistry<String>();
       SimpleService.instantiationCount = 0;
     });
 
@@ -15,12 +15,12 @@ void main() {
       cleanupRegistry(registry);
     });
 
-    test('register null-like objects (empty string as key)', () {
+    test('register with empty string as key', () {
       final service = SimpleService(name: 'test');
-      registry.register('', service);
+      registry.register<SimpleService>('', service);
 
-      expect(registry.contains(''), isTrue);
-      expect(registry.getInstance(''), same(service));
+      expect(registry.contains<SimpleService>(''), isTrue);
+      expect(registry.getInstance<SimpleService>(''), same(service));
     });
 
     test('handle very long key names', () {
@@ -30,10 +30,10 @@ void main() {
           'with_lots_of_repetition';
       final service = SimpleService(name: 'test');
 
-      registry.register(longKey, service);
+      registry.register<SimpleService>(longKey, service);
 
-      expect(registry.contains(longKey), isTrue);
-      expect(registry.getInstance(longKey), same(service));
+      expect(registry.contains<SimpleService>(longKey), isTrue);
+      expect(registry.getInstance<SimpleService>(longKey), same(service));
     });
 
     test('handle special characters in keys', () {
@@ -41,7 +41,7 @@ void main() {
         'key:with:colons',
         'key|with|pipes',
         'key/with/slashes',
-        'key\\with\\backslashes',
+        r'key\with\backslashes',
         'key"with"quotes',
         "key'with'single_quotes",
         'key{with}braces',
@@ -50,46 +50,46 @@ void main() {
 
       for (final key in specialKeys) {
         final service = SimpleService(name: key);
-        registry.register(key, service);
-        expect(registry.contains(key), isTrue);
-        expect(registry.getInstance(key).name, equals(key));
+        registry.register<SimpleService>(key, service);
+        expect(registry.contains<SimpleService>(key), isTrue);
+        expect(
+          registry.getInstance<SimpleService>(key).name,
+          equals(key),
+        );
       }
     });
 
-    test('register and retrieve the same object multiple times via different keys',
-        () {
+    test('register and retrieve the same object via different keys', () {
       final service = SimpleService(name: 'shared');
       registry
-        ..register('key1', service)
-        ..register('key2', service);
+        ..register<SimpleService>('key1', service)
+        ..register<SimpleService>('key2', service);
 
-      // Both keys should point to the exact same instance
-      expect(registry.getInstance('key1'), same(service));
-      expect(registry.getInstance('key2'), same(service));
+      expect(registry.getInstance<SimpleService>('key1'), same(service));
+      expect(registry.getInstance<SimpleService>('key2'), same(service));
       expect(registry.registrySize, equals(2));
     });
 
     test('unregister then re-register with same key', () {
       final service1 = SimpleService(name: 'first');
-      registry.register('key', service1);
+      registry.register<SimpleService>('key', service1);
 
-      final unregistered = registry.unregister('key');
+      final unregistered = registry.unregister<SimpleService>('key');
       expect(unregistered, isNotNull);
-      expect(registry.contains('key'), isFalse);
+      expect(registry.contains<SimpleService>('key'), isFalse);
 
-      // Re-register with same key should work
       final service2 = SimpleService(name: 'second');
-      registry.register('key', service2);
+      registry.register<SimpleService>('key', service2);
 
-      expect(registry.contains('key'), isTrue);
-      expect(registry.getInstance('key'), same(service2));
+      expect(registry.contains<SimpleService>('key'), isTrue);
+      expect(registry.getInstance<SimpleService>('key'), same(service2));
     });
 
-    test('clear registry then verify it is truly empty', () {
+    test('clear registry then verify truly empty', () {
       registry
-        ..register('key1', SimpleService())
-        ..register('key2', SimpleService())
-        ..registerLazy('key3', SimpleService.new);
+        ..register<SimpleService>('key1', SimpleService())
+        ..register<SimpleService>('key2', SimpleService())
+        ..registerLazy<SimpleService>('key3', SimpleService.new);
 
       expect(registry.isEmpty, isFalse);
 
@@ -103,39 +103,37 @@ void main() {
     test('lazy factory that returns same instance repeatedly', () {
       final sharedInstance = SimpleService(name: 'shared');
 
-      registry.registerLazy('key', () => sharedInstance);
+      registry.registerLazy<SimpleService>('key', () => sharedInstance);
 
-      final first = registry.getInstance('key');
-      final second = registry.getInstance('key');
-      final third = registry.getInstance('key');
+      final first = registry.getInstance<SimpleService>('key');
+      final second = registry.getInstance<SimpleService>('key');
+      final third = registry.getInstance<SimpleService>('key');
 
       expect(first, same(second));
       expect(second, same(third));
       expect(first, same(sharedInstance));
     });
 
-    test('replace with self should still increment version', () {
+    test('replace increments version', () {
       final service = SimpleService(name: 'test');
-      registry.register('key', service);
+      registry.register<SimpleService>('key', service);
 
-      final wrapper1 = registry.getByKey('key');
+      final wrapper1 = registry.getByKey<SimpleService>('key');
       expect(wrapper1!.version, equals(0));
 
-      // Replace with different instance
       final newService = SimpleService(name: 'new');
-      registry.replace('key', newService);
+      registry.replace<SimpleService>('key', newService);
 
-      final wrapper2 = registry.getByKey('key');
+      final wrapper2 = registry.getByKey<SimpleService>('key');
       expect(wrapper2!.version, equals(1));
     });
 
     test('getByKey returns null for unregistered keys, not throws', () {
-      final result = registry.getByKey('nonexistent');
+      final result = registry.getByKey<SimpleService>('nonexistent');
       expect(result, isNull);
 
-      // Should not throw, unlike getInstance
       expect(
-        () => registry.getInstance('nonexistent'),
+        () => registry.getInstance<SimpleService>('nonexistent'),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });
@@ -143,13 +141,12 @@ void main() {
     test('destroy on lazy entry that was never accessed', () {
       var factoryCalled = false;
       registry
-        ..registerLazy('key', () {
+        ..registerLazy<SimpleService>('key', () {
           factoryCalled = true;
           return SimpleService();
         })
         ..destroyAll();
 
-      // Factory should never have been called
       expect(factoryCalled, isFalse);
       expect(registry.isEmpty, isTrue);
     });
@@ -157,44 +154,47 @@ void main() {
     test('register and unregister in rapid succession', () {
       for (var i = 0; i < 100; i++) {
         final service = SimpleService(name: 'service_$i');
-        registry.register('key', service);
-        expect(registry.contains('key'), isTrue);
+        registry.register<SimpleService>('key', service);
+        expect(registry.contains<SimpleService>('key'), isTrue);
 
-        registry.unregister('key');
-        expect(registry.contains('key'), isFalse);
+        registry.unregister<SimpleService>('key');
+        expect(registry.contains<SimpleService>('key'), isFalse);
       }
     });
 
     test('keys property reflects current state after unregister', () {
       registry
-        ..register('key1', SimpleService())
-        ..register('key2', SimpleService())
-        ..register('key3', SimpleService());
+        ..register<SimpleService>('key1', SimpleService())
+        ..register<SimpleService>('key2', SimpleService())
+        ..register<SimpleService>('key3', SimpleService());
 
-      var keys = registry.keys;
-      expect(keys, hasLength(3));
+      var keyValues = extractKeys(registry.keys);
+      expect(keyValues, hasLength(3));
 
-      registry.unregister('key2');
+      registry.unregister<SimpleService>('key2');
 
-      keys = registry.keys;
-      expect(keys, hasLength(2));
-      expect(keys, containsAll(['key1', 'key3']));
-      expect(keys, isNot(contains('key2')));
+      keyValues = extractKeys(registry.keys);
+      expect(keyValues, hasLength(2));
+      expect(keyValues, containsAll(['key1', 'key3']));
+      expect(keyValues, isNot(contains('key2')));
     });
 
     test('multiple registries do not interfere', () {
-      final registry1 = createTestRegistry<String, SimpleService>();
-      final registry2 = createTestRegistry<String, SimpleService>();
+      final registry1 = createTestRegistry<String>();
+      final registry2 = createTestRegistry<String>();
 
       final service1 = SimpleService(name: 'service1');
       final service2 = SimpleService(name: 'service2');
 
-      registry1.register('key', service1);
-      registry2.register('key', service2);
+      registry1.register<SimpleService>('key', service1);
+      registry2.register<SimpleService>('key', service2);
 
-      expect(registry1.getInstance('key'), same(service1));
-      expect(registry2.getInstance('key'), same(service2));
-      expect(registry1.getInstance('key'), isNot(same(service2)));
+      expect(registry1.getInstance<SimpleService>('key'), same(service1));
+      expect(registry2.getInstance<SimpleService>('key'), same(service2));
+      expect(
+        registry1.getInstance<SimpleService>('key'),
+        isNot(same(service2)),
+      );
 
       cleanupRegistry(registry1);
       cleanupRegistry(registry2);
@@ -203,19 +203,19 @@ void main() {
     test('registry size remains accurate after all operations', () {
       expect(registry.registrySize, equals(0));
 
-      registry.register('k1', SimpleService());
+      registry.register<SimpleService>('k1', SimpleService());
       expect(registry.registrySize, equals(1));
 
-      registry.register('k2', SimpleService());
+      registry.register<SimpleService>('k2', SimpleService());
       expect(registry.registrySize, equals(2));
 
-      registry.registerLazy('k3', SimpleService.new);
+      registry.registerLazy<SimpleService>('k3', SimpleService.new);
       expect(registry.registrySize, equals(3));
 
-      registry.unregister('k2');
+      registry.unregister<SimpleService>('k2');
       expect(registry.registrySize, equals(2));
 
-      registry.replace('k1', SimpleService());
+      registry.replace<SimpleService>('k1', SimpleService());
       expect(registry.registrySize, equals(2));
 
       registry.clearRegistry();

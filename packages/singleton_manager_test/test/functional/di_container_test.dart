@@ -4,46 +4,51 @@ import 'package:test/test.dart';
 
 /// Simulates a real-world application structure
 class AppDependencyContainer {
-  final RegistryManager<String, SimpleService> _services = RegistryManager();
+  final IRegistry<String> _services = RegistryManager();
 
   void registerDatabaseService() {
-    _services.register('db', SimpleService.counted(name: 'DatabaseService'));
+    _services.register<SimpleService>(
+      'db',
+      SimpleService.counted(name: 'DatabaseService'),
+    );
   }
 
   void registerCacheService() {
-    _services.registerLazy(
+    _services.registerLazy<SimpleService>(
       'cache',
       () => SimpleService.counted(name: 'CacheService'),
     );
   }
 
   void registerApiService() {
-    _services.registerLazy(
+    _services.registerLazy<SimpleService>(
       'api',
       () => SimpleService.counted(name: 'ApiService'),
     );
   }
 
   void registerLoggerService() {
-    _services.registerLazy(
+    _services.registerLazy<SimpleService>(
       'logger',
       () => SimpleService.counted(name: 'LoggerService'),
     );
   }
 
-  SimpleService getService(String key) => _services.getInstance(key);
+  SimpleService getService(String key) =>
+      _services.getInstance<SimpleService>(key);
 
   void updateService(String key, SimpleService newService) {
-    _services.replace(key, newService);
+    _services.replace<SimpleService>(key, newService);
   }
 
   void shutdown() => _services.destroyAll();
 
   int get serviceCount => _services.registrySize;
 
-  Set<String> get serviceNames => _services.keys;
+  Set<String> get serviceNames =>
+      _services.keys.map((k) => k.$2).toSet();
 
-  bool hasService(String key) => _services.contains(key);
+  bool hasService(String key) => _services.contains<SimpleService>(key);
 }
 
 void main() {
@@ -60,7 +65,6 @@ void main() {
     });
 
     test('complete application lifecycle with DI container', () {
-      // Bootstrap
       container
         ..registerDatabaseService()
         ..registerCacheService()
@@ -73,7 +77,6 @@ void main() {
         containsAll(['db', 'cache', 'api', 'logger']),
       );
 
-      // Use services
       final db = container.getService('db');
       expect(db.name, equals('DatabaseService'));
 
@@ -86,44 +89,37 @@ void main() {
       final logger = container.getService('logger');
       expect(logger.name, equals('LoggerService'));
 
-      // Verify singletons
       expect(container.getService('db'), same(db));
       expect(container.getService('cache'), same(cache));
       expect(container.getService('api'), same(api));
       expect(container.getService('logger'), same(logger));
 
-      // Shutdown
       container.shutdown();
     });
 
     test('lazy services are created only when accessed', () {
       container
-        ..registerDatabaseService() // Eager
-        ..registerCacheService() // Lazy
-        ..registerApiService() // Lazy
-        ..registerLoggerService(); // Lazy
+        ..registerDatabaseService()
+        ..registerCacheService()
+        ..registerApiService()
+        ..registerLoggerService();
 
-      // Only database should be instantiated
-      expect(SimpleService.instantiationCount, equals(1)); // Only DB
+      expect(SimpleService.instantiationCount, equals(1));
 
-      // Access cache
       container.getService('cache');
-      expect(SimpleService.instantiationCount, equals(2)); // DB + Cache
+      expect(SimpleService.instantiationCount, equals(2));
 
-      // Access api
       container.getService('api');
-      expect(SimpleService.instantiationCount, equals(3)); // DB + Cache + API
+      expect(SimpleService.instantiationCount, equals(3));
 
-      // Access logger
       container.getService('logger');
-      expect(SimpleService.instantiationCount, equals(4)); // All 4
+      expect(SimpleService.instantiationCount, equals(4));
 
-      // Access again - no new creations
       container
         ..getService('cache')
         ..getService('api')
         ..getService('logger');
-      expect(SimpleService.instantiationCount, equals(4)); // Still 4
+      expect(SimpleService.instantiationCount, equals(4));
     });
 
     test('service replacement with cleanup', () {
@@ -148,7 +144,6 @@ void main() {
       final db1 = container1.getService('db');
       final db2 = container2.getService('db');
 
-      // Different instances
       expect(identical(db1, db2), isFalse);
 
       container1.shutdown();
@@ -159,11 +154,9 @@ void main() {
     });
 
     test('partial service activation pattern', () {
-      // Start with essential services
       container.registerDatabaseService();
       expect(container.serviceCount, equals(1));
 
-      // Add more services later
       container.registerCacheService();
       expect(container.serviceCount, equals(2));
 
@@ -173,7 +166,6 @@ void main() {
       container.registerLoggerService();
       expect(container.serviceCount, equals(4));
 
-      // Verify all are accessible
       expect(container.hasService('db'), isTrue);
       expect(container.hasService('cache'), isTrue);
       expect(container.hasService('api'), isTrue);
@@ -181,15 +173,12 @@ void main() {
     });
 
     test('service dependency chain', () {
-      // Register services
       container
-        ..registerDatabaseService() // Depends on nothing
-        ..registerCacheService() // Could depend on DB
-        ..registerApiService() // Could depend on DB and Cache
-        ..registerLoggerService(); // Could depend on all
+        ..registerDatabaseService()
+        ..registerCacheService()
+        ..registerApiService()
+        ..registerLoggerService();
 
-      // In real app, services might have constructor parameters
-      // Here we verify the dependency injection works structurally
       final db = container.getService('db');
       final cache = container.getService('cache');
       final api = container.getService('api');
@@ -209,14 +198,12 @@ void main() {
       final originalDb = container.getService('db');
       final originalCache = container.getService('cache');
 
-      // Simulate hot reload - update critical services
       final newDb = SimpleService(name: 'DatabaseService-reloaded');
       container.updateService('db', newDb);
 
       expect(originalDb.destroyed, isTrue);
       expect(container.getService('db'), same(newDb));
 
-      // Cache is still the original
       expect(container.getService('cache'), same(originalCache));
       expect(originalCache.destroyed, isFalse);
     });
@@ -226,11 +213,9 @@ void main() {
         ..registerDatabaseService()
         ..registerCacheService();
 
-      // Get cache - should work normally
       final cache = container.getService('cache');
       expect(cache, isNotNull);
 
-      // Replace with new implementation
       final improvedCache = SimpleService(name: 'CacheService-optimized');
       container.updateService('cache', improvedCache);
 
@@ -246,8 +231,6 @@ void main() {
 
       expect(container.serviceCount, equals(3));
 
-      // In real scenario, you might selectively destroy
-      // Here we verify the structure supports it
       final services = container.serviceNames;
       expect(services, hasLength(3));
 
@@ -260,36 +243,30 @@ void main() {
         ..registerDatabaseService()
         ..registerCacheService();
 
-      // Check all services are available
       for (final serviceName in ['db', 'cache']) {
         expect(container.hasService(serviceName), isTrue);
         final service = container.getService(serviceName);
         expect(service.destroyed, isFalse);
       }
 
-      // Keep references before shutdown
       final dbService = container.getService('db');
       final cacheService = container.getService('cache');
 
       container.shutdown();
 
-      // After shutdown, registry should be empty
       expect(container.serviceCount, equals(0));
       expect(container.hasService('db'), isFalse);
       expect(container.hasService('cache'), isFalse);
 
-      // But the service objects themselves should be destroyed
       expect(dbService.destroyed, isTrue);
       expect(cacheService.destroyed, isTrue);
     });
 
     test('configuration update pattern', () {
-      // Register initial configuration
       container.registerDatabaseService();
 
       final oldDb = container.getService('db');
 
-      // Update configuration
       final configuredDb = SimpleService(name: 'DatabaseService-configured');
       container.updateService('db', configuredDb);
 
@@ -297,17 +274,14 @@ void main() {
       expect(container.getService('db'), same(configuredDb));
     });
 
-    test('scaling pattern: adding multiple instances of same type', () {
-      // Register primary instances
+    test('scaling pattern: adding multiple services', () {
       container
         ..registerDatabaseService()
         ..registerCacheService();
 
       expect(container.serviceCount, equals(2));
 
-      // In a real scenario, you might add replicas
-      // Here we show the structure supports it
-      container.registerApiService(); // Add another service
+      container.registerApiService();
 
       expect(container.serviceCount, equals(3));
       expect(container.serviceNames.length, equals(3));

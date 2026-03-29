@@ -4,10 +4,10 @@ import 'package:test/test.dart';
 
 void main() {
   group('RegistryManager - Eager Registration', () {
-    late RegistryManager<String, SimpleService> registry;
+    late IRegistry<String> registry;
 
     setUp(() {
-      registry = createTestRegistry();
+      registry = createTestRegistry<String>();
       SimpleService.instantiationCount = 0;
     });
 
@@ -17,20 +17,20 @@ void main() {
 
     test('register() adds an eager value to the registry', () {
       final service = SimpleService(name: 'test');
-      registry.register('key1', service);
+      registry.register<SimpleService>('key1', service);
 
-      expect(registry.contains('key1'), isTrue);
-      expect(registry.getInstance('key1'), same(service));
+      expect(registry.contains<SimpleService>('key1'), isTrue);
+      expect(registry.getInstance<SimpleService>('key1'), same(service));
     });
 
     test('register() throws DuplicateRegistrationError for duplicate keys', () {
       final service1 = SimpleService(name: 'first');
       final service2 = SimpleService(name: 'second');
 
-      registry.register('key1', service1);
+      registry.register<SimpleService>('key1', service1);
 
       expect(
-        () => registry.register('key1', service2),
+        () => registry.register<SimpleService>('key1', service2),
         throwsA(isA<DuplicateRegistrationError>()),
       );
     });
@@ -40,10 +40,10 @@ void main() {
       final service2 = SimpleService(name: 'second');
 
       registry
-        ..register('key1', service1)
-        ..replace('key1', service2);
+        ..register<SimpleService>('key1', service1)
+        ..replace<SimpleService>('key1', service2);
 
-      expect(registry.getInstance('key1'), same(service2));
+      expect(registry.getInstance<SimpleService>('key1'), same(service2));
       expect(service1.destroyed, isTrue);
     });
 
@@ -51,48 +51,43 @@ void main() {
       final service = SimpleService();
 
       expect(
-        () => registry.replace('nonexistent', service),
+        () => registry.replace<SimpleService>('nonexistent', service),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });
 
     test('unregister() removes a value from the registry', () {
       final service = SimpleService();
-      registry.register('key1', service);
+      registry.register<SimpleService>('key1', service);
 
-      final unregistered = registry.unregister('key1');
+      final unregistered = registry.unregister<SimpleService>('key1');
 
       expect(unregistered, isNotNull);
-      expect(registry.contains('key1'), isFalse);
+      expect(registry.contains<SimpleService>('key1'), isFalse);
     });
 
     test('getInstance() throws RegistryNotFoundError if key not found', () {
       expect(
-        () => registry.getInstance('nonexistent'),
+        () => registry.getInstance<SimpleService>('nonexistent'),
         throwsA(isA<RegistryNotFoundError>()),
       );
     });
 
     test('contains() correctly identifies registered keys', () {
       final service = SimpleService();
-      registry.register('key1', service);
+      registry.register<SimpleService>('key1', service);
 
-      expect(registry.contains('key1'), isTrue);
-      expect(registry.contains('key2'), isFalse);
+      expect(registry.contains<SimpleService>('key1'), isTrue);
+      expect(registry.contains<SimpleService>('key2'), isFalse);
     });
 
-    test('keys property returns all registered keys', () {
-      final service1 = SimpleService();
-      final service2 = SimpleService();
-
+    test('keys property returns all registered compound keys', () {
       registry
-        ..register('key1', service1)
-        ..register('key2', service2);
+        ..register<SimpleService>('key1', SimpleService())
+        ..register<SimpleService>('key2', SimpleService());
 
-      final keys = registry.keys;
-
-      expect(keys, containsAll(['key1', 'key2']));
-      expect(keys.length, equals(2));
+      expect(registry.keys, hasLength(2));
+      expect(extractKeys(registry.keys), containsAll(['key1', 'key2']));
     });
 
     test('isEmpty returns true for empty registry', () {
@@ -100,8 +95,7 @@ void main() {
     });
 
     test('isNotEmpty returns true when registry has items', () {
-      final service = SimpleService();
-      registry.register('key1', service);
+      registry.register<SimpleService>('key1', SimpleService());
 
       expect(registry.isNotEmpty, isTrue);
     });
@@ -112,10 +106,10 @@ void main() {
 
       expect(registry.registrySize, equals(0));
 
-      registry.register('key1', service1);
+      registry.register<SimpleService>('key1', service1);
       expect(registry.registrySize, equals(1));
 
-      registry.register('key2', service2);
+      registry.register<SimpleService>('key2', service2);
       expect(registry.registrySize, equals(2));
     });
   });
