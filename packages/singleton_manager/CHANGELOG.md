@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-03-30
+
+### Changed
+- **Internal refactoring of registry architecture**:
+  - Extracted `RegistryCore<K>` as a shared backing store used by both `Registry` and `RegistryOnlyKey` (new file `registry_core.dart`, not part of the public API)
+  - `Registry<Key>` mixin renamed to `RegistryOnlyKey<Key>` — compound `(Type, Key)` keyed registry with generic `T` in method signatures (`register<T>()`, `getInstance<T>()`, etc.)
+  - `Registry<Key, Value>` mixin now takes an explicit second type parameter `Value extends IValueForRegistry` for value-typed registries
+  - `RegistryManager` now uses `RegistryOnlyKey<String>` (public API unchanged)
+
+### Migration (only if using `Registry` mixin directly)
+- Replace `with Registry<Key>` with `with RegistryOnlyKey<Key>` to preserve the compound-key generic API
+- Or use `with Registry<Key, MyValueType>` if you prefer explicit value typing
+
+## [0.6.0] - 2026-03-29
+
+### Added
+- **`Registry<Key>` mixin** — generic compound-key registry with `(Type, Key)` compound keys, supporting any key type
+  - `register<T>()` — eager registration; throws `DuplicateRegistrationError` if already present
+  - `registerLazy<T>()` — lazy (factory-based) registration; factory called on first access
+  - `replace<T>()` / `replaceLazy<T>()` — replace an existing entry; throws `RegistryNotFoundError` if absent; increments version
+  - `getInstance<T>()` — retrieves value, resolving lazy entries transparently
+  - `unregister<T>()` — removes entry and returns its `ValueWithVersion` container
+  - `getByKey<T>()` — inspect the raw versioned container without resolving lazy
+  - `contains<T>()`, `keys`, `isEmpty`, `isNotEmpty`, `registrySize`, `clearRegistry()`, `destroyAll()`
+- **`IRegistry<Key>`** — abstract interface matching `Registry<Key>`, for dependency-inversion and testing
+- **`RegistryManager`** — concrete `String`-keyed registry (`with Registry<String>`)
+- **`RegistryManagerSingleton`** — global singleton instance of `RegistryManager` (factory constructor returns the same instance)
+- **`RegistryAccess`** — static convenience class mirroring `SingletonDIAccess`, delegating to `RegistryManagerSingleton`
+  - `RegistryAccess.register<T>(key, value)`, `registerLazy`, `replace`, `replaceLazy`, `getInstance`, `contains`, `unregister`, `destroyAll`, `clearRegistry`
+- **`RegistryEntry` sealed hierarchy** — internal sealed class for registry storage
+  - `EagerEntry<V>` — stores a pre-created instance
+  - `LazyEntry<V>` — stores a factory; caches result on first call to `resolvedValue`
+- **`ValueWithVersion<V>`** — wrapper that pairs a value with an integer version counter (incremented on `replace`)
+- **Error types** (`registry_errors.dart`):
+  - `RegistryError` — sealed base error
+  - `DuplicateRegistrationError` — thrown by `register`/`registerLazy` when key already exists
+  - `RegistryNotFoundError` — thrown by `replace`/`replaceLazy`/`getInstance` when key is absent
+
 ## [0.5.0] - 2026-03-25
 
 ### Fixed

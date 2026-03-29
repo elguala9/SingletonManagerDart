@@ -1,123 +1,60 @@
-import 'package:singleton_manager/src/errors/registry_errors.dart';
 import 'package:singleton_manager/src/interfaces/i_value_for_registry.dart';
+import 'package:singleton_manager/src/mixin/registry_core.dart';
 import 'package:singleton_manager/src/mixin/registry_entry.dart';
 import 'package:singleton_manager/src/mixin/value_with_version.dart';
 
-mixin Registry<Key> {
-  final Map<(Type, Key), ValueWithVersion<RegistryEntry<IValueForRegistry>>>
-      _registry = {};
+mixin Registry<Key, Value extends IValueForRegistry> {
+  final RegistryCore<Key> _core = RegistryCore<Key>();
 
-  /// Registers an eager value identified by type [T] and [key].
-  /// Throws [DuplicateRegistrationError] if the (T, key) pair already exists.
-  void register<T extends IValueForRegistry>(Key key, T value) {
-    final k = (T, key);
-    if (_registry.containsKey(k)) {
-      throw DuplicateRegistrationError(
-        'Type $T with key $key is already registered. '
-        'Use replace() to update it.',
-      );
-    }
-    _registry[k] = ValueWithVersion(EagerEntry<T>(value), 0);
-  }
+  /// Registers an eager value for the given key.
+  /// Throws DuplicateRegistrationError if the key already exists.
+  void register(Key key, Value value) => _core.store(key, value);
 
-  /// Registers a lazy value (factory function) identified by type [T]
-  /// and [key].
+  /// Registers a lazy value (factory function) for the given key.
   /// The factory is called only when [getInstance] is first called.
-  /// Throws [DuplicateRegistrationError] if the (T, key) pair already exists.
-  void registerLazy<T extends IValueForRegistry>(
-    Key key,
-    T Function() factory,
-  ) {
-    final k = (T, key);
-    if (_registry.containsKey(k)) {
-      throw DuplicateRegistrationError(
-        'Type $T with key $key is already registered. '
-        'Use replaceLazy() to update it.',
-      );
-    }
-    _registry[k] = ValueWithVersion(LazyEntry<T>(factory), 0);
-  }
+  /// Throws DuplicateRegistrationError if the key already exists.
+  void registerLazy(Key key, Value Function() factory) =>
+      _core.storeLazy(key, factory);
 
-  /// Replaces an existing eager value identified by type [T] and [key].
-  /// Throws [RegistryNotFoundError] if the (T, key) pair does not exist.
-  void replace<T extends IValueForRegistry>(Key key, T value) {
-    final k = (T, key);
-    final existing = _registry[k];
-    if (existing == null) {
-      throw RegistryNotFoundError('Type $T with key $key not found');
-    }
-    existing.value.destroy();
-    _registry[k] = ValueWithVersion(EagerEntry<T>(value), existing.version + 1);
-  }
+  /// Replaces an existing eager value.
+  /// Throws RegistryNotFoundError if the key does not exist.
+  void replace(Key key, Value value) => _core.replace(key, value);
 
-  /// Replaces an existing lazy value identified by type [T] and [key].
-  /// Throws [RegistryNotFoundError] if the (T, key) pair does not exist.
-  void replaceLazy<T extends IValueForRegistry>(
-    Key key,
-    T Function() factory,
-  ) {
-    final k = (T, key);
-    final existing = _registry[k];
-    if (existing == null) {
-      throw RegistryNotFoundError('Type $T with key $key not found');
-    }
-    existing.value.destroy();
-    _registry[k] =
-        ValueWithVersion(LazyEntry<T>(factory), existing.version + 1);
-  }
+  /// Replaces an existing lazy value.
+  /// Throws RegistryNotFoundError if the key does not exist.
+  void replaceLazy(Key key, Value Function() factory) =>
+      _core.replaceLazy(key, factory);
 
-  /// Retrieves a value by type [T] and [key], resolving lazy entries if needed.
-  /// Throws [RegistryNotFoundError] if the (T, key) pair does not exist.
-  T getInstance<T extends IValueForRegistry>(Key key) {
-    final item = _registry[(T, key)];
-    if (item == null) {
-      throw RegistryNotFoundError('Type $T not found for key $key');
-    }
-    final entry = item.value;
-    if (entry is EagerEntry) {
-      return entry.value as T;
-    }
-    if (entry is LazyEntry) {
-      return entry.resolvedValue as T;
-    }
-    throw RegistryNotFoundError('Invalid entry for type $T / key $key');
-  }
+  /// Retrieves a value by key, resolving lazy entries if needed.
+  /// Throws RegistryNotFoundError if the key does not exist.
+  Value getInstance(Key key) => _core.resolve(key) as Value;
 
-  /// Unregisters a value identified by type [T] and [key].
-  ValueWithVersion<RegistryEntry<IValueForRegistry>>?
-      unregister<T extends IValueForRegistry>(Key key) =>
-          _registry.remove((T, key));
+  /// Unregisters a value by key.
+  ValueWithVersion<RegistryEntry<IValueForRegistry>>? unregister(Key key) =>
+      _core.remove(key);
 
-  /// Retrieves the version container by type [T] and [key]
-  /// without resolving lazy entries.
-  ValueWithVersion<RegistryEntry<IValueForRegistry>>?
-      getByKey<T extends IValueForRegistry>(Key key) =>
-          _registry[(T, key)];
+  /// Retrieves the version container by key without resolving lazy entries.
+  ValueWithVersion<RegistryEntry<IValueForRegistry>>? getByKey(Key key) =>
+      _core.getVersioned(key);
 
-  /// Checks if a (T, key) pair exists in the registry.
-  bool contains<T extends IValueForRegistry>(Key key) =>
-      _registry.containsKey((T, key));
+  /// Checks if a key exists in the registry.
+  bool contains(Key key) => _core.containsKey(key);
 
-  /// Returns all compound keys (Type, Key) in the registry.
-  Set<(Type, Key)> get keys => _registry.keys.toSet();
+  /// Returns all keys in the registry.
+  Set<Key> get keys => _core.keys;
 
   /// Returns true if the registry is empty.
-  bool get isEmpty => _registry.isEmpty;
+  bool get isEmpty => _core.isEmpty;
 
   /// Returns true if the registry is not empty.
-  bool get isNotEmpty => _registry.isNotEmpty;
+  bool get isNotEmpty => _core.isNotEmpty;
 
   /// Returns the number of registered entries.
-  int get registrySize => _registry.length;
+  int get registrySize => _core.size;
 
   /// Clears the registry (does not call destroy on values).
-  void clearRegistry() => _registry.clear();
+  void clearRegistry() => _core.clear();
 
   /// Destroys all values and clears the registry.
-  void destroyAll() {
-    for (final item in _registry.values) {
-      item.value.destroy();
-    }
-    _registry.clear();
-  }
+  void destroyAll() => _core.destroyAll();
 }

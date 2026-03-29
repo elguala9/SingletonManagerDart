@@ -73,4 +73,6 @@ IRegistry<Key> createTestRegistry<Key>() {
   return _TestRegistry<Key>();
 }
 
-class _TestRegistry<Key> with Registry<Key> implements IRegistry<Key> {}
+class _TestRegistry<Key>
+    with RegistryOnlyKey<Key>
+    implements IRegistry<Key> {}
