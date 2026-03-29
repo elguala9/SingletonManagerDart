@@ -1,5 +1,6 @@
 import 'package:singleton_manager/src/interfaces/i_registry.dart';
 import 'package:singleton_manager/src/mixin/registry_mixin.dart';
+import 'package:singleton_manager/src/mixin/registry_only_key_mixin.dart';
 
 /// A registry with a fixed [String] key type.
 ///
@@ -13,7 +14,9 @@ import 'package:singleton_manager/src/mixin/registry_mixin.dart';
 /// registry.register<MyService>('prod', myService);
 /// final service = registry.getInstance<MyService>('prod');
 /// ```
-class RegistryManager with Registry<String> implements IRegistry<String> {
+class RegistryManager
+    with RegistryOnlyKey<String>
+    implements IRegistry<String> {
   /// Creates a new [RegistryManager] instance.
   RegistryManager();
 }

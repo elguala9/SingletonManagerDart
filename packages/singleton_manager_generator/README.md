@@ -18,10 +18,10 @@ Add the packages to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^1.0.0
+  singleton_manager: ^0.6.1
 
 dev_dependencies:
-  singleton_manager_generator: ^2.0.0
+  singleton_manager_generator: ^1.4.0
 ```
 
 Note: Annotations are included in `singleton_manager` v1.0.0+. No separate annotations package needed!

@@ -11,6 +11,7 @@ export 'src/is_optional_parameter.dart';
 export 'src/is_singleton.dart';
 export 'src/mixin/registry_entry.dart';
 export 'src/mixin/registry_mixin.dart';
+export 'src/mixin/registry_only_key_mixin.dart';
 export 'src/mixin/value_with_version.dart';
 export 'src/registry/registry_access.dart';
 export 'src/registry/registry_manager.dart';

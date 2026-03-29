@@ -12,6 +12,7 @@ A high-performance, zero-dependency singleton manager for Dart with built-in cod
 - **Flexible API**: Register any Dart objects, not just `ISingleton` implementations (v0.3.3+)
 - **Dependency Injection**: Factory-based DI with `SingletonDI` and static access with `SingletonDIAccess` (v0.2.0+, enhanced v0.3.0+)
 - **Code Generation Annotations** (v0.4.0+): Built-in `@isSingleton` and `@isInjected` annotations for automatic DI setup
+- **Generic Registry** (v0.6.0+): Compound `(Type, Key)` keyed registry with eager/lazy entries, versioning, and strict duplicate detection
 - **Optional Lifecycle Management**: `ISingleton` interface for initialization and cleanup (optional, v0.2.0+)
 - **Lazy loading**: Initialize singletons only when first accessed
 - **Multi-platform**: Supports VM, Web, Native, and Flutter
@@ -23,7 +24,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  singleton_manager: ^0.4.0
+  singleton_manager: ^0.6.1
 ```
 
 ## Quick Start
@@ -118,6 +119,57 @@ void main() {
 ```
 
 See [singleton_manager_generator](../singleton_manager_generator/README.md) for setup instructions.
+
+### Compound-Key Registry (v0.6.0+)
+
+Use the `Registry<Key>` mixin (or the ready-made `RegistryManager` / `RegistryAccess`) when you need multiple named instances of the same type — for example, environment-specific services:
+
+```dart
+import 'package:singleton_manager/singleton_manager.dart';
+
+class DbConnection implements IValueForRegistry {
+  DbConnection(this.url);
+  final String url;
+  @override void destroy() {}
+}
+
+void main() {
+  // Static API via RegistryAccess (global RegistryManagerSingleton)
+  RegistryAccess.register<DbConnection>('prod', DbConnection('postgres://prod'));
+  RegistryAccess.register<DbConnection>('dev',  DbConnection('postgres://dev'));
+
+  final prod = RegistryAccess.getInstance<DbConnection>('prod');
+  print(prod.url); // postgres://prod
+
+  // Replace an entry (throws RegistryNotFoundError if absent)
+  RegistryAccess.replace<DbConnection>('dev', DbConnection('postgres://dev2'));
+
+  // Lazy registration — factory called only on first access
+  RegistryAccess.registerLazy<DbConnection>('staging', () => DbConnection('postgres://staging'));
+}
+```
+
+For per-instance registries, use `RegistryManager` directly:
+
+```dart
+final registry = RegistryManager();
+registry.register<DbConnection>('primary', DbConnection('postgres://primary'));
+```
+
+#### Error handling
+
+| Situation | Error thrown |
+|---|---|
+| `register` / `registerLazy` on an existing key | `DuplicateRegistrationError` |
+| `replace` / `replaceLazy` / `getInstance` on a missing key | `RegistryNotFoundError` |
+
+#### Entry types
+
+| Class | Behaviour |
+|---|---|
+| `EagerEntry<V>` | Stores a pre-created instance |
+| `LazyEntry<V>` | Stores a factory; instance created on first `getInstance` call |
+| `ValueWithVersion<V>` | Wraps any entry with an integer version counter (incremented on each `replace`) |
 
 ## Documentation
 

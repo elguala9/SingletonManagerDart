@@ -611,12 +611,13 @@ void main() {
 
     test('does NOT call destroy on an unresolved lazy entry', () {
       var called = false;
-      r.registerLazy<AlphaService>('unresolved', () {
-        called = true;
-        return AlphaService();
-      });
-      // destroyAll without ever calling getInstance — factory must not be invoked
-      r.destroyAll();
+      r
+        ..registerLazy<AlphaService>('unresolved', () {
+          called = true;
+          return AlphaService();
+        })
+        // destroyAll without ever calling getInstance — factory must not be invoked
+        ..destroyAll();
       expect(called, isFalse);
     });
   });
