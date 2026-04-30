@@ -1,10 +1,7 @@
 name: singleton_manager_generator
-description: >
-  CLI tool that generates Dart DI files for @isSingleton classes.
-  Automatically creates ISingletonStandardDI.initializeDI() implementations
-  from @isInjected field annotations.
+description: CLI tool that generates Dart DI files for @isSingleton classes.
 
-version: 1.4.0
+version: 1.4.2
 
 resolution: workspace
 
@@ -12,12 +9,26 @@ repository: https://github.com/elguala9/SingletonManagerDart
 homepage: https://github.com/elguala9/SingletonManagerDart
 issue_tracker: https://github.com/elguala9/SingletonManagerDart/issues
 
+topics:
+  - singleton
+  - dependency-injection
+  - code-generation
+  - annotations
+
+platforms:
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+
 environment:
   sdk: ">=3.11.0 <4.0.0"
 
 dependencies:
   args: ^2.5.0
-  analyzer: ^10.0.0
+  analyzer: ^13.0.0
   path: ^1.9.0
 
 dev_dependencies:

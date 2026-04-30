@@ -7,7 +7,7 @@ void main() {
     late Directory tempDir;
 
     setUpAll(() {
-      tempDir = Directory('lib/test_artifacts/parser_tests');
+      tempDir = Directory('test_artifacts/parser_tests');
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
       }
@@ -46,9 +46,11 @@ class DatabaseConnection {}
         expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
       });
 
-      test('should find @isSingleton class with multiple @isInjected fields', () {
-        final dartFile = File('${tempDir.path}/service.dart');
-        dartFile.writeAsStringSync('''
+      test(
+        'should find @isSingleton class with multiple @isInjected fields',
+        () {
+          final dartFile = File('${tempDir.path}/service.dart');
+          dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -68,18 +70,19 @@ class Logger {}
 class ConfigManager {}
 ''');
 
-        final results = SourceParser.parse([dartFile]);
+          final results = SourceParser.parse([dartFile]);
 
-        expect(results, hasLength(1));
-        expect(results[0].className, 'MyService');
-        expect(results[0].injectedFields, hasLength(3));
-        expect(results[0].injectedFields[0].fieldName, 'db');
-        expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
-        expect(results[0].injectedFields[1].fieldName, 'logger');
-        expect(results[0].injectedFields[1].fieldType, 'Logger');
-        expect(results[0].injectedFields[2].fieldName, 'config');
-        expect(results[0].injectedFields[2].fieldType, 'ConfigManager');
-      });
+          expect(results, hasLength(1));
+          expect(results[0].className, 'MyService');
+          expect(results[0].injectedFields, hasLength(3));
+          expect(results[0].injectedFields[0].fieldName, 'db');
+          expect(results[0].injectedFields[0].fieldType, 'DatabaseConnection');
+          expect(results[0].injectedFields[1].fieldName, 'logger');
+          expect(results[0].injectedFields[1].fieldType, 'Logger');
+          expect(results[0].injectedFields[2].fieldName, 'config');
+          expect(results[0].injectedFields[2].fieldType, 'ConfigManager');
+        },
+      );
 
       test('should find @isSingleton class with no @isInjected fields', () {
         final dartFile = File('${tempDir.path}/service.dart');
@@ -591,9 +594,11 @@ class MyService {
         expect(results[0].constructorParameters[0].name, 'apiUrl');
       });
 
-      test('should return empty constructorParameters when no annotated params', () {
-        final dartFile = File('${tempDir.path}/service.dart');
-        dartFile.writeAsStringSync('''
+      test(
+        'should return empty constructorParameters when no annotated params',
+        () {
+          final dartFile = File('${tempDir.path}/service.dart');
+          dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -602,15 +607,18 @@ class MyService {
 }
 ''');
 
-        final results = SourceParser.parse([dartFile]);
+          final results = SourceParser.parse([dartFile]);
 
-        expect(results, hasLength(1));
-        expect(results[0].constructorParameters, isEmpty);
-      });
+          expect(results, hasLength(1));
+          expect(results[0].constructorParameters, isEmpty);
+        },
+      );
 
-      test('should extract multiple mandatory positional params preserving order', () {
-        final dartFile = File('${tempDir.path}/service.dart');
-        dartFile.writeAsStringSync('''
+      test(
+        'should extract multiple mandatory positional params preserving order',
+        () {
+          final dartFile = File('${tempDir.path}/service.dart');
+          dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -619,19 +627,20 @@ class MyService {
 }
 ''');
 
-        final results = SourceParser.parse([dartFile]);
+          final results = SourceParser.parse([dartFile]);
 
-        expect(results, hasLength(1));
-        expect(results[0].constructorParameters, hasLength(2));
-        expect(results[0].constructorParameters[0].name, 'host');
-        expect(results[0].constructorParameters[0].type, 'String');
-        expect(results[0].constructorParameters[0].isMandatory, isTrue);
-        expect(results[0].constructorParameters[0].isNamed, isFalse);
-        expect(results[0].constructorParameters[1].name, 'port');
-        expect(results[0].constructorParameters[1].type, 'int');
-        expect(results[0].constructorParameters[1].isMandatory, isTrue);
-        expect(results[0].constructorParameters[1].isNamed, isFalse);
-      });
+          expect(results, hasLength(1));
+          expect(results[0].constructorParameters, hasLength(2));
+          expect(results[0].constructorParameters[0].name, 'host');
+          expect(results[0].constructorParameters[0].type, 'String');
+          expect(results[0].constructorParameters[0].isMandatory, isTrue);
+          expect(results[0].constructorParameters[0].isNamed, isFalse);
+          expect(results[0].constructorParameters[1].name, 'port');
+          expect(results[0].constructorParameters[1].type, 'int');
+          expect(results[0].constructorParameters[1].isMandatory, isTrue);
+          expect(results[0].constructorParameters[1].isNamed, isFalse);
+        },
+      );
 
       test('should extract multiple optional params', () {
         final dartFile = File('${tempDir.path}/service.dart');
@@ -675,9 +684,11 @@ class MyService {
         expect(results[0].constructorParameters, isEmpty);
       });
 
-      test('should return empty constructorParameters for class with no constructor', () {
-        final dartFile = File('${tempDir.path}/service.dart');
-        dartFile.writeAsStringSync('''
+      test(
+        'should return empty constructorParameters for class with no constructor',
+        () {
+          final dartFile = File('${tempDir.path}/service.dart');
+          dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -687,12 +698,13 @@ class MyService {
 }
 ''');
 
-        final results = SourceParser.parse([dartFile]);
+          final results = SourceParser.parse([dartFile]);
 
-        expect(results, hasLength(1));
-        expect(results[0].constructorParameters, isEmpty);
-        expect(results[0].injectedFields, hasLength(1));
-      });
+          expect(results, hasLength(1));
+          expect(results[0].constructorParameters, isEmpty);
+          expect(results[0].injectedFields, hasLength(1));
+        },
+      );
 
       test('should handle custom type as mandatory param', () {
         final dartFile = File('${tempDir.path}/service.dart');
@@ -748,9 +760,11 @@ class Logger {}
       //   - private late field
       //   - interface implementation
 
-      test('should find singleton with empty default constructor and named constructor', () {
-        final dartFile = File('${tempDir.path}/service.dart');
-        dartFile.writeAsStringSync('''
+      test(
+        'should find singleton with empty default constructor and named constructor',
+        () {
+          final dartFile = File('${tempDir.path}/service.dart');
+          dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 abstract class IMyRepo {}
@@ -766,19 +780,22 @@ class MyRepo implements IMyRepo {
 abstract class IWorkDb {}
 ''');
 
-        final results = SourceParser.parse([dartFile]);
+          final results = SourceParser.parse([dartFile]);
 
-        expect(results, hasLength(1));
-        expect(results[0].className, 'MyRepo');
-        // Default constructor has no annotated params
-        expect(results[0].constructorParameters, isEmpty);
-        // No @isInjected fields
-        expect(results[0].injectedFields, isEmpty);
-      });
+          expect(results, hasLength(1));
+          expect(results[0].className, 'MyRepo');
+          // Default constructor has no annotated params
+          expect(results[0].constructorParameters, isEmpty);
+          // No @isInjected fields
+          expect(results[0].injectedFields, isEmpty);
+        },
+      );
 
-      test('should treat @isMandatoryParameter on a late field like @isInjected', () {
-        final dartFile = File('${tempDir.path}/service.dart');
-        dartFile.writeAsStringSync('''
+      test(
+        'should treat @isMandatoryParameter on a late field like @isInjected',
+        () {
+          final dartFile = File('${tempDir.path}/service.dart');
+          dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -793,18 +810,21 @@ class MyRepo {
 abstract class IWorkDb {}
 ''');
 
-        final results = SourceParser.parse([dartFile]);
+          final results = SourceParser.parse([dartFile]);
 
-        expect(results, hasLength(1));
-        expect(results[0].injectedFields, hasLength(1));
-        expect(results[0].injectedFields[0].fieldName, 'db');
-        expect(results[0].injectedFields[0].fieldType, 'IWorkDb');
-        expect(results[0].constructorParameters, isEmpty);
-      });
+          expect(results, hasLength(1));
+          expect(results[0].injectedFields, hasLength(1));
+          expect(results[0].injectedFields[0].fieldName, 'db');
+          expect(results[0].injectedFields[0].fieldType, 'IWorkDb');
+          expect(results[0].constructorParameters, isEmpty);
+        },
+      );
 
-      test('should skip private late field annotated with @isMandatoryParameter', () {
-        final dartFile = File('${tempDir.path}/service.dart');
-        dartFile.writeAsStringSync('''
+      test(
+        'should skip private late field annotated with @isMandatoryParameter',
+        () {
+          final dartFile = File('${tempDir.path}/service.dart');
+          dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -820,12 +840,13 @@ class MyRepo {
 abstract class IWorkDb {}
 ''');
 
-        final results = SourceParser.parse([dartFile]);
+          final results = SourceParser.parse([dartFile]);
 
-        expect(results, hasLength(1));
-        expect(results[0].injectedFields, hasLength(1));
-        expect(results[0].injectedFields[0].fieldName, 'db');
-      });
+          expect(results, hasLength(1));
+          expect(results[0].injectedFields, hasLength(1));
+          expect(results[0].injectedFields[0].fieldName, 'db');
+        },
+      );
 
       test('should handle full repository-like class', () {
         final dartFile = File('${tempDir.path}/service.dart');
@@ -858,7 +879,10 @@ abstract class IWorkDb {}
         expect(results[0].injectedFields[0].fieldName, 'db');
         expect(results[0].injectedFields[0].fieldType, 'IWorkDb');
         // _collection is private, must be skipped
-        expect(results[0].injectedFields.map((f) => f.fieldName), isNot(contains('_collection')));
+        expect(
+          results[0].injectedFields.map((f) => f.fieldName),
+          isNot(contains('_collection')),
+        );
         expect(results[0].constructorParameters, isEmpty);
       });
 
@@ -925,7 +949,10 @@ class ErmesBookServiceBase {
         expect(results, hasLength(1));
         expect(results[0].injectedFields, hasLength(1));
         expect(results[0].injectedFields[0].fieldName, 'repository');
-        expect(results[0].injectedFields[0].fieldType, 'IErmesBookRepository<BookData>');
+        expect(
+          results[0].injectedFields[0].fieldType,
+          'IErmesBookRepository<BookData>',
+        );
       });
 
       test('should parse nullable generic type', () {
@@ -945,7 +972,10 @@ class MyService {
         expect(results, hasLength(1));
         expect(results[0].injectedFields, hasLength(1));
         expect(results[0].injectedFields[0].fieldName, 'repo');
-        expect(results[0].injectedFields[0].fieldType, 'IRepository<BookData>?');
+        expect(
+          results[0].injectedFields[0].fieldType,
+          'IRepository<BookData>?',
+        );
       });
 
       test('should parse nested generic type', () {
@@ -965,7 +995,10 @@ class MyService {
         expect(results, hasLength(1));
         expect(results[0].injectedFields, hasLength(1));
         expect(results[0].injectedFields[0].fieldName, 'cache');
-        expect(results[0].injectedFields[0].fieldType, 'ICache<Map<String, int>>');
+        expect(
+          results[0].injectedFields[0].fieldType,
+          'ICache<Map<String, int>>',
+        );
       });
 
       test('should parse multi-parameter generic type', () {
@@ -985,7 +1018,10 @@ class MyService {
         expect(results, hasLength(1));
         expect(results[0].injectedFields, hasLength(1));
         expect(results[0].injectedFields[0].fieldName, 'map');
-        expect(results[0].injectedFields[0].fieldType, 'IMap<String, BookData>');
+        expect(
+          results[0].injectedFields[0].fieldType,
+          'IMap<String, BookData>',
+        );
       });
     });
   });

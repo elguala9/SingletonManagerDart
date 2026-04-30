@@ -46,7 +46,9 @@ Future<void> main(List<String> arguments) async {
   }
 
   final inputDir = Directory(results['input'] as String);
-  final outputDir = Directory(results['output'] as String? ?? (results['input'] as String));
+  final outputDir = Directory(
+    results['output'] as String? ?? (results['input'] as String),
+  );
   final verbose = results['verbose'] as bool;
 
   if (!inputDir.existsSync()) {
@@ -89,7 +91,10 @@ Future<void> main(List<String> arguments) async {
     final outputFileName = '${p.withoutExtension(sourceFileName)}_di.dart';
     final outputPath = p.join(outputDir.path, outputFileName);
 
-    final diCode = AugmentationGenerator.generate(info, outputFilePath: outputPath);
+    final diCode = AugmentationGenerator.generate(
+      info,
+      outputFilePath: outputPath,
+    );
 
     File(outputPath).writeAsStringSync(diCode);
     if (verbose) {

@@ -8,7 +8,7 @@ void main() {
     late Directory tempDir;
 
     setUpAll(() {
-      tempDir = Directory('lib/test_artifacts/cli_tests');
+      tempDir = Directory('test_artifacts/cli_tests');
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
       }
@@ -166,13 +166,15 @@ class MyService {
       expect(parsed, isEmpty);
     });
 
-    test('should write _di.dart with initializeWithParametersDI when source has @isMandatoryParameter/@isOptionalParameter', () {
-      final inputDir = Directory('${tempDir.path}/input');
-      inputDir.createSync();
+    test(
+      'should write _di.dart with initializeWithParametersDI when source has @isMandatoryParameter/@isOptionalParameter',
+      () {
+        final inputDir = Directory('${tempDir.path}/input');
+        inputDir.createSync();
 
-      // Input source file with annotated constructor params.
-      final sourceFile = File('${inputDir.path}/my_service.dart');
-      sourceFile.writeAsStringSync('''
+        // Input source file with annotated constructor params.
+        final sourceFile = File('${inputDir.path}/my_service.dart');
+        sourceFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -186,30 +188,54 @@ class MyService {
 class Logger {}
 ''');
 
-      // Simulate CLI: parse → generate → write.
-      final parsed = SourceParser.parse([sourceFile]);
-      expect(parsed, hasLength(1));
+        // Simulate CLI: parse → generate → write.
+        final parsed = SourceParser.parse([sourceFile]);
+        expect(parsed, hasLength(1));
 
-      final diCode = AugmentationGenerator.generate(parsed[0]);
+        final diCode = AugmentationGenerator.generate(parsed[0]);
 
-      final diFile = File('${inputDir.path}/my_service_di.dart');
-      diFile.writeAsStringSync(diCode);
+        final diFile = File('${inputDir.path}/my_service_di.dart');
+        diFile.writeAsStringSync(diCode);
 
-      // Read back from disk — exactly what the CLI would produce.
-      final written = diFile.readAsStringSync();
+        // Read back from disk — exactly what the CLI would produce.
+        final written = diFile.readAsStringSync();
 
-      expect(written, contains('// AUTO-GENERATED - DO NOT CHANGE'));
-      expect(written, contains('class MyServiceDI extends MyService implements ISingletonStandardDI'));
-      // Constructor forwards both params to super (positional).
-      expect(written, contains('MyServiceDI(String apiUrl, {int? timeoutMs}) : super(apiUrl, timeoutMs: timeoutMs)'));
-      // initializeWithParametersDI written to disk.
-      expect(written, contains('factory MyServiceDI.initializeWithParametersDI(String apiUrl, {int? timeoutMs})'));
-      expect(written, contains('final instance = MyServiceDI(apiUrl, timeoutMs: timeoutMs)'));
-      expect(written, contains('instance.logger = SingletonDIAccess.get<Logger>()'));
-      // No no-arg factory (mandatory param present).
-      expect(written, isNot(contains('factory MyServiceDI.initializeDI()')));
-      // @isInjected still works.
-      expect(written, contains('logger = SingletonDIAccess.get<Logger>()'));
-    });
+        expect(written, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+        expect(
+          written,
+          contains(
+            'class MyServiceDI extends MyService implements ISingletonStandardDI',
+          ),
+        );
+        // Constructor forwards both params to super (positional).
+        expect(
+          written,
+          contains(
+            'MyServiceDI(String apiUrl, {int? timeoutMs}) : super(apiUrl, timeoutMs: timeoutMs)',
+          ),
+        );
+        // initializeWithParametersDI written to disk.
+        expect(
+          written,
+          contains(
+            'factory MyServiceDI.initializeWithParametersDI(String apiUrl, {int? timeoutMs})',
+          ),
+        );
+        expect(
+          written,
+          contains(
+            'final instance = MyServiceDI(apiUrl, timeoutMs: timeoutMs)',
+          ),
+        );
+        expect(
+          written,
+          contains('instance.logger = SingletonDIAccess.get<Logger>()'),
+        );
+        // No no-arg factory (mandatory param present).
+        expect(written, isNot(contains('factory MyServiceDI.initializeDI()')));
+        // @isInjected still works.
+        expect(written, contains('logger = SingletonDIAccess.get<Logger>()'));
+      },
+    );
   });
 }

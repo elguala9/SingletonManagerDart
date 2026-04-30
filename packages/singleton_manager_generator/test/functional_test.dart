@@ -9,7 +9,7 @@ void main() {
     late Directory tempDir;
 
     setUpAll(() {
-      tempDir = Directory('lib/test_artifacts/functional_tests');
+      tempDir = Directory('test_artifacts/functional_tests');
       if (tempDir.existsSync()) {
         tempDir.deleteSync(recursive: true);
       }
@@ -55,7 +55,12 @@ class UserService {
 
       // Verify it's valid Dart by checking syntax
       expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
-      expect(diCode, contains('// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import'));
+      expect(
+        diCode,
+        contains(
+          '// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import',
+        ),
+      );
       expect(diCode, contains('class UserServiceDI'));
       expect(diCode, contains('factory UserServiceDI.initializeDI()'));
       expect(diCode, contains('implements ISingletonStandardDI'));
@@ -140,12 +145,14 @@ class PaymentService {
       expect(diCode, contains('debugMode = SingletonDIAccess.get<bool>()'));
     });
 
-    test('multiple classes generate separate augment files with correct names', () {
-      final dir = Directory('${tempDir.path}/lib/multi');
-      dir.createSync(recursive: true);
+    test(
+      'multiple classes generate separate augment files with correct names',
+      () {
+        final dir = Directory('${tempDir.path}/lib/multi');
+        dir.createSync(recursive: true);
 
-      final file1 = File('${dir.path}/service_one.dart');
-      file1.writeAsStringSync('''
+        final file1 = File('${dir.path}/service_one.dart');
+        file1.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -155,8 +162,8 @@ class ServiceOne {
 }
 ''');
 
-      final file2 = File('${dir.path}/service_two.dart');
-      file2.writeAsStringSync('''
+        final file2 = File('${dir.path}/service_two.dart');
+        file2.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -166,25 +173,29 @@ class ServiceTwo {
 }
 ''');
 
-      final parsed = SourceParser.parse([file1, file2]);
-      expect(parsed, hasLength(2));
+        final parsed = SourceParser.parse([file1, file2]);
+        expect(parsed, hasLength(2));
 
-      // Generate augment files
-      for (final info in parsed) {
-        final baseName = info.sourceFilePath.split('/').last.split('.dart')[0];
-        final diCode = AugmentationGenerator.generate(info);
-        final augmentFile = File('${dir.path}/${baseName}_di.dart');
-        augmentFile.writeAsStringSync(diCode);
+        // Generate augment files
+        for (final info in parsed) {
+          final baseName = info.sourceFilePath
+              .split('/')
+              .last
+              .split('.dart')[0];
+          final diCode = AugmentationGenerator.generate(info);
+          final augmentFile = File('${dir.path}/${baseName}_di.dart');
+          augmentFile.writeAsStringSync(diCode);
 
-        expect(augmentFile.existsSync(), true);
-        expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
-        expect(diCode, contains('class'));
-      }
+          expect(augmentFile.existsSync(), true);
+          expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+          expect(diCode, contains('class'));
+        }
 
-      // Verify both files exist with correct names
-      expect(File('${dir.path}/service_one_di.dart').existsSync(), true);
-      expect(File('${dir.path}/service_two_di.dart').existsSync(), true);
-    });
+        // Verify both files exist with correct names
+        expect(File('${dir.path}/service_one_di.dart').existsSync(), true);
+        expect(File('${dir.path}/service_two_di.dart').existsSync(), true);
+      },
+    );
 
     test('generated code has correct imports', () {
       final dir = Directory('${tempDir.path}/lib/imports');
@@ -213,9 +224,17 @@ class DatabaseService {
 
       // Verify required imports are present
       expect(diCode, contains("// AUTO-GENERATED - DO NOT CHANGE"));
-      expect(diCode, contains("import 'package:singleton_manager/singleton_manager.dart';"));
+      expect(
+        diCode,
+        contains("import 'package:singleton_manager/singleton_manager.dart';"),
+      );
       // Verify no duplicate imports (should appear only once)
-      expect(diCode.split("import 'package:singleton_manager/singleton_manager.dart';"), hasLength(2));
+      expect(
+        diCode.split(
+          "import 'package:singleton_manager/singleton_manager.dart';",
+        ),
+        hasLength(2),
+      );
     });
 
     test('generated augment library path is correct', () {
@@ -279,11 +298,23 @@ class CompleteService {
 
       // Verify all required components are present
       expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
-      expect(diCode, contains('// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import'));
-      expect(diCode, contains("import 'package:singleton_manager/singleton_manager.dart';"));
+      expect(
+        diCode,
+        contains(
+          '// ignore_for_file: directives_ordering, library_prefixes, unnecessary_import',
+        ),
+      );
+      expect(
+        diCode,
+        contains("import 'package:singleton_manager/singleton_manager.dart';"),
+      );
       expect(diCode, contains("import 'complete_service.dart';"));
-      expect(diCode,
-          contains('class CompleteServiceDI extends CompleteService implements ISingletonStandardDI {'));
+      expect(
+        diCode,
+        contains(
+          'class CompleteServiceDI extends CompleteService implements ISingletonStandardDI {',
+        ),
+      );
       expect(diCode, contains('factory CompleteServiceDI.initializeDI() {'));
       expect(diCode, contains('final instance = CompleteServiceDI();'));
       expect(diCode, contains('instance.initializeDI();'));
@@ -299,13 +330,15 @@ class CompleteService {
       expect(content, equals(diCode));
     });
 
-    test('class with @isMandatoryParameter and @isOptionalParameter generates initializeWithParametersDI', () {
-      final dir = Directory('${tempDir.path}/lib/params');
-      dir.createSync(recursive: true);
+    test(
+      'class with @isMandatoryParameter and @isOptionalParameter generates initializeWithParametersDI',
+      () {
+        final dir = Directory('${tempDir.path}/lib/params');
+        dir.createSync(recursive: true);
 
-      // Source file with annotated constructor params AND injected fields.
-      final dartFile = File('${dir.path}/payment_gateway.dart');
-      dartFile.writeAsStringSync('''
+        // Source file with annotated constructor params AND injected fields.
+        final dartFile = File('${dir.path}/payment_gateway.dart');
+        dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 @isSingleton
@@ -326,51 +359,89 @@ class Logger {}
 class AuditRepository {}
 ''');
 
-      // Parse — constructorParameters must come through.
-      final parsed = SourceParser.parse([dartFile]);
-      expect(parsed, hasLength(1));
-      expect(parsed[0].constructorParameters, hasLength(2));
-      expect(parsed[0].constructorParameters[0].name, 'apiKey');
-      expect(parsed[0].constructorParameters[0].isMandatory, isTrue);
-      expect(parsed[0].constructorParameters[1].name, 'currency');
-      expect(parsed[0].constructorParameters[1].isMandatory, isFalse);
-      expect(parsed[0].injectedFields, hasLength(2));
+        // Parse — constructorParameters must come through.
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].constructorParameters, hasLength(2));
+        expect(parsed[0].constructorParameters[0].name, 'apiKey');
+        expect(parsed[0].constructorParameters[0].isMandatory, isTrue);
+        expect(parsed[0].constructorParameters[1].name, 'currency');
+        expect(parsed[0].constructorParameters[1].isMandatory, isFalse);
+        expect(parsed[0].injectedFields, hasLength(2));
 
-      // Generate — pass parsed[0] directly so constructorParameters is preserved.
-      final diCode = AugmentationGenerator.generate(parsed[0]);
-      final diFile = File('${dir.path}/payment_gateway_di.dart');
-      diFile.writeAsStringSync(diCode);
+        // Generate — pass parsed[0] directly so constructorParameters is preserved.
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        final diFile = File('${dir.path}/payment_gateway_di.dart');
+        diFile.writeAsStringSync(diCode);
 
-      // -- structural checks --
-      expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
-      expect(diCode, contains('class PaymentGatewayDI extends PaymentGateway implements ISingletonStandardDI'));
+        // -- structural checks --
+        expect(diCode, contains('// AUTO-GENERATED - DO NOT CHANGE'));
+        expect(
+          diCode,
+          contains(
+            'class PaymentGatewayDI extends PaymentGateway implements ISingletonStandardDI',
+          ),
+        );
 
-      // DI constructor mirrors original named params.
-      expect(diCode, contains('PaymentGatewayDI({required String apiKey, String? currency}) : super(apiKey: apiKey, currency: currency)'));
+        // DI constructor mirrors original named params.
+        expect(
+          diCode,
+          contains(
+            'PaymentGatewayDI({required String apiKey, String? currency}) : super(apiKey: apiKey, currency: currency)',
+          ),
+        );
 
-      // No no-arg initializeDI factory (mandatory param present).
-      expect(diCode, isNot(contains('factory PaymentGatewayDI.initializeDI()')));
+        // No no-arg initializeDI factory (mandatory param present).
+        expect(
+          diCode,
+          isNot(contains('factory PaymentGatewayDI.initializeDI()')),
+        );
 
-      // initializeWithParametersDI: mandatory=positional, optional=named.
-      expect(diCode, contains('factory PaymentGatewayDI.initializeWithParametersDI(String apiKey, {String? currency})'));
-      expect(diCode, contains('final instance = PaymentGatewayDI(apiKey: apiKey, currency: currency)'));
-      // @isInjected fields injected explicitly (no initializeDI() call).
-      expect(diCode, contains('instance.logger = SingletonDIAccess.get<Logger>()'));
-      expect(diCode, contains('instance.audit = SingletonDIAccess.get<AuditRepository>()'));
-      expect(diCode, contains('return instance'));
+        // initializeWithParametersDI: mandatory=positional, optional=named.
+        expect(
+          diCode,
+          contains(
+            'factory PaymentGatewayDI.initializeWithParametersDI(String apiKey, {String? currency})',
+          ),
+        );
+        expect(
+          diCode,
+          contains(
+            'final instance = PaymentGatewayDI(apiKey: apiKey, currency: currency)',
+          ),
+        );
+        // @isInjected fields injected explicitly (no initializeDI() call).
+        expect(
+          diCode,
+          contains('instance.logger = SingletonDIAccess.get<Logger>()'),
+        );
+        expect(
+          diCode,
+          contains('instance.audit = SingletonDIAccess.get<AuditRepository>()'),
+        );
+        expect(diCode, contains('return instance'));
 
-      // Blank line between constructor and factory.
-      expect(diCode, contains('super(apiKey: apiKey, currency: currency);\n\n  factory PaymentGatewayDI.initializeWithParametersDI'));
+        // Blank line between constructor and factory.
+        expect(
+          diCode,
+          contains(
+            'super(apiKey: apiKey, currency: currency);\n\n  factory PaymentGatewayDI.initializeWithParametersDI',
+          ),
+        );
 
-      // @isInjected fields still injected in initializeDI method.
-      expect(diCode, contains('void initializeDI()'));
-      expect(diCode, contains('logger = SingletonDIAccess.get<Logger>()'));
-      expect(diCode, contains('audit = SingletonDIAccess.get<AuditRepository>()'));
+        // @isInjected fields still injected in initializeDI method.
+        expect(diCode, contains('void initializeDI()'));
+        expect(diCode, contains('logger = SingletonDIAccess.get<Logger>()'));
+        expect(
+          diCode,
+          contains('audit = SingletonDIAccess.get<AuditRepository>()'),
+        );
 
-      // File written correctly.
-      expect(diFile.existsSync(), isTrue);
-      expect(diFile.readAsStringSync(), equals(diCode));
-    });
+        // File written correctly.
+        expect(diFile.existsSync(), isTrue);
+        expect(diFile.readAsStringSync(), equals(diCode));
+      },
+    );
 
     test('empty class (no injections) generates valid code', () {
       final dir = Directory('${tempDir.path}/lib/empty');
@@ -404,12 +475,14 @@ class EmptyService {
       expect(diCode, isNot(contains('SingletonDIAccess.get')));
     });
 
-    test('@isMandatoryParameter on late field + optional ctor param + @isInjected — generates initializeWithParametersDI with explicit injection then mandatory field assignment', () {
-      final dir = Directory('${tempDir.path}/lib/params');
-      dir.createSync(recursive: true);
+    test(
+      '@isMandatoryParameter on late field + optional ctor param + @isInjected — generates initializeWithParametersDI with explicit injection then mandatory field assignment',
+      () {
+        final dir = Directory('${tempDir.path}/lib/params');
+        dir.createSync(recursive: true);
 
-      final dartFile = File('${dir.path}/id_handler_storage_repository.dart');
-      dartFile.writeAsStringSync('''
+        final dartFile = File('${dir.path}/id_handler_storage_repository.dart');
+        dartFile.writeAsStringSync('''
 import 'package:singleton_manager/singleton_manager.dart';
 
 abstract class IIdHandlerStorageRepository {}
@@ -434,34 +507,58 @@ class IdHandlerStorageRepository implements IIdHandlerStorageRepository {
 }
 ''');
 
-      final parsed = SourceParser.parse([dartFile]);
-      expect(parsed, hasLength(1));
-      expect(parsed[0].injectedFields, hasLength(2));
-      expect(parsed[0].injectedFields[0].fieldName, 'db');
-      expect(parsed[0].injectedFields[0].fieldType, 'IWorkDb');
-      expect(parsed[0].injectedFields[0].isMandatory, isTrue);
-      expect(parsed[0].injectedFields[1].fieldName, 'logger');
-      expect(parsed[0].injectedFields[1].fieldType, 'ILogger');
-      expect(parsed[0].injectedFields[1].isMandatory, isFalse);
-      expect(parsed[0].constructorParameters, hasLength(1));
-      expect(parsed[0].constructorParameters[0].name, 'collection');
-      expect(parsed[0].constructorParameters[0].isMandatory, isFalse);
+        final parsed = SourceParser.parse([dartFile]);
+        expect(parsed, hasLength(1));
+        expect(parsed[0].injectedFields, hasLength(2));
+        expect(parsed[0].injectedFields[0].fieldName, 'db');
+        expect(parsed[0].injectedFields[0].fieldType, 'IWorkDb');
+        expect(parsed[0].injectedFields[0].isMandatory, isTrue);
+        expect(parsed[0].injectedFields[1].fieldName, 'logger');
+        expect(parsed[0].injectedFields[1].fieldType, 'ILogger');
+        expect(parsed[0].injectedFields[1].isMandatory, isFalse);
+        expect(parsed[0].constructorParameters, hasLength(1));
+        expect(parsed[0].constructorParameters[0].name, 'collection');
+        expect(parsed[0].constructorParameters[0].isMandatory, isFalse);
 
-      final diCode = AugmentationGenerator.generate(parsed[0]);
-      File('${dir.path}/id_handler_storage_repository_di.dart').writeAsStringSync(diCode);
+        final diCode = AugmentationGenerator.generate(parsed[0]);
+        File(
+          '${dir.path}/id_handler_storage_repository_di.dart',
+        ).writeAsStringSync(diCode);
 
-      expect(diCode, contains('class IdHandlerStorageRepositoryDI extends IdHandlerStorageRepository implements ISingletonStandardDI'));
-      expect(diCode, contains('IdHandlerStorageRepositoryDI({String? collection}) : super(collection: collection)'));
-      expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeDI()'));
-      // initializeDI() injects ALL annotated fields (mandatory + non-mandatory)
-      expect(diCode, contains('db = SingletonDIAccess.get<IWorkDb>()'));
-      expect(diCode, contains('logger = SingletonDIAccess.get<ILogger>()'));
-      // initializeWithParametersDI: mandatory field as positional, optional ctor param as named
-      expect(diCode, contains('factory IdHandlerStorageRepositoryDI.initializeWithParametersDI(IWorkDb db, {String? collection})'));
-      // factory injects @isInjected fields explicitly, then sets mandatory field from parameter
-      expect(diCode, contains('instance.logger = SingletonDIAccess.get<ILogger>()'));
-      expect(diCode, contains('instance.db = db'));
-      expect(diCode, isNot(contains('_collection')));
-    });
+        expect(
+          diCode,
+          contains(
+            'class IdHandlerStorageRepositoryDI extends IdHandlerStorageRepository implements ISingletonStandardDI',
+          ),
+        );
+        expect(
+          diCode,
+          contains(
+            'IdHandlerStorageRepositoryDI({String? collection}) : super(collection: collection)',
+          ),
+        );
+        expect(
+          diCode,
+          contains('factory IdHandlerStorageRepositoryDI.initializeDI()'),
+        );
+        // initializeDI() injects ALL annotated fields (mandatory + non-mandatory)
+        expect(diCode, contains('db = SingletonDIAccess.get<IWorkDb>()'));
+        expect(diCode, contains('logger = SingletonDIAccess.get<ILogger>()'));
+        // initializeWithParametersDI: mandatory field as positional, optional ctor param as named
+        expect(
+          diCode,
+          contains(
+            'factory IdHandlerStorageRepositoryDI.initializeWithParametersDI(IWorkDb db, {String? collection})',
+          ),
+        );
+        // factory injects @isInjected fields explicitly, then sets mandatory field from parameter
+        expect(
+          diCode,
+          contains('instance.logger = SingletonDIAccess.get<ILogger>()'),
+        );
+        expect(diCode, contains('instance.db = db'));
+        expect(diCode, isNot(contains('_collection')));
+      },
+    );
   });
 }

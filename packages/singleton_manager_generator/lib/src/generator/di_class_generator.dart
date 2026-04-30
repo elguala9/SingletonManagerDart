@@ -29,13 +29,16 @@ class AugmentationGenerator {
     }
 
     final extraImports = _buildExtraImports(info, outputFilePath);
-    final extraImportsBlock =
-        extraImports.isEmpty ? '' : '${extraImports.join('\n')}\n';
+    final extraImportsBlock = extraImports.isEmpty
+        ? ''
+        : '${extraImports.join('\n')}\n';
     final injectionCode = _generateInjectionCode(info);
 
     final params = info.constructorParameters;
     final hasMandatoryCtorParams = params.any((p) => p.isMandatory);
-    final mandatoryFields = info.injectedFields.where((f) => f.isMandatory).toList();
+    final mandatoryFields = info.injectedFields
+        .where((f) => f.isMandatory)
+        .toList();
 
     final diConstructor = _buildDIConstructorLine(info);
 
@@ -43,21 +46,26 @@ class AugmentationGenerator {
     final initializeDIFactory = hasMandatoryCtorParams
         ? ''
         : '  factory ${info.className}DI.initializeDI() {\n'
-            '    final instance = ${info.className}DI();\n'
-            '    instance.initializeDI();\n'
-            '    return instance;\n'
-            '  }\n';
+              '    final instance = ${info.className}DI();\n'
+              '    instance.initializeDI();\n'
+              '    return instance;\n'
+              '  }\n';
 
-    final optionalFields = info.injectedFields.where((f) => f.isOptional).toList();
-    final initializeWithParamsFactory = (params.isNotEmpty || mandatoryFields.isNotEmpty || optionalFields.isNotEmpty)
+    final optionalFields = info.injectedFields
+        .where((f) => f.isOptional)
+        .toList();
+    final initializeWithParamsFactory =
+        (params.isNotEmpty ||
+            mandatoryFields.isNotEmpty ||
+            optionalFields.isNotEmpty)
         ? _buildInitializeWithParamsFactory(info, mandatoryFields)
         : '';
 
     // Each non-empty block is preceded by a blank line.
-    final factoriesBlock = [initializeDIFactory, initializeWithParamsFactory]
-        .where((b) => b.isNotEmpty)
-        .map((b) => '\n$b')
-        .join();
+    final factoriesBlock = [
+      initializeDIFactory,
+      initializeWithParamsFactory,
+    ].where((b) => b.isNotEmpty).map((b) => '\n$b').join();
 
     return '''// AUTO-GENERATED - DO NOT CHANGE
 // ignore_for_file: directives_ordering, library_prefixes, unnecessary_import, unused_import, lines_longer_than_80_chars, cascade_invocations
@@ -93,15 +101,21 @@ $injectionCode  }
       sigParts.add('${p.type} ${p.name}');
     }
     if (named.isNotEmpty) {
-      final namedParts = named.map((p) {
-        return p.isMandatory ? 'required ${p.type} ${p.name}' : '${p.type} ${p.name}';
-      }).join(', ');
+      final namedParts = named
+          .map((p) {
+            return p.isMandatory
+                ? 'required ${p.type} ${p.name}'
+                : '${p.type} ${p.name}';
+          })
+          .join(', ');
       sigParts.add('{$namedParts}');
     }
 
-    final superParts = params.map((p) {
-      return p.isNamed ? '${p.name}: ${p.name}' : p.name;
-    }).join(', ');
+    final superParts = params
+        .map((p) {
+          return p.isNamed ? '${p.name}: ${p.name}' : p.name;
+        })
+        .join(', ');
 
     return '${info.className}DI(${sigParts.join(', ')}) : super($superParts)';
   }
@@ -119,10 +133,16 @@ $injectionCode  }
     SingletonClassInfo info,
     List<InjectedFieldInfo> mandatoryFields,
   ) {
-    final mandatory = info.constructorParameters.where((p) => p.isMandatory).toList();
-    final optional = info.constructorParameters.where((p) => !p.isMandatory).toList();
+    final mandatory = info.constructorParameters
+        .where((p) => p.isMandatory)
+        .toList();
+    final optional = info.constructorParameters
+        .where((p) => !p.isMandatory)
+        .toList();
 
-    final optionalFields = info.injectedFields.where((f) => f.isOptional).toList();
+    final optionalFields = info.injectedFields
+        .where((f) => f.isOptional)
+        .toList();
 
     final sigParts = <String>[];
     for (final p in mandatory) {
@@ -135,26 +155,31 @@ $injectionCode  }
     // Optional ctor params + optional fields share the named block.
     final namedParts = <String>[
       ...optional.map((p) => '${p.type} ${p.name}'),
-      ...optionalFields.map((f) => '${f.fieldType}? ${f.fieldName}'),
+      ...optionalFields.map((f) => '${f.fieldType} ${f.fieldName}'), // ? togled because it already have it
     ];
     if (namedParts.isNotEmpty) {
       sigParts.add('{${namedParts.join(', ')}}');
     }
 
     // Build the call to the DI constructor using original named/positional style.
-    // When there are no constructor parameters, use the .emptyForDI() named constructor
-    // to avoid calling the default constructor and prevent conflicts with the parent class.
-    final ctorCallParts = info.constructorParameters.map((p) {
-      return p.isNamed ? '${p.name}: ${p.name}' : p.name;
-    }).join(', ');
+    final ctorCallParts = info.constructorParameters
+        .map((p) {
+          return p.isNamed ? '${p.name}: ${p.name}' : p.name;
+        })
+        .join(', ');
     final ctorCall = info.constructorParameters.isEmpty
-        ? '${info.className}DI.emptyForDI()'
+        ? '${info.className}DI()'
         : '${info.className}DI($ctorCallParts)';
 
     // Inject pure @isInjected fields explicitly from the container.
-    final injectedFields = info.injectedFields.where((f) => !f.isMandatory && !f.isOptional).toList();
+    final injectedFields = info.injectedFields
+        .where((f) => !f.isMandatory && !f.isOptional)
+        .toList();
     final injectionLines = injectedFields
-        .map((f) => '    instance.${f.fieldName} = SingletonDIAccess.get<${f.fieldType}>();')
+        .map(
+          (f) =>
+              '    instance.${f.fieldName} = SingletonDIAccess.get<${f.fieldType}>();',
+        )
         .join('\n');
     final injectionBlock = injectionLines.isNotEmpty ? '$injectionLines\n' : '';
 
@@ -162,14 +187,17 @@ $injectionCode  }
     final optionalAssignments = optionalFields
         .map((f) => '    instance.${f.fieldName} = ${f.fieldName};')
         .join('\n');
-    final optionalAssignmentsBlock = optionalAssignments.isNotEmpty ? '$optionalAssignments\n' : '';
+    final optionalAssignmentsBlock = optionalAssignments.isNotEmpty
+        ? '$optionalAssignments\n'
+        : '';
 
     // Assign mandatory fields from parameters.
     final fieldAssignments = mandatoryFields
         .map((f) => '    instance.${f.fieldName} = ${f.fieldName};')
         .join('\n');
-    final fieldAssignmentsBlock =
-        fieldAssignments.isNotEmpty ? '$fieldAssignments\n' : '';
+    final fieldAssignmentsBlock = fieldAssignments.isNotEmpty
+        ? '$fieldAssignments\n'
+        : '';
 
     return '  factory ${info.className}DI.initializeWithParametersDI(${sigParts.join(', ')}) {\n'
         '    final instance = $ctorCall;\n'
@@ -230,12 +258,17 @@ $injectionCode  }
       return '';
     }
 
-    final lines = injected.map((field) {
-      if (field.isOptional) {
-        return '    if (SingletonDIAccess.exists<${field.fieldType}>()) ${field.fieldName} = SingletonDIAccess.get<${field.fieldType}>();';
-      }
-      return '    ${field.fieldName} = SingletonDIAccess.get<${field.fieldType}>();';
-    }).join('\n');
+    final lines = injected
+        .map((field) {
+          if (field.isOptional) {
+            final type = field.fieldType.endsWith('?')
+                ? field.fieldType.substring(0, field.fieldType.length - 1)
+                : field.fieldType;
+            return '    if (SingletonDIAccess.exists<$type>()) ${field.fieldName} = SingletonDIAccess.get<$type>();';
+          }
+          return '    ${field.fieldName} = SingletonDIAccess.get<${field.fieldType}>();';
+        })
+        .join('\n');
 
     return '$lines\n';
   }
