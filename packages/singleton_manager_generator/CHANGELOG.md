@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.4.2] - 2026-04-30
+
+### Fixed
+- `@isOptionalParameter` on nullable fields no longer includes the `?` suffix in `SingletonDIAccess.exists<T>()` and `SingletonDIAccess.get<T>()` generic type arguments, since the DI container stores non-nullable types
+
+## [1.4.1] - 2026-04-30
+
+### Fixed
+- Generated `initializeWithParametersDI()` factory now uses `ClassNameDI()` instead of `ClassNameDI.emptyForDI()` when no constructor parameters are present, making it consistent with the `initializeDI()` factory (follow-up to v1.4.0)
+
 ## [1.4.0] - 2026-03-27
 
 ### Changed

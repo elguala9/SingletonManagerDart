@@ -37,13 +37,20 @@ class SourceParser {
 
         for (final declaration in unit.declarations) {
           if (declaration is ClassDeclaration) {
-            final singleton = _extractSingletonInfo(declaration, file, content, imports);
+            final singleton = _extractSingletonInfo(
+              declaration,
+              file,
+              content,
+              imports,
+            );
             if (singleton != null) {
               results.add(singleton);
               if (verbose) {
                 print('  Found @isSingleton class: ${singleton.className}');
                 for (final field in singleton.injectedFields) {
-                  print('    - @isInjected field: ${field.fieldName} (${field.fieldType})');
+                  print(
+                    '    - @isInjected field: ${field.fieldName} (${field.fieldType})',
+                  );
                 }
               }
             }
@@ -73,11 +80,18 @@ class SourceParser {
     final constructorParameters = <ConstructorParameterInfo>[];
 
     // ignore: deprecated_member_use
-    for (final member in classDecl.members) {
+    for (final member in classDecl.body.members) {
       if (member is FieldDeclaration) {
-        final isMandatoryAnnotation = _findAnnotation(member, 'isMandatoryParameter');
-        final isOptionalAnnotation = _findAnnotation(member, 'isOptionalParameter');
-        final isInjectedAnnotation = _findAnnotation(member, 'isInjected') ?? isOptionalAnnotation;
+        final isMandatoryAnnotation = _findAnnotation(
+          member,
+          'isMandatoryParameter',
+        );
+        final isOptionalAnnotation = _findAnnotation(
+          member,
+          'isOptionalParameter',
+        );
+        final isInjectedAnnotation =
+            _findAnnotation(member, 'isInjected') ?? isOptionalAnnotation;
         final annotation = isMandatoryAnnotation ?? isInjectedAnnotation;
         if (annotation != null) {
           // Only inject fields that are 'late' or 'late final'
@@ -95,7 +109,9 @@ class SourceParser {
               }
               final fieldType = _extractFieldType(member.fields.type);
               if (fieldType != null) {
-                final isOptional = isMandatoryAnnotation == null && isOptionalAnnotation != null;
+                final isOptional =
+                    isMandatoryAnnotation == null &&
+                    isOptionalAnnotation != null;
                 if (isOptional && !fieldType.endsWith('?')) {
                   print(
                     'WARNING: @isOptionalParameter field "$fieldName" in class '
@@ -171,26 +187,15 @@ class SourceParser {
 
     final isNamed = param.isNamed;
 
-    // Unwrap DefaultFormalParameter to get to the typed parameter.
-    final NormalFormalParameter inner;
-    if (param is DefaultFormalParameter) {
-      inner = param.parameter;
-    } else if (param is NormalFormalParameter) {
-      inner = param;
-    } else {
-      return null;
-    }
-
     String? type;
     String? name;
 
-    if (inner is SimpleFormalParameter) {
-      type = _extractFieldType(inner.type);
-      name = inner.name?.lexeme;
-    } else if (inner is FieldFormalParameter) {
-      type = inner.type != null ? _extractFieldType(inner.type) : null;
-      // ignore: deprecated_member_use
-      name = inner.name.lexeme;
+    if (param is RegularFormalParameter) {
+      type = _extractFieldType(param.type);
+      name = param.name?.lexeme;
+    } else if (param is FieldFormalParameter) {
+      type = param.type != null ? _extractFieldType(param.type) : null;
+      name = param.name.lexeme;
     }
 
     if (name == null || type == null) return null;

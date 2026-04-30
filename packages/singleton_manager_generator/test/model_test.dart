@@ -15,10 +15,7 @@ void main() {
     });
 
     test('should have proper toString representation', () {
-      final info = InjectedFieldInfo(
-        fieldName: 'logger',
-        fieldType: 'Logger',
-      );
+      final info = InjectedFieldInfo(fieldName: 'logger', fieldType: 'Logger');
 
       final string = info.toString();
       expect(string, contains('InjectedFieldInfo'));
@@ -46,25 +43,28 @@ void main() {
   });
 
   group('SingletonClassInfo', () {
-    test('should create instance with className, sourceFilePath, and injectedFields', () {
-      final fields = [
-        InjectedFieldInfo(fieldName: 'db', fieldType: 'DatabaseConnection'),
-        InjectedFieldInfo(fieldName: 'logger', fieldType: 'Logger'),
-      ];
+    test(
+      'should create instance with className, sourceFilePath, and injectedFields',
+      () {
+        final fields = [
+          InjectedFieldInfo(fieldName: 'db', fieldType: 'DatabaseConnection'),
+          InjectedFieldInfo(fieldName: 'logger', fieldType: 'Logger'),
+        ];
 
-      final info = SingletonClassInfo(
-        sourceFileContent: '',
-        className: 'MyService',
-        sourceFilePath: 'lib/src/my_service.dart',
-        injectedFields: fields,
-      );
+        final info = SingletonClassInfo(
+          sourceFileContent: '',
+          className: 'MyService',
+          sourceFilePath: 'lib/src/my_service.dart',
+          injectedFields: fields,
+        );
 
-      expect(info.className, 'MyService');
-      expect(info.sourceFilePath, 'lib/src/my_service.dart');
-      expect(info.injectedFields, hasLength(2));
-      expect(info.injectedFields[0].fieldName, 'db');
-      expect(info.injectedFields[1].fieldName, 'logger');
-    });
+        expect(info.className, 'MyService');
+        expect(info.sourceFilePath, 'lib/src/my_service.dart');
+        expect(info.injectedFields, hasLength(2));
+        expect(info.injectedFields[0].fieldName, 'db');
+        expect(info.injectedFields[1].fieldName, 'logger');
+      },
+    );
 
     test('should create instance with empty injectedFields list', () {
       final info = SingletonClassInfo(
@@ -119,10 +119,7 @@ void main() {
     test('should handle many injected fields', () {
       final fields = List.generate(
         100,
-        (i) => InjectedFieldInfo(
-          fieldName: 'field$i',
-          fieldType: 'Service$i',
-        ),
+        (i) => InjectedFieldInfo(fieldName: 'field$i', fieldType: 'Service$i'),
       );
 
       final info = SingletonClassInfo(

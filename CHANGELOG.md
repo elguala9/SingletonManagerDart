@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Monorepo Updates - 2026-04-30
+
+### singleton_manager_generator [1.4.1]
+
+- **Fixed**: generated `initializeWithParametersDI()` factory now uses `ClassNameDI()` instead of `ClassNameDI.emptyForDI()` when no constructor parameters are present, consistent with the `initializeDI()` factory
+
 ## Monorepo Updates - 2026-03-27
 
 ### singleton_manager_generator [1.4.0]
